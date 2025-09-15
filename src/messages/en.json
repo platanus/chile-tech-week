@@ -1,0 +1,103 @@
+{
+  "sponsorDeck": {
+    "title": "Platanus Hack '25",
+    "subtitle": "Sponsors",
+    "navigation": {
+      "platanus": "🍌 Platanus",
+      "evento": "🧑‍💻 The Event",
+      "asistentes": "👥 Attendees",
+      "2024": "2024",
+      "fotos": "📸 Photos",
+      "impacto": "💥 Impact",
+      "linkedin": "LinkedIn",
+      "instagramYoutube": "Instagram & Youtube",
+      "blogposts": "Blogposts",
+      "diario": "Newspaper",
+      "paquetes": "📦 Sponsor Packages",
+      "basic": "🫶 Basic",
+      "partner": "🚀 Partner",
+      "exclusive": "👑 Exclusive partner",
+      "contacto": "💬 Contact"
+    },
+    "platanus": {
+      "description1": "At Platanus we accelerate early-stage tech startups.",
+      "description2": "We select the best founders from Latin America (acceptance rate below 1%) and provide them with investment.",
+      "description3": "Then, for three months we help them grow together with mentors from tech startups like Fintual, Cornershop, Buk, and Runway.",
+      "moreInfo": "More information about what we do on our website."
+    },
+    "evento": {
+      "description1": "Platanus Hack brings together 120 of the best software engineers / techies in the country to build impactful solutions. From 0 to product in 36 hours.",
+      "description2Part1": "The event is inspired by the ",
+      "description2LinkText": "best hackathons in the world",
+      "description2Part2": " and has a unique format in LATAM: 36 hours non-stop. Hackers stay overnight for two nights at the office, and end up presenting a solution.",
+      "description3": "The hackers are mentored by founders from our community and finish by presenting their project to the judges and to the world, in a live stream.",
+      "launchInfoPart1": "On Friday, August 26th, we launched the ",
+      "launchInfoLinkText": "waitlist page",
+      "launchInfoPart2": ".",
+      "waitlistCount": "people on the waitlist",
+      "eventDatesPart1": "The event will start on ",
+      "eventDatesStart": "Friday, November 21, 6:30 PM",
+      "eventDatesPart2": " and end on ",
+      "eventDatesEnd": "Sunday, November 23, 3:00 PM",
+      "eventDatesPart3": "."
+    },
+    "asistentes": {
+      "description": "High-potential young people between 20 and 35 years old. Software engineers, inventors, and technical founders. We seek to create a tech community and identify founders with potential who can be part of our portfolio in the future."
+    },
+    "2024": {
+      "description1LinkText": "The 2024 edition",
+      "description1Part2": " was a great success. 367 hackers applied and we accepted 122, grouped into 26 teams. We received hackers from Chile 🇨🇱, Argentina 🇦🇷, and Singapore 🇸🇬.",
+      "description2": "Fintual, AWS, and Buk were the main sponsors. The event venue was Palacio Droguett and we welcomed hackers on Friday night, November 24th, finishing on Sunday at 3pm.",
+      "description3": "Teams chose between 4 main themes: Finance, Health, Education, and Tech. They developed throughout the weekend and finished by presenting the product they built.",
+      "description4Part1": "The result was 25 solutions that later had public voting ",
+      "description4LinkText": "on our platform",
+      "description4Part2": ".",
+      "description5Part1": "After the event, each team shared their project on social media, where a total of ",
+      "description5Part2": "2,200 votes",
+      "description5Part3": " were received.",
+      "photosLinkPart1": "You can see the complete album ",
+      "photosLinkText": "here",
+      "photosLinkPart2": "."
+    },
+    "impacto": {
+      "description": "The event generated great impact on social media. Several hackers shared their experience in different formats.",
+      "linkedinDescription": "Dozens of hackers shared their experience on LinkedIn. Here are some examples.",
+      "linkedinMorePart1": "You can see more posts ",
+      "linkedinMoreLinkText": "here",
+      "linkedinMorePart2": ".",
+      "youtubeDescriptionPart1": "You can see the complete YouTube videos ",
+      "youtubeDescriptionLinkText": "here",
+      "youtubeDescriptionPart2": ".",
+      "blogpostsDescriptionPart1": "Matías and Husam ",
+      "blogpostsDescriptionPart2": "shared their experience on their own initiative.",
+      "diarioDescription": "DF Mas covered our event with an article.",
+      "diarioLinkPart1": "You can see the digital version ",
+      "diarioLinkText": "here.",
+      "diarioLinkPart2": ""
+    },
+    "packages": {
+      "basic": {
+        "item1": "Company logo on the event landing page",
+        "item2": "Company logo on official event merchandising, small size",
+        "item3": "Company mention at opening and closing events"
+      },
+      "partner": {
+        "item1": "Everything from the 🫶 Basic plan",
+        "item2": "Company mention in event LinkedIn posts",
+        "item3": "Company logo on official event merchandising, large size",
+        "item4": "Possibility to bring 3 company representatives to the event",
+        "item5": "Access to participants' contact information, along with their projects"
+      },
+      "exclusive": {
+        "item1": "Everything from the partner plan 🙌",
+        "item2": "Prominent positioning in merchandising, alongside Platanus",
+        "item3": "2 three-minute spots during the event (opening and closing)"
+      },
+      "disclaimer": "* The partner and exclusive partner plans can be adjusted according to each company's specific needs."
+    },
+    "contacto": {
+      "descriptionPart1": "If you're interested in being sponsors, contact ",
+      "email": "rafael@platan.us"
+    }
+  }
+}

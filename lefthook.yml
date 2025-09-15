@@ -1,0 +1,13 @@
+pre-commit:
+  parallel: false
+  commands:
+    format:
+      run: pnpm format
+      stage_fixed: true
+    lint-fix:
+      run: pnpm lint:fix
+      stage_fixed: true
+    typecheck:
+      run: pnpm typecheck
+    knip:
+      run: pnpm knip

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": [
+    "src/lib/dev/**",
+    "src/lib/db/scripts/**",
+    "src/lib/db/migrate.ts",
+    "next-intl.config.ts"
+  ],
+  "ignoreDependencies": [
+    "posthog-node",
+    "tailwindcss",
+    "@tailwindcss/typography",
+    "eslint-plugin-tailwindcss",
+    "tw-animate-css",
+    "@react-email/preview-server"
+  ],
+  "ignoreBinaries": ["pkill"],
+  "entry": [
+    "app/**/*.tsx",
+    "app/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.ts",
+    "!src/lib/dev/**",
+    "!src/lib/db/scripts/**"
+  ],
+  "project": [
+    "**/*.ts",
+    "**/*.tsx",
+    "!src/lib/dev/**",
+    "!src/lib/db/scripts/**"
+  ]
+}
