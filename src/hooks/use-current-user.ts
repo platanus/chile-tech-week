@@ -6,7 +6,7 @@ import type { SessionUser } from '@/app/(auth)/auth';
 const emptyUser: SessionUser = {
   id: '',
   email: '',
-  role: 'hacker',
+  role: 'default',
   firstName: '',
   lastName: '',
   name: '',

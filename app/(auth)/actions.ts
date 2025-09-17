@@ -61,7 +61,7 @@ export const register = async (
       password: formData.get('password') as string,
       firstName: formData.get('firstName') as string,
       lastName: formData.get('lastName') as string,
-      role: 'hacker' as const,
+      role: 'default' as const,
     };
     const [existingUser] = await getUser(data.email as string);
     if (existingUser) {

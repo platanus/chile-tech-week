@@ -37,7 +37,7 @@ const menuItems: MenuItem[] = [
     title: 'Emails',
     icon: Mail,
     url: $path({ route: '/emails' }),
-    roles: ['admin', 'hacker'],
+    roles: ['admin', 'default'],
   },
 ];
 

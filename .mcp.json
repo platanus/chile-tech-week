@@ -16,7 +16,7 @@
         "--access-mode=unrestricted"
       ],
       "env": {
-        "DATABASE_URI": "postgresql://postgres:postgres@localhost:5434/hack_dev"
+        "DATABASE_URI": "postgresql://postgres:postgres@localhost:5435/chile-tech-week-dev"
       }
     },
     "context7": {

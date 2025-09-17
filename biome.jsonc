@@ -131,6 +131,9 @@
         "rules": {
           "nursery": {
             "useSortedClasses": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off"
           }
         }
       }

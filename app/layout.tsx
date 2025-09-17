@@ -1,20 +1,20 @@
-// eslint-disable-next-line import/no-unresolved
 import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
 import { JetBrains_Mono, Oxanium } from 'next/font/google';
+import { headers } from 'next/headers';
+import { SessionProvider } from 'next-auth/react';
 import { Toaster } from 'sonner';
+
+import { auth } from '@/app/(auth)/auth';
 import { ThemeProvider } from '@/src/components/theme-provider';
 import { identifyUser } from '@/src/lib/utils/tracking';
 
 import './globals.css';
-import { SessionProvider } from 'next-auth/react';
-import { auth } from '@/app/(auth)/auth';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://hack.platan.us'),
-  title: 'Platanus Hack',
-  description:
-    'Los mejores techies de latinoamérica construyendo soluciones con impacto. De cero a producto en 36 horas.',
+  metadataBase: new URL('https://techweek.cl'),
+  title: 'Chile Tech Week 2025',
+  description: 'The decentralized Tech Week in Chile. November 17-23, 2025.',
 };
 
 export const viewport = {
@@ -61,6 +61,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') || '';
+  const _isAdminRoute = pathname.startsWith('/admin');
 
   identifyUser(session?.user);
 
@@ -81,7 +84,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased">
+      <body className="min-h-screen bg-black antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

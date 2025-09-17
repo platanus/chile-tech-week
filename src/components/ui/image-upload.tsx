@@ -3,12 +3,12 @@
 import { AlertCircle, Image, Upload, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { cn } from '@/src/lib/utils';
+import { uploadImageFile } from '@/src/lib/utils/blob';
 import { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE } from '@/src/lib/validations/file';
 import { Button } from './button';
 
 interface ImageUploadProps {
-  onFileSelect: (file: File | null) => void;
-  currentFile?: File | null;
+  onFileSelect: (url: string | null) => void;
   currentFileUrl?: string;
   disabled?: boolean;
   className?: string;
@@ -18,7 +18,6 @@ interface ImageUploadProps {
 
 export function ImageUpload({
   onFileSelect,
-  currentFile,
   currentFileUrl,
   disabled = false,
   className,
@@ -27,6 +26,9 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
 
   const validateFile = useCallback((file: File): boolean => {
     setError(null);
@@ -48,9 +50,29 @@ export function ImageUpload({
   }, []);
 
   const handleFileSelect = useCallback(
-    (file: File) => {
-      if (validateFile(file)) {
-        onFileSelect(file);
+    async (file: File) => {
+      if (!validateFile(file)) return;
+
+      setCurrentFile(file);
+      setIsUploading(true);
+      setError(null);
+
+      try {
+        // Upload file using helper function with progress tracking
+        const url = await uploadImageFile(file, (progress) => {
+          setUploadProgress(progress);
+        });
+        onFileSelect(url);
+      } catch (error) {
+        console.error('Image upload error:', error);
+        setError(
+          error instanceof Error ? error.message : 'Failed to upload image',
+        );
+        setCurrentFile(null);
+        onFileSelect(null);
+      } finally {
+        setIsUploading(false);
+        setUploadProgress(0);
       }
     },
     [validateFile, onFileSelect],
@@ -91,6 +113,8 @@ export function ImageUpload({
 
   const removeFile = useCallback(() => {
     setError(null);
+    setCurrentFile(null);
+    setUploadProgress(0);
     onFileSelect(null);
   }, [onFileSelect]);
 
@@ -111,10 +135,10 @@ export function ImageUpload({
             isDragOver
               ? 'border-primary bg-primary/5'
               : 'border-muted-foreground/25 hover:border-muted-foreground/50',
-            disabled && 'cursor-not-allowed opacity-50',
+            (disabled || isUploading) && 'cursor-not-allowed opacity-50',
           )}
           role="button"
-          tabIndex={disabled ? -1 : 0}
+          tabIndex={disabled || isUploading ? -1 : 0}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -123,15 +147,27 @@ export function ImageUpload({
             type="file"
             accept={ALLOWED_IMAGE_TYPES.join(',')}
             onChange={handleInputChange}
-            disabled={disabled}
+            disabled={disabled || isUploading}
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           />
 
           <div className="flex flex-col items-center gap-2">
             <Upload className="h-8 w-8 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium">{placeholder}</p>
+              <p className="text-sm font-medium">
+                {isUploading
+                  ? `Uploading... ${Math.round(uploadProgress)}%`
+                  : placeholder}
+              </p>
               <p className="text-xs text-muted-foreground">{description}</p>
+              {isUploading && (
+                <div className="mt-2 w-full bg-muted rounded-full h-1.5">
+                  <div
+                    className="bg-primary h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -165,7 +201,7 @@ export function ImageUpload({
             variant="ghost"
             size="sm"
             onClick={removeFile}
-            disabled={disabled}
+            disabled={disabled || isUploading}
             className="h-8 w-8 p-0"
           >
             <X className="h-4 w-4" />

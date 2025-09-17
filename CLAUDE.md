@@ -1,8 +1,9 @@
-# CLAUDE.md - Platanus Hackathon
+# CLAUDE.md - Chile Tech Week
 
 ## Project Context
 
-Platanus is a LATAM startup accelerator. Platanus organizes a yearly hackathon, the best hacking event in latam, with top technical talent in latam. This project covers all the software that will be used in the hackathon.
+Chile Tech Week is the decentrlized week where Chiles top tech companies host private tech events. This website aims to be a showcase of all these events.
+The is neo-brutalist and most pages are public access, except for the admin ones.
 
 ## Development Commands
 
@@ -478,6 +479,47 @@ export default Route;
 
 - Run `pnpm gen-route-types` after adding new dynamic routes
 - Generated types are in `_next-typesafe-url_.d.ts` (auto-generated, don't edit)
+
+### Third-Party Integrations
+
+#### Luma API Integration
+
+The application integrates with Luma API to automatically create calendar events when users submit events through the create-event form.
+
+**Setup:**
+
+1. Obtain a Luma API key from your Luma dashboard (requires Luma Plus subscription)
+2. Add the API key to your environment variables:
+   ```bash
+   LUMA_API_KEY=your_luma_api_key_here
+   ```
+
+**How it works:**
+
+- When a user submits an event through `/create`, the system automatically:
+  1. Creates the event in the local database
+  2. Creates a corresponding event on Luma with the same details
+  3. Adds co-hosts (if any) to the Luma event using the `/event/add-host` endpoint
+  4. Stores the Luma event URL and API ID in the database
+  5. Sends a Slack notification with the results
+
+**Files involved:**
+
+- `src/clients/luma.ts` - Luma API client
+- `src/services/luma.ts` - Luma service layer
+- `app/(public)/create/_actions/create-event.action.ts` - Integration in create-event flow
+
+**Database fields:**
+
+- `lumaEventApiId` - Luma's internal event ID
+- `lumaEventUrl` - Public URL for the Luma event
+- `lumaEventCreatedAt` - Timestamp when the Luma event was created
+
+**Error handling:**
+
+- If Luma API fails, the event is still created in the local database
+- Failures are logged and reported in Slack notifications
+- Co-host addition failures don't prevent event creation
 
 ### Other
 

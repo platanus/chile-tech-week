@@ -1,0 +1,107 @@
+name: Vercel Deploy Notifications
+
+on:
+  deployment_status:
+
+jobs:
+  notify-slack:
+    runs-on: ubuntu-latest
+    if: github.event.deployment_status.environment == 'Production' && (github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure') && secrets.SLACK_BOT_TOKEN != '' && secrets.SLACK_CHANNEL != ''
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get commit info
+        id: commit-info
+        run: |
+          COMMIT_SHA="${{ github.event.deployment.sha }}"
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          COMMIT_MESSAGE=$(git log --format=%s -n 1 $COMMIT_SHA)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "commit_message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
+      
+      - name: Send Slack notification
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+        run: |
+          if [ "${{ github.event.deployment_status.state }}" = "success" ]; then
+            COLOR="good"
+            STATUS_EMOJI="✅"
+            STATUS_TEXT="Success"
+          else
+            COLOR="danger"
+            STATUS_EMOJI="❌"
+            STATUS_TEXT="Failed"
+          fi
+          
+          PAYLOAD=$(cat <<EOF
+          {
+            "channel": "$SLACK_CHANNEL",
+            "attachments": [
+              {
+                "color": "$COLOR",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "$STATUS_EMOJI *Vercel Deployment $STATUS_TEXT*"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Repository:*\n${{ github.repository }}"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Branch:*\n${{ github.ref_name }}"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Commit:*\n<${{ github.event.deployment.payload.web_url }}|${{ steps.commit-info.outputs.short_sha }}>"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Environment:*\n${{ github.event.deployment_status.environment }}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*Commit Message:*\n${{ steps.commit-info.outputs.commit_message }}"
+                    }
+                  },
+                  {
+                    "type": "actions",
+                    "elements": [
+                      {
+                        "type": "button",
+                        "text": {
+                          "type": "plain_text",
+                          "text": "View Deployment"
+                        },
+                        "url": "${{ github.event.deployment_status.target_url }}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+          EOF
+          )
+          
+          curl -X POST \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-type: application/json" \
+            --data "$PAYLOAD" \
+            https://slack.com/api/chat.postMessage

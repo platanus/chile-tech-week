@@ -1,5 +1,7 @@
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import {
+  decimal,
   json,
   pgEnum,
   pgTable,
@@ -9,10 +11,26 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-export const userRoles = ['hacker', 'admin'] as const;
+export const userRoles = ['default', 'admin'] as const;
 export type UserRole = (typeof userRoles)[number];
 
 export const userRoleEnum = pgEnum('user_role', userRoles);
+
+export const eventFormats = [
+  'breakfast_brunch_lunch',
+  'dinner',
+  'experiential',
+  'hackathon',
+  'happy_hour',
+  'matchmaking',
+  'networking',
+  'panel_fireside_chat',
+  'pitch_event_demo_day',
+  'roundtable_workshop',
+] as const;
+export type EventFormat = (typeof eventFormats)[number];
+
+export const eventFormatEnum = pgEnum('event_format', eventFormats);
 
 // Core User table
 export const user = pgTable('User', {
@@ -21,7 +39,7 @@ export const user = pgTable('User', {
   encryptedPassword: varchar('encrypted_password', { length: 255 }).notNull(),
   firstName: varchar('first_name', { length: 100 }).notNull(),
   lastName: varchar('last_name', { length: 100 }).notNull(),
-  role: userRoleEnum('role').notNull().default('hacker'),
+  role: userRoleEnum('role').notNull().default('default'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -77,3 +95,154 @@ export const landingSub = pgTable('LandingSub', {
 
 export type LandingSub = InferSelectModel<typeof landingSub>;
 export type InsertLandingSub = InferInsertModel<typeof landingSub>;
+
+// Events table
+export const events = pgTable('Events', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  publicId: uuid('public_id').notNull().defaultRandom(),
+
+  // Author information
+  authorEmail: varchar('author_email', { length: 255 }).notNull(),
+  authorName: varchar('author_name', { length: 255 }).notNull(),
+  authorCompanyName: varchar('author_company_name', { length: 255 }).notNull(),
+  authorPhoneNumber: varchar('author_phone_number', { length: 50 }).notNull(),
+
+  // Event details
+  title: varchar('title', { length: 500 }).notNull(),
+  startDate: timestamp('start_date', { withTimezone: true }).notNull(),
+  endDate: timestamp('end_date', { withTimezone: true }).notNull(),
+
+  // Location
+  commune: varchar('commune', { length: 255 }).notNull(),
+  latitude: decimal('latitude', { precision: 10, scale: 8 }),
+  longitude: decimal('longitude', { precision: 11, scale: 8 }),
+
+  // Event properties
+  format: eventFormatEnum('format').notNull(),
+  lumaLink: varchar('luma_link', { length: 500 }),
+  companyLogoUrl: varchar('company_logo_url', { length: 500 }).notNull(),
+
+  // Luma integration
+  lumaEventApiId: varchar('luma_event_api_id', { length: 255 }),
+  lumaEventUrl: varchar('luma_event_url', { length: 500 }),
+  lumaEventCreatedAt: timestamp('luma_event_created_at', {
+    withTimezone: true,
+  }),
+
+  // Status
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  rejectedAt: timestamp('rejected_at', { withTimezone: true }),
+  rejectionReason: text('rejection_reason'),
+
+  // Timestamps
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export type Event = InferSelectModel<typeof events>;
+export type InsertEvent = InferInsertModel<typeof events>;
+
+// Event themes table
+export const eventThemes = pgTable('EventThemes', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  name: varchar('name', { length: 100 }).notNull().unique(),
+  slug: varchar('slug', { length: 100 }).notNull().unique(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type EventTheme = InferSelectModel<typeof eventThemes>;
+export type InsertEventTheme = InferInsertModel<typeof eventThemes>;
+
+// Event theme relations (many-to-many)
+export const eventThemeRelations = pgTable('EventThemeRelations', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  eventId: uuid('event_id')
+    .notNull()
+    .references(() => events.id, { onDelete: 'cascade' }),
+  themeId: uuid('theme_id')
+    .notNull()
+    .references(() => eventThemes.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type EventThemeRelation = InferSelectModel<typeof eventThemeRelations>;
+export type InsertEventThemeRelation = InferInsertModel<
+  typeof eventThemeRelations
+>;
+
+// Event co-hosts table
+export const eventCohosts = pgTable('EventCohosts', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  eventId: uuid('event_id')
+    .notNull()
+    .references(() => events.id, { onDelete: 'cascade' }),
+
+  // Company information
+  companyName: varchar('company_name', { length: 255 }).notNull(),
+
+  // Primary contact details
+  primaryContactName: varchar('primary_contact_name', {
+    length: 255,
+  }).notNull(),
+  primaryContactEmail: varchar('primary_contact_email', {
+    length: 255,
+  }).notNull(),
+  primaryContactPhoneNumber: varchar('primary_contact_phone_number', {
+    length: 50,
+  }),
+  primaryContactWebsite: varchar('primary_contact_website', { length: 500 }),
+  primaryContactLinkedin: varchar('primary_contact_linkedin', { length: 500 }),
+
+  // Timestamps
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export type EventCohost = InferSelectModel<typeof eventCohosts>;
+export type InsertEventCohost = InferInsertModel<typeof eventCohosts>;
+
+// Database relations
+export const eventsRelations = relations(events, ({ many }) => ({
+  cohosts: many(eventCohosts),
+  themes: many(eventThemeRelations),
+}));
+
+export const eventCohostsRelations = relations(eventCohosts, ({ one }) => ({
+  event: one(events, {
+    fields: [eventCohosts.eventId],
+    references: [events.id],
+  }),
+}));
+
+export const eventThemeRelationsRelations = relations(
+  eventThemeRelations,
+  ({ one }) => ({
+    event: one(events, {
+      fields: [eventThemeRelations.eventId],
+      references: [events.id],
+    }),
+    theme: one(eventThemes, {
+      fields: [eventThemeRelations.themeId],
+      references: [eventThemes.id],
+    }),
+  }),
+);
+
+export const eventThemesRelations = relations(eventThemes, ({ many }) => ({
+  events: many(eventThemeRelations),
+}));

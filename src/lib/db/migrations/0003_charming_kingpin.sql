@@ -1,0 +1,1 @@
+ALTER TABLE "Events" ALTER COLUMN "author_phone_number" SET NOT NULL;

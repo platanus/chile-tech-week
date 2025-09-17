@@ -21,10 +21,15 @@ const resetSchema = async () => {
     const start = Date.now();
 
     // Drop public schema cascade (removes all tables, functions, etc.)
+    await db.execute(sql`DROP SCHEMA IF EXISTS drizzle CASCADE`);
+    console.log('🗑️  Dropped auth schema');
+
     await db.execute(sql`DROP SCHEMA IF EXISTS public CASCADE`);
     console.log('🗑️  Dropped public schema');
 
     // Recreate public schema
+    await db.execute(sql`CREATE SCHEMA drizzle`);
+    console.log('🏗️  Created drizzle schema');
     await db.execute(sql`CREATE SCHEMA public`);
     console.log('🏗️  Created public schema');
 

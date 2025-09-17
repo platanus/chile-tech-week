@@ -2,7 +2,7 @@ import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { auth } from '@/app/(auth)/auth';
+// import { auth } from '@/app/(auth)/auth'; // Commented out for public uploads
 import { imageBlobSchema } from '@/src/lib/validations/file';
 
 const ImageFileSchema = z.object({
@@ -10,11 +10,11 @@ const ImageFileSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const session = await auth();
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Allow public uploads for event creation, but with stricter validation
+  // const session = await auth();
+  // if (!session) {
+  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // }
 
   if (request.body === null) {
     return new Response('Request body is empty', { status: 400 });
@@ -41,7 +41,15 @@ export async function POST(request: Request) {
 
     // Get filename from formData since Blob doesn't have name property
     const fileFromFormData = formData.get('file') as File;
-    const filename = fileFromFormData.name;
+
+    // Sanitize filename for security (public upload)
+    const originalName = fileFromFormData.name;
+    const sanitizedName = originalName
+      .replace(/[^a-zA-Z0-9.-]/g, '')
+      .substring(0, 100);
+    const timestamp = Date.now();
+    const filename = `public-uploads/${timestamp}-${sanitizedName}`;
+
     const fileBuffer = await file.arrayBuffer();
 
     try {

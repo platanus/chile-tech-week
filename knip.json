@@ -10,7 +10,6 @@
     "posthog-node",
     "tailwindcss",
     "@tailwindcss/typography",
-    "eslint-plugin-tailwindcss",
     "tw-animate-css",
     "@react-email/preview-server"
   ],

@@ -12,6 +12,10 @@ const intlMiddleware = createIntlMiddleware({
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Pass pathname to the layout via headers
+  const response = NextResponse.next();
+  response.headers.set('x-pathname', pathname);
+
   /*
    * Playwright starts the dev server and requires a 200 status to
    * begin the tests, so this ensures that the tests can start
@@ -21,26 +25,16 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/api/auth')) {
-    return NextResponse.next();
+    return response;
   }
 
   // Handle i18n only for locale-prefixed routes
   if (pathname.startsWith('/en/') || pathname.startsWith('/es/')) {
-    return intlMiddleware(request);
-  }
-
-  if (
-    pathname.includes('assets') ||
-    pathname.includes('opengraph') ||
-    pathname.includes('apple-touch-icon') ||
-    pathname.includes('twitter') ||
-    pathname.includes('relay-Ph') ||
-    pathname.includes('well-known') ||
-    pathname.includes('sponsor-deck') ||
-    pathname === '/' ||
-    pathname === '/robots.txt'
-  ) {
-    return NextResponse.next();
+    const intlResponse = intlMiddleware(request);
+    if (intlResponse) {
+      intlResponse.headers.set('x-pathname', pathname);
+      return intlResponse;
+    }
   }
 
   const token = await getToken({
@@ -49,11 +43,20 @@ export async function middleware(request: NextRequest) {
     secureCookie: !isDevelopmentEnvironment,
   });
 
+  // Handle login/register redirects first
   if (['/login', '/register'].includes(pathname)) {
     if (token) {
       return NextResponse.redirect(new URL('/', request.url));
     }
-    return NextResponse.next();
+    return response;
+  }
+
+  // Check if the route requires authentication (only admin routes)
+  const requiresAuth = pathname.includes('admin');
+
+  // Allow all non-admin routes to pass through
+  if (!requiresAuth) {
+    return response;
   }
 
   if (!token) {
@@ -64,13 +67,12 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
   matcher: [
     '/',
-    '/chat/:id',
     '/api/:path*',
     '/login',
     '/register',

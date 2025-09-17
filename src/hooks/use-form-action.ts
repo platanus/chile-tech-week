@@ -9,7 +9,7 @@ import {
   type Path,
   useForm,
 } from 'react-hook-form';
-import type { ZodSchema } from 'zod';
+import type { ZodType, ZodTypeDef } from 'zod';
 import { useNavigateBack } from '@/src/hooks/use-navigate-back';
 import type { FormActionState } from '@/src/lib/utils/forms';
 
@@ -18,7 +18,7 @@ import type { FormActionState } from '@/src/lib/utils/forms';
  * Provides client-side validation with Zod and server-side error handling
  */
 export function useFormAction<TInput extends FieldValues>(config: {
-  schema: ZodSchema<TInput>;
+  schema: ZodType<TInput, ZodTypeDef, any>;
   action: (data: TInput) => Promise<FormActionState<TInput>>;
   defaultValues?: DefaultValues<TInput>;
   onSuccess?: (data: TInput) => void;

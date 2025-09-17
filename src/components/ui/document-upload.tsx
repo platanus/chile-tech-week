@@ -31,6 +31,7 @@ export function DocumentUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
 
   const validateFile = useCallback((file: File): boolean => {
@@ -67,8 +68,14 @@ export function DocumentUpload({
       setError(null);
 
       try {
-        // Upload file using helper function
-        const url = await uploadDocumentFile(file, 'update-reports');
+        // Upload file using helper function with progress tracking
+        const url = await uploadDocumentFile(
+          file,
+          'update-reports',
+          (progress) => {
+            setUploadProgress(progress);
+          },
+        );
         onFileSelect(url);
       } catch (error) {
         console.error('File upload error:', error);
@@ -79,6 +86,7 @@ export function DocumentUpload({
         onFileSelect(null);
       } finally {
         setIsUploading(false);
+        setUploadProgress(0);
       }
     },
     [validateFile, onFileSelect],
@@ -165,9 +173,19 @@ export function DocumentUpload({
             <Upload className="h-8 w-8 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">
-                {isUploading ? 'Uploading...' : placeholder}
+                {isUploading
+                  ? `Uploading... ${Math.round(uploadProgress)}%`
+                  : placeholder}
               </p>
               <p className="text-xs text-muted-foreground">{description}</p>
+              {isUploading && (
+                <div className="mt-2 w-full bg-muted rounded-full h-1.5">
+                  <div
+                    className="bg-primary h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

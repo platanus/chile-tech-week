@@ -1,0 +1,1 @@
+ALTER TABLE "Events" ALTER COLUMN "company_logo_url" SET NOT NULL;

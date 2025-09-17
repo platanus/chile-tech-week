@@ -8,7 +8,7 @@ import { hasAnyRole, hasRole, isAdmin, isHacker } from './role-utils';
 const emptyUser: SessionUser = {
   id: '',
   email: '',
-  role: 'hacker',
+  role: 'default',
   firstName: '',
   lastName: '',
   name: '',

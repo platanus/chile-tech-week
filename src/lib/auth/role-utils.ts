@@ -8,7 +8,7 @@ export function isAdmin(user: AuthUser): boolean {
 }
 
 export function isHacker(user: AuthUser): boolean {
-  return user?.role === 'hacker';
+  return user?.role === 'default';
 }
 
 export function hasRole(user: AuthUser, role: UserRole): boolean {

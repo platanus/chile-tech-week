@@ -2,7 +2,7 @@ import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { auth } from '@/app/(auth)/auth';
+// import { auth } from '@/app/(auth)/auth'; // Commented out for public uploads
 import {
   documentBlobSchema,
   getFileTypeCategory,
@@ -13,11 +13,11 @@ const DocumentFileSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const session = await auth();
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Allow public uploads for event creation, but with stricter validation
+  // const session = await auth();
+  // if (!session) {
+  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // }
 
   if (request.body === null) {
     return new Response('Request body is empty', { status: 400 });
@@ -46,10 +46,17 @@ export async function POST(request: Request) {
     const fileFromFormData = formData.get('file') as File;
     const prefix = formData.get('prefix') as string;
 
-    // Add prefix and timestamp to filename
+    // Sanitize filename for security (public upload)
+    const originalName = fileFromFormData.name;
+    const sanitizedName = originalName
+      .replace(/[^a-zA-Z0-9.-]/g, '')
+      .substring(0, 100);
+    const timestamp = Date.now();
+
+    // Add prefix and timestamp to filename with public upload path
     const filename = prefix
-      ? `${prefix}/${Date.now()}-${fileFromFormData.name}`
-      : `${Date.now()}-${fileFromFormData.name}`;
+      ? `public-uploads/${prefix}/${timestamp}-${sanitizedName}`
+      : `public-uploads/${timestamp}-${sanitizedName}`;
 
     const fileTypeCategory = getFileTypeCategory(file.type);
     const fileBuffer = await file.arrayBuffer();
