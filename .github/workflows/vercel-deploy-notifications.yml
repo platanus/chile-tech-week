@@ -6,7 +6,7 @@ on:
 jobs:
   notify-slack:
     runs-on: ubuntu-latest
-    if: github.event.deployment_status.environment == 'Production' && (github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure') && secrets.SLACK_BOT_TOKEN != '' && secrets.SLACK_CHANNEL != ''
+    if: github.event.deployment_status.environment == 'Production' && (github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure')
     
     steps:
       - name: Checkout repository
@@ -24,6 +24,7 @@ jobs:
           echo "commit_message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
       
       - name: Send Slack notification
+        if: ${{ secrets.SLACK_BOT_TOKEN != '' && secrets.SLACK_CHANNEL != '' }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
