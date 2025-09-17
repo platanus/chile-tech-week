@@ -12,7 +12,7 @@ import { identifyUser } from '@/src/lib/utils/tracking';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://techweek.cl'),
+  metadataBase: new URL('https://tech-week.platan.us'),
   title: 'Chile Tech Week 2025',
   description: 'The decentralized Tech Week in Chile. November 17-23, 2025.',
 };
