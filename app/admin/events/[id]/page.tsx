@@ -201,7 +201,7 @@ export default async function AdminEventDetailPage({
                 </p>
                 <p className="flex items-center gap-1 font-mono text-white">
                   <Building className="h-4 w-4" />
-                  {event.authorCompanyName}
+                  {event.companyName}
                 </p>
               </div>
               <div>

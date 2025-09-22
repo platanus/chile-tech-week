@@ -1,4 +1,11 @@
-import { Body, Container, Head, Html, Preview } from '@react-email/components';
+import {
+  Body,
+  Container,
+  Head,
+  Html,
+  Img,
+  Preview,
+} from '@react-email/components';
 
 interface EmailLayoutProps {
   children: React.ReactNode;
@@ -11,7 +18,16 @@ export default function EmailLayout({ children, preview }: EmailLayoutProps) {
       <Head />
       <Preview>{preview}</Preview>
       <Body style={main}>
-        <Container style={container}>{children}</Container>
+        <Container style={container}>
+          <Img
+            src={`${process.env.DOMAIN}/assets/email/header-v1.png`}
+            width="600"
+            height="150"
+            alt="Chile Tech Week 2025"
+            style={headerImage}
+          />
+          {children}
+        </Container>
       </Body>
     </Html>
   );
@@ -27,4 +43,11 @@ const container = {
   margin: '0 auto',
   padding: '20px 0 48px',
   width: '560px',
+};
+
+const headerImage = {
+  display: 'block',
+  margin: '0 auto 24px auto',
+  width: '100%',
+  maxWidth: '600px',
 };

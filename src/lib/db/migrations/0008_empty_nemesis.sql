@@ -1,0 +1,1 @@
+ALTER TABLE "Events" ALTER COLUMN "capacity" SET NOT NULL;

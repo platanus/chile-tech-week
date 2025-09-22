@@ -6,6 +6,7 @@ interface LumaEventRequest {
   cover_url?: string;
   require_rsvp?: boolean;
   require_rsvp_approval?: boolean;
+  visibility?: 'public' | 'private' | 'member-only';
   zoom_creation_method?:
     | 'created-automatically'
     | 'existing-attached'

@@ -1,0 +1,1 @@
+ALTER TABLE "Events" ADD COLUMN "author_company_website" varchar(500);

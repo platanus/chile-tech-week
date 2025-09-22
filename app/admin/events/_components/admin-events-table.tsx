@@ -294,7 +294,7 @@ export function AdminEventsTable({
                           <div className="flex items-center gap-1">
                             <Building2 className="h-3 w-3" />
                             <span className="font-bold font-mono uppercase tracking-wide">
-                              {event.authorCompanyName}
+                              {event.companyName}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">

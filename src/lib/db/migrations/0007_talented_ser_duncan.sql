@@ -1,0 +1,1 @@
+ALTER TABLE "Events" ADD COLUMN "capacity" integer DEFAULT 100;

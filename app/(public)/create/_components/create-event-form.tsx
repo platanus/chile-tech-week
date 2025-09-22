@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, Trash2, Upload, X } from 'lucide-react';
+import { Check, ChevronsUpDown, Plus, Trash2, Upload, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { Button } from '@/src/components/ui/button';
@@ -10,6 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/src/components/ui/card';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/src/components/ui/command';
 import { DateTimePicker } from '@/src/components/ui/datetime-picker';
 import {
   Dialog,
@@ -29,12 +37,18 @@ import {
 } from '@/src/components/ui/form';
 import { Input } from '@/src/components/ui/input';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/src/components/ui/popover';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/src/components/ui/select';
+import { Textarea } from '@/src/components/ui/textarea';
 import { useFormAction } from '@/src/hooks/use-form-action';
 import type { EventTheme } from '@/src/lib/db/schema';
 import { eventFormats } from '@/src/lib/db/schema';
@@ -46,6 +60,8 @@ import {
 import { uploadImageFile } from '@/src/lib/utils/blob';
 import { checkImageContrast } from '@/src/lib/utils/contrast';
 import { createEventAction } from '../_actions/create-event.action';
+import { SANTIAGO_COMMUNES } from '@/src/lib/constants/communes';
+import { cn } from '@/src/lib/utils';
 
 interface CreateEventFormProps {
   themes: EventTheme[];
@@ -54,6 +70,7 @@ interface CreateEventFormProps {
 export function CreateEventForm({ themes }: CreateEventFormProps) {
   const [cohosts, setCohosts] = useState<number[]>([]);
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+  const [communeOpen, setCommuneOpen] = useState(false);
   const [durationWarning, setDurationWarning] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -290,13 +307,16 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
       defaultValues: {
         authorEmail: '',
         authorName: '',
-        authorCompanyName: '',
+        companyName: '',
+        companyWebsite: '',
         authorPhoneNumber: '',
         title: '',
+        description: '',
         startDate: undefined,
         endDate: undefined,
         commune: '',
         format: undefined,
+        capacity: undefined,
         lumaLink: '',
         companyLogoUrl: '',
         cohosts: [],
@@ -323,28 +343,7 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
               <div className="grid gap-6 md:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="authorName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
-                        ORGANIZER NAME *
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="John Doe"
-                          disabled={isPending}
-                          className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="authorCompanyName"
+                  name="companyName"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
@@ -365,11 +364,54 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
 
                 <FormField
                   control={form.control}
+                  name="companyWebsite"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                        COMPANY WEBSITE *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="url"
+                          placeholder="https://company.com"
+                          disabled={isPending}
+                          className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="authorName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                        CONTACT PERSON NAME *
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="John Doe"
+                          disabled={isPending}
+                          className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="authorEmail"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
-                        EMAIL ADDRESS *
+                        CONTACT EMAIL ADDRESS *
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -394,7 +436,7 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
-                        PHONE NUMBER
+                        CONTACT PHONE NUMBER *
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -442,6 +484,31 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                      EVENT DESCRIPTION *
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="A short description of your event"
+                        disabled={isPending}
+                        className="min-h-[120px] resize-none border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                        maxLength={100}
+                        {...field}
+                      />
+                    </FormControl>
+                    <p className="font-mono text-gray-600 text-xs uppercase tracking-wider">
+                      {field.value?.length || 0}/100 CHARACTERS
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid gap-6 md:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -471,7 +538,7 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                           disabled={isPending}
                           placeholder="SELECT START DATE & TIME"
                           minDate={new Date('2025-11-17')}
-                          maxDate={new Date('2025-11-23')}
+                          maxDate={new Date('2025-11-24')}
                           defaultMonth={new Date('2025-11-17')}
                         />
                       </FormControl>
@@ -499,7 +566,7 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                           disabled={isPending}
                           placeholder="SELECT END DATE & TIME"
                           minDate={new Date('2025-11-17')}
-                          maxDate={new Date('2025-11-23')}
+                          maxDate={new Date('2025-11-24')}
                           defaultMonth={new Date('2025-11-17')}
                         />
                       </FormControl>
@@ -521,18 +588,73 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                 control={form.control}
                 name="commune"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
                       COMMUNE *
                     </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Las Condes"
-                        disabled={isPending}
-                        className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
-                        {...field}
-                      />
-                    </FormControl>
+                    <Popover open={communeOpen} onOpenChange={setCommuneOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={communeOpen}
+                            disabled={isPending}
+                            className={cn(
+                              "w-full justify-between border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider hover:bg-gray-50 focus:border-primary h-auto py-3",
+                              !field.value && "text-gray-500"
+                            )}
+                          >
+                            {field.value
+                              ? SANTIAGO_COMMUNES.find((commune) => commune === field.value)
+                              : "SELECT COMMUNE"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent 
+                        className="w-[--radix-popover-trigger-width] p-0 border-4 border-black bg-white shadow-[8px_8px_0px_0px_theme(colors.black)]"
+                        align="start"
+                        side="bottom"
+                        sideOffset={12}
+                        alignOffset={0}
+                        avoidCollisions={true}
+                        collisionPadding={16}
+                      >
+                        <Command className="border-none">
+                          <CommandInput
+                            placeholder="SEARCH COMMUNE..."
+                            className="h-9 font-bold font-mono text-black uppercase tracking-wider"
+                          />
+                          <CommandList className="max-h-[200px]">
+                            <CommandEmpty className="font-bold font-mono text-black uppercase tracking-wider py-6 text-center text-sm">
+                              NO COMMUNE FOUND.
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {SANTIAGO_COMMUNES.map((commune) => (
+                                <CommandItem
+                                  key={commune}
+                                  value={commune}
+                                  onSelect={(currentValue) => {
+                                    field.onChange(currentValue === field.value ? "" : currentValue);
+                                    setCommuneOpen(false);
+                                  }}
+                                  className="font-bold font-mono text-black uppercase tracking-wider hover:bg-primary hover:text-black focus:bg-primary focus:text-black data-[selected=true]:bg-primary data-[selected=true]:text-black py-2"
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      field.value === commune ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {commune}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -568,6 +690,32 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="capacity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                      EVENT CAPACITY *
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="50"
+                        disabled={isPending}
+                        className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <p className="font-mono text-gray-600 text-xs uppercase tracking-wider">
+                      APPROXIMATE NUMBER OF ATTENDEES
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -633,32 +781,19 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                           </div>
                         </div>
                       ) : (
-                        <Button
-                          type="button"
-                          onClick={handleLogoClick}
-                          disabled={isPending || logoUploading}
-                          className="w-full border-4 border-gray-400 border-dashed bg-gray-50 p-8 transition-colors hover:border-primary hover:bg-gray-100 disabled:opacity-50"
-                        >
-                          <div className="flex flex-col items-center gap-2">
-                            <Upload className="h-8 w-8 text-gray-600" />
-                            <p className="font-bold font-mono text-black text-sm uppercase tracking-wider">
-                              {logoUploading
-                                ? `UPLOADING... ${Math.round(logoUploadProgress)}%`
-                                : 'UPLOAD PHOTO'}
-                            </p>
-                            <p className="font-mono text-gray-600 text-xs uppercase tracking-wider">
-                              JPEG, PNG, WEBP • MAX 2MB • MIN 100x100px
-                            </p>
-                            {logoUploading && (
-                              <div className="mt-2 h-2 w-full max-w-xs rounded-full bg-gray-300">
-                                <div
-                                  className="h-2 rounded-full bg-primary transition-all duration-300"
-                                  style={{ width: `${logoUploadProgress}%` }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </Button>
+                        <div className="flex justify-center">
+                          <Button
+                            type="button"
+                            onClick={handleLogoClick}
+                            disabled={isPending || logoUploading}
+                            className="hover:-translate-y-1 transform border-4 border-black bg-primary px-6 py-3 font-bold font-mono text-black text-sm uppercase tracking-wider transition-all duration-200 hover:shadow-[4px_4px_0px_0px_theme(colors.black)] disabled:opacity-50"
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            {logoUploading
+                              ? `UPLOADING... ${Math.round(logoUploadProgress)}%`
+                              : 'UPLOAD LOGO'}
+                          </Button>
+                        </div>
                       )}
                     </div>
                     <FormMessage />

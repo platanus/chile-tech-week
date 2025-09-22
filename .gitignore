@@ -43,8 +43,6 @@ yarn-error.log*
 /playwright/*
 
 # Development scripts
-src/lib/dev
-app/dev
 tsconfig.tsbuildinfo
 
 # Sentry Config File

@@ -2,6 +2,7 @@ import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { relations } from 'drizzle-orm';
 import {
   decimal,
+  integer,
   json,
   pgEnum,
   pgTable,
@@ -31,6 +32,17 @@ export const eventFormats = [
 export type EventFormat = (typeof eventFormats)[number];
 
 export const eventFormatEnum = pgEnum('event_format', eventFormats);
+
+export const eventStates = [
+  'submitted',
+  'rejected',
+  'waiting-luma-edit',
+  'published',
+  'deleted',
+] as const;
+export type EventState = (typeof eventStates)[number];
+
+export const eventStateEnum = pgEnum('event_state', eventStates);
 
 // Core User table
 export const user = pgTable('User', {
@@ -104,11 +116,13 @@ export const events = pgTable('Events', {
   // Author information
   authorEmail: varchar('author_email', { length: 255 }).notNull(),
   authorName: varchar('author_name', { length: 255 }).notNull(),
-  authorCompanyName: varchar('author_company_name', { length: 255 }).notNull(),
+  companyName: varchar('company_name', { length: 255 }).notNull(),
+  companyWebsite: varchar('company_website', { length: 500 }).notNull(),
   authorPhoneNumber: varchar('author_phone_number', { length: 50 }).notNull(),
 
   // Event details
   title: varchar('title', { length: 500 }).notNull(),
+  description: text('description').notNull(),
   startDate: timestamp('start_date', { withTimezone: true }).notNull(),
   endDate: timestamp('end_date', { withTimezone: true }).notNull(),
 
@@ -119,6 +133,7 @@ export const events = pgTable('Events', {
 
   // Event properties
   format: eventFormatEnum('format').notNull(),
+  capacity: integer('capacity').notNull().default(100),
   lumaLink: varchar('luma_link', { length: 500 }),
   companyLogoUrl: varchar('company_logo_url', { length: 500 }).notNull(),
 
@@ -130,9 +145,15 @@ export const events = pgTable('Events', {
   }),
 
   // Status
-  submittedAt: timestamp('submitted_at', { withTimezone: true }),
-  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  state: eventStateEnum('state').notNull().default('submitted'),
+  submittedAt: timestamp('submitted_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
   rejectedAt: timestamp('rejected_at', { withTimezone: true }),
+  waitingLumaEditAt: timestamp('waiting_luma_edit_at', { withTimezone: true }),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
   rejectionReason: text('rejection_reason'),
 
   // Timestamps

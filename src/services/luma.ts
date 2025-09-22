@@ -71,6 +71,7 @@ export class LumaService {
         timezone: 'America/Santiago', // Chile timezone
         require_rsvp: true,
         require_rsvp_approval: false, // Can be configured based on requirements
+        visibility: 'private' as const, // Make events private/hidden by default
         // ...(formData.companyLogoUrl && { cover_url: formData.companyLogoUrl }),
       };
 

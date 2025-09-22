@@ -12,10 +12,15 @@ export const createEventFormSchema = z
       .string()
       .min(1, 'Author name is required')
       .max(255, 'Author name is too long'),
-    authorCompanyName: z
+    companyName: z
       .string()
       .min(1, 'Company name is required')
       .max(255, 'Company name is too long'),
+    companyWebsite: z
+      .string()
+      .min(1, 'Company website is required')
+      .url('Please enter a valid URL')
+      .max(500, 'Website URL is too long'),
     authorPhoneNumber: z
       .string()
       .min(1, 'Phone number is required')
@@ -34,6 +39,10 @@ export const createEventFormSchema = z
       .string()
       .min(1, 'Event title is required')
       .max(500, 'Event title is too long'),
+    description: z
+      .string()
+      .min(1, 'Event description is required')
+      .max(100, 'Event description must be 100 characters or less'),
     startDate: z
       .date({
         required_error: 'Start date is required',
@@ -76,6 +85,11 @@ export const createEventFormSchema = z
     format: z.enum(eventFormats, {
       required_error: 'Please select an event format',
     }),
+    capacity: z
+      .number()
+      .int('Capacity must be a whole number')
+      .min(1, 'Capacity must be at least 1 person')
+      .max(10000, 'Capacity cannot exceed 10,000 people'),
     lumaLink: z
       .string()
       .url('Please enter a valid URL')

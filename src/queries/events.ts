@@ -16,6 +16,7 @@ import { db } from '@/src/lib/db';
 import {
   type Event,
   type EventCohost,
+  type EventFormat,
   type EventTheme,
   eventCohosts,
   events,
@@ -231,7 +232,7 @@ export const getAdminEvents = async (
     // Simple search on main event fields only for now
     searchCondition = or(
       ilike(events.title, searchTerm),
-      ilike(events.authorCompanyName, searchTerm),
+      ilike(events.companyName, searchTerm),
       ilike(events.authorName, searchTerm),
     );
   }
@@ -339,4 +340,82 @@ export const rejectEvent = async (eventId: string): Promise<void> => {
       approvedAt: null, // Clear approved status if previously approved
     })
     .where(eq(events.id, eventId));
+};
+
+// Event creation queries
+export type CreateEventData = {
+  authorEmail: string;
+  authorName: string;
+  companyName: string;
+  companyWebsite: string;
+  authorPhoneNumber: string;
+  title: string;
+  description: string;
+  startDate: Date;
+  endDate: Date;
+  commune: string;
+  format: EventFormat;
+  lumaLink: string | null;
+  companyLogoUrl: string;
+};
+
+export type CreateCohostData = {
+  eventId: string;
+  companyName: string;
+  primaryContactName: string;
+  primaryContactEmail: string;
+  primaryContactPhoneNumber: string | null;
+  primaryContactWebsite: string | null;
+  primaryContactLinkedin: string | null;
+};
+
+export const createEvent = async (data: CreateEventData): Promise<Event> => {
+  const [newEvent] = await db
+    .insert(events)
+    .values({
+      authorEmail: data.authorEmail,
+      authorName: data.authorName,
+      companyName: data.companyName,
+      companyWebsite: data.companyWebsite,
+      authorPhoneNumber: data.authorPhoneNumber,
+      title: data.title,
+      description: data.description,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      commune: data.commune,
+      format: data.format,
+      lumaLink: data.lumaLink,
+      companyLogoUrl: data.companyLogoUrl,
+      // Luma integration fields will be populated by the separate Luma action
+      lumaEventApiId: null,
+      lumaEventUrl: null,
+      lumaEventCreatedAt: null,
+      // Status tracking
+      submittedAt: new Date(),
+    })
+    .returning();
+
+  return newEvent;
+};
+
+export const createEventCohosts = async (
+  cohosts: CreateCohostData[],
+): Promise<EventCohost[]> => {
+  if (cohosts.length === 0) return [];
+
+  return db.insert(eventCohosts).values(cohosts).returning();
+};
+
+export const createEventThemeRelations = async (
+  eventId: string,
+  themeIds: string[],
+): Promise<void> => {
+  if (themeIds.length === 0) return;
+
+  await db.insert(eventThemeRelations).values(
+    themeIds.map((themeId) => ({
+      eventId,
+      themeId,
+    })),
+  );
 };
