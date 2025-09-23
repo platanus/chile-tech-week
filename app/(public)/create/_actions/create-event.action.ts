@@ -42,6 +42,7 @@ export async function createEventAction(
       endDate: validatedData.endDate,
       commune: validatedData.commune,
       format: validatedData.format,
+      capacity: validatedData.capacity,
       lumaLink: validatedData.lumaLink || null,
       companyLogoUrl: validatedData.companyLogoUrl,
     });
@@ -137,7 +138,7 @@ ${validatedData.cohosts && validatedData.cohosts.length > 0 ? `🤝 *Co-hosts:* 
           eventId: newEvent.id,
         },
         to: validatedData.authorEmail,
-        subject: `Event "${validatedData.title}" submitted successfully - Chile Tech Week 2025`,
+        subject: `Event submitted successfully - Chile Tech Week 2025`,
       }).catch(console.error);
     } catch (error) {
       console.error('Failed to send notifications for event:', error);

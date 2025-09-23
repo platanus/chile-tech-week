@@ -18,6 +18,7 @@ interface LumaEventRequest {
   community_api_id?: string;
   location?: string;
   timezone?: string;
+  capacity?: number; // Maximum number of attendees
 }
 
 interface LumaEventResponse {

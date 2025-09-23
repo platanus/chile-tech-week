@@ -37,8 +37,7 @@ export default function EventSuccessEmail({
         <Text style={text}>Hi {authorName},</Text>
 
         <Text style={text}>
-          Thank you for submitting your event for Chile Tech Week 2025! We've
-          received your submission and it's now under review.
+          We've received your submission and it's now under review!
         </Text>
 
         <Hr style={hr} />
@@ -71,10 +70,30 @@ export default function EventSuccessEmail({
 
         <Hr style={hr} />
 
+        <Text style={sectionTitle}>Process Steps:</Text>
+
+        <div style={processContainer}>
+          <div style={processStepCompleted}>
+            <Text style={processStepText}>✓ 1. SUBMIT EVENT - COMPLETED</Text>
+          </div>
+          <div style={processStepPending}>
+            <Text style={processStepText}>
+              ○ 2. EVENT CHECKING & APPROVAL - PENDING
+            </Text>
+          </div>
+          <div style={processStepPending}>
+            <Text style={processStepText}>
+              ○ 3. EDIT LUMA & PUBLISH - PENDING
+            </Text>
+          </div>
+          <div style={processStepPending}>
+            <Text style={processStepText}>○ 4. EVENT PUBLISHED - PENDING</Text>
+          </div>
+        </div>
+
         <Text style={text}>
-          Your event will be reviewed by our team and published on the Chile
-          Tech Week website once approved. You'll receive another email when
-          your event goes live.
+          Your event will be reviewed by our team. Once approved, you'll receive
+          another email with the next steps.
         </Text>
 
         <Section style={buttonContainer}>
@@ -82,26 +101,11 @@ export default function EventSuccessEmail({
         </Section>
 
         <Text style={text}>
-          You can track your event's approval status and see when it goes live
-          by visiting{' '}
-          <a href={eventStatusUrl} style={link}>
-            your event status page
-          </a>
-          .
-        </Text>
-
-        <Text style={text}>
           If you have any questions or need to make changes to your submission,
           please contact us at{' '}
           <a href="mailto:hello@chiletechweek.com" style={link}>
             hello@chiletechweek.com
           </a>
-        </Text>
-
-        <Text style={footer}>
-          Best regards,
-          <br />
-          The Chile Tech Week Team
         </Text>
       </Section>
     </EmailLayout>
@@ -176,15 +180,31 @@ const link = {
   textDecoration: 'underline',
 };
 
-const footer = {
-  color: '#666666',
+const processContainer = {
+  margin: '20px 0',
+};
+
+const processStepCompleted = {
+  backgroundColor: 'hsl(0, 85%, 55%)',
+  border: '4px solid #000000',
+  padding: '12px',
+  margin: '8px 0',
+};
+
+const processStepPending = {
+  backgroundColor: '#f5f5f5',
+  border: '4px solid #000000',
+  padding: '12px',
+  margin: '8px 0',
+};
+
+const processStepText = {
+  color: '#000000',
   fontSize: '14px',
   fontFamily:
     'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-  fontWeight: 'normal',
-  lineHeight: '20px',
-  margin: '32px 0 0',
-  padding: '16px',
-  border: '4px solid #000000',
-  backgroundColor: '#ffffff',
+  fontWeight: 'bold',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.05em',
+  margin: '0',
 };

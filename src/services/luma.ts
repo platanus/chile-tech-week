@@ -72,6 +72,7 @@ export class LumaService {
         require_rsvp: true,
         require_rsvp_approval: false, // Can be configured based on requirements
         visibility: 'private' as const, // Make events private/hidden by default
+        capacity: formData.capacity, // Set the event capacity
         // ...(formData.companyLogoUrl && { cover_url: formData.companyLogoUrl }),
       };
 

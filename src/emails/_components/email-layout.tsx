@@ -5,6 +5,7 @@ import {
   Html,
   Img,
   Preview,
+  Text,
 } from '@react-email/components';
 import React from 'react';
 
@@ -26,6 +27,11 @@ export default function EmailLayout({ children, preview }: EmailLayoutProps) {
             style={headerImage}
           />
           {children}
+          <Text style={footer}>
+            Best regards,
+            <br />
+            The Chile Tech Week Team
+          </Text>
         </Container>
       </Body>
     </Html>
@@ -56,4 +62,17 @@ const headerImage = {
   width: '100%',
   height: 'auto',
   maxWidth: '560px',
+};
+
+const footer = {
+  color: '#666666',
+  fontSize: '14px',
+  fontFamily:
+    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+  fontWeight: 'normal',
+  lineHeight: '20px',
+  margin: '32px 0 0',
+  padding: '16px',
+  border: '4px solid #000000',
+  backgroundColor: '#ffffff',
 };

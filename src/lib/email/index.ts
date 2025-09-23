@@ -13,6 +13,7 @@ export interface SendEmailOptions<T = Record<string, any>> {
   to: string | string[];
   cc?: string[];
   bcc?: string[];
+  replyTo?: string;
   subject: string;
 }
 
@@ -24,6 +25,7 @@ export interface SendPreRenderedEmailOptions {
   to: string | string[];
   cc?: string[];
   bcc?: string[];
+  replyTo?: string;
   subject: string;
 }
 
@@ -51,6 +53,7 @@ async function sendEmailInternal(params: {
   to: string | string[];
   cc?: string[];
   bcc?: string[];
+  replyTo?: string;
   subject: string;
 }) {
   const emailRecord = await createOutboundEmail({
@@ -93,12 +96,14 @@ async function sendEmailInternal(params: {
     const emailTo = isDevelopment ? developmentCatchAll : params.to;
     const emailCc = isDevelopment ? undefined : params.cc;
     const emailBcc = isDevelopment ? undefined : params.bcc;
+    const replyTo = params.replyTo || process.env.EMAIL_REPLY_TO;
 
     const result = await resendClient.emails.send({
       from: process.env.DEFAULT_FROM_EMAIL || 'mailer@hack.platan.us',
       to: emailTo,
       cc: emailCc,
       bcc: emailBcc,
+      replyTo: replyTo,
       subject: params.subject,
       html: params.htmlContent,
       text: params.textContent,
@@ -148,6 +153,7 @@ export async function sendEmail<T>(options: SendEmailOptions<T>) {
     to: options.to,
     cc: options.cc,
     bcc: options.bcc,
+    replyTo: options.replyTo,
     subject: options.subject,
   });
 }
@@ -163,6 +169,7 @@ export async function sendPreRenderedEmail(
     to: options.to,
     cc: options.cc,
     bcc: options.bcc,
+    replyTo: options.replyTo,
     subject: options.subject,
   });
 }

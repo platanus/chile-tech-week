@@ -355,6 +355,7 @@ export type CreateEventData = {
   endDate: Date;
   commune: string;
   format: EventFormat;
+  capacity: number;
   lumaLink: string | null;
   companyLogoUrl: string;
 };
@@ -384,6 +385,7 @@ export const createEvent = async (data: CreateEventData): Promise<Event> => {
       endDate: data.endDate,
       commune: data.commune,
       format: data.format,
+      capacity: data.capacity,
       lumaLink: data.lumaLink,
       companyLogoUrl: data.companyLogoUrl,
       // Luma integration fields will be populated by the separate Luma action

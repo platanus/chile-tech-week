@@ -1,7 +1,5 @@
 import { Building, Calendar, CheckCircle, MapPin, Users } from 'lucide-react';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Button } from '@/src/components/ui/button';
 import {
   Card,
   CardContent,
@@ -196,22 +194,61 @@ export default async function CreateSuccessPage({
           </CardContent>
         </Card>
 
-        {/* Actions */}
-        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button
-            asChild
-            className="hover:-translate-y-1 transform border-4 border-black bg-primary px-8 py-4 font-bold font-mono text-black text-lg uppercase tracking-wider transition-all duration-200 hover:shadow-[8px_8px_0px_0px_theme(colors.black)]"
-          >
-            <Link href="/events">VIEW ALL EVENTS</Link>
-          </Button>
-          <Button
-            variant="outline"
-            asChild
-            className="hover:-translate-y-1 transform border-4 border-black bg-white px-8 py-4 font-bold font-mono text-black text-lg uppercase tracking-wider transition-all duration-200 hover:shadow-[8px_8px_0px_0px_theme(colors.black)]"
-          >
-            <Link href="/create">CREATE ANOTHER EVENT</Link>
-          </Button>
-        </div>
+        {/* Process Steps */}
+        <Card className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_theme(colors.black)]">
+          <CardHeader>
+            <CardTitle className="font-black font-mono text-2xl text-black uppercase tracking-wider">
+              PROCESS STEPS
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4">
+              {/* Step 1 - Completed */}
+              <div className="flex items-center gap-4 rounded border-4 border-black bg-primary p-4">
+                <CheckCircle className="h-6 w-6 text-black" />
+                <div className="flex-1">
+                  <p className="font-bold font-mono text-black text-sm uppercase tracking-wider">
+                    1. SUBMIT EVENT
+                  </p>
+                  <p className="font-mono text-black text-xs">COMPLETED ✓</p>
+                </div>
+              </div>
+
+              {/* Step 2 - Pending */}
+              <div className="flex items-center gap-4 rounded border-4 border-black bg-gray-100 p-4">
+                <div className="h-6 w-6 rounded-full border-4 border-black bg-white"></div>
+                <div className="flex-1">
+                  <p className="font-bold font-mono text-black text-sm uppercase tracking-wider">
+                    2. EVENT CHECKING & APPROVAL
+                  </p>
+                  <p className="font-mono text-gray-600 text-xs">PENDING</p>
+                </div>
+              </div>
+
+              {/* Step 3 - Pending */}
+              <div className="flex items-center gap-4 rounded border-4 border-black bg-gray-100 p-4">
+                <div className="h-6 w-6 rounded-full border-4 border-black bg-white"></div>
+                <div className="flex-1">
+                  <p className="font-bold font-mono text-black text-sm uppercase tracking-wider">
+                    3. EDIT LUMA & PUBLISH
+                  </p>
+                  <p className="font-mono text-gray-600 text-xs">PENDING</p>
+                </div>
+              </div>
+
+              {/* Step 4 - Pending */}
+              <div className="flex items-center gap-4 rounded border-4 border-black bg-gray-100 p-4">
+                <div className="h-6 w-6 rounded-full border-4 border-black bg-white"></div>
+                <div className="flex-1">
+                  <p className="font-bold font-mono text-black text-sm uppercase tracking-wider">
+                    4. EVENT PUBLISHED
+                  </p>
+                  <p className="font-mono text-gray-600 text-xs">PENDING</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </SuccessClientWrapper>
   );
