@@ -207,6 +207,7 @@ export const eventCohosts = pgTable('EventCohosts', {
 
   // Company information
   companyName: varchar('company_name', { length: 255 }).notNull(),
+  companyLogoUrl: varchar('company_logo_url', { length: 500 }),
 
   // Primary contact details
   primaryContactName: varchar('primary_contact_name', {

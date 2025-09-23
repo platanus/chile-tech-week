@@ -421,3 +421,101 @@ export const createEventThemeRelations = async (
     })),
   );
 };
+
+export type EventCountByDate = {
+  date: string; // YYYY-MM-DD format
+  count: number;
+};
+
+export type EventByHour = {
+  id: string;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  companyName: string;
+};
+
+export const getEventsByHour = async (
+  startDate: Date,
+  endDate: Date,
+): Promise<EventByHour[]> => {
+  const result = await db
+    .select({
+      id: events.id,
+      title: events.title,
+      startDate: events.startDate,
+      endDate: events.endDate,
+      companyName: events.companyName,
+    })
+    .from(events)
+    .where(
+      and(
+        sql`approved_at IS NOT NULL`,
+        gte(events.startDate, startDate),
+        lte(events.startDate, endDate),
+      ),
+    )
+    .orderBy(events.startDate);
+
+  return result;
+};
+
+export type EventCountByHour = {
+  date: string; // YYYY-MM-DD format
+  hour: number; // 0-23
+  count: number;
+};
+
+export const getEventCountsByHour = async (
+  startDate: Date,
+  endDate: Date,
+): Promise<EventCountByHour[]> => {
+  // Format dates as ISO strings for the query
+  const startDateStr = startDate.toISOString();
+  const endDateStr = endDate.toISOString();
+
+  // Use a more complex query that expands each event across all hours it occupies
+  const result = await db.execute(sql`
+    WITH RECURSIVE event_hours AS (
+      -- Base case: get all events in range
+      SELECT 
+        id,
+        start_date,
+        end_date,
+        DATE(start_date)::text as date,
+        EXTRACT(HOUR FROM start_date)::integer as hour
+      FROM "Events"
+      WHERE state = 'published'
+        AND start_date >= ${startDateStr}::timestamp
+        AND start_date <= ${endDateStr}::timestamp
+      
+      UNION ALL
+      
+      -- Recursive case: generate next hour for each event
+      SELECT 
+        eh.id,
+        eh.start_date,
+        eh.end_date,
+        DATE(eh.start_date + ((eh.hour + 1 - EXTRACT(HOUR FROM eh.start_date)) * INTERVAL '1 hour'))::text as date,
+        (eh.hour + 1)::integer as hour
+      FROM event_hours eh
+      WHERE eh.start_date + ((eh.hour + 1 - EXTRACT(HOUR FROM eh.start_date)) * INTERVAL '1 hour') < eh.end_date
+        AND eh.hour < 23  -- Prevent infinite recursion beyond day boundary
+    )
+    SELECT 
+      date,
+      hour,
+      COUNT(*)::integer as count
+    FROM event_hours
+    WHERE hour >= 8 AND hour <= 20  -- Only show business hours (8 AM - 8 PM)
+    GROUP BY date, hour
+    ORDER BY date, hour
+  `);
+
+  // Convert the raw result to our expected format
+  return (result as any[]).map((row: any) => ({
+    date: row.date,
+    hour: Number(row.hour),
+    count: Number(row.count),
+  }));
+};

@@ -1,8 +1,15 @@
-import { getAllEventThemes } from '@/src/queries/events';
+import { getAllEventThemes, getEventCountsByHour } from '@/src/queries/events';
 import { CreateEventForm } from './_components/create-event-form';
 
 export default async function CreateEventPage() {
-  const themes = await getAllEventThemes();
+  const [themes, eventCounts] = await Promise.all([
+    getAllEventThemes(),
+    getEventCountsByHour(
+      new Date('2025-11-17'),
+      new Date('2025-11-23T23:59:59'),
+    ),
+  ]);
+
   return (
     <div className="min-h-screen bg-black">
       <div className="mx-auto max-w-4xl px-6 py-12">
@@ -27,7 +34,7 @@ export default async function CreateEventPage() {
           </div>
 
           {/* Form */}
-          <CreateEventForm themes={themes} />
+          <CreateEventForm themes={themes} eventCounts={eventCounts} />
         </div>
       </div>
     </div>

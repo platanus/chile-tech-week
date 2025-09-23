@@ -135,6 +135,34 @@ export const createEventFormSchema = z
             .string()
             .min(1, 'Company name is required')
             .max(255, 'Company name is too long'),
+          companyLogoUrl: z
+            .string()
+            .min(1, 'Company logo is required')
+            .url('Please enter a valid URL')
+            .max(500, 'Company logo URL is too long'),
+          logoFile: z
+            .instanceof(File)
+            .refine((file) => file.size > 0, {
+              message: 'Please select a logo file',
+            })
+            .refine((file) => file.size >= 1024, {
+              message: 'Logo file is too small (minimum 1KB)',
+            })
+            .refine((file) => file.size <= 2 * 1024 * 1024, {
+              message: 'Logo must be less than 2MB',
+            })
+            .refine((file) => file.type.startsWith('image/'), {
+              message: 'Logo must be an image file',
+            })
+            .refine(
+              (file) =>
+                ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(
+                  file.type,
+                ),
+              {
+                message: 'Logo must be JPEG, PNG, or WebP format',
+              },
+            ),
           primaryContactName: z
             .string()
             .min(1, 'Primary contact name is required')

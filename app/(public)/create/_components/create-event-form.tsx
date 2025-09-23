@@ -3,6 +3,7 @@
 import { Check, ChevronsUpDown, Plus, Trash2, Upload, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
+import { EventCalendar } from '@/src/components/event-calendar';
 import { Button } from '@/src/components/ui/button';
 import {
   Card,
@@ -61,13 +62,15 @@ import {
 import { cn } from '@/src/lib/utils';
 import { uploadImageFile } from '@/src/lib/utils/blob';
 import { checkImageContrast } from '@/src/lib/utils/contrast';
+import type { EventCountByHour } from '@/src/queries/events';
 import { createEventAction } from '../_actions/create-event.action';
 
 interface CreateEventFormProps {
   themes: EventTheme[];
+  eventCounts: EventCountByHour[];
 }
 
-export function CreateEventForm({ themes }: CreateEventFormProps) {
+export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
   const [cohosts, setCohosts] = useState<number[]>([]);
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
   const [communeOpen, setCommuneOpen] = useState(false);
@@ -84,12 +87,34 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
     isGoodContrast: boolean;
   } | null>(null);
   const [isCheckingContrast, setIsCheckingContrast] = useState(false);
+  const [modalTargetType, setModalTargetType] = useState<'main' | 'cohost'>(
+    'main',
+  );
+  const [modalCohostIndex, setModalCohostIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cohost logo states
+  const [cohostLogoPreviews, setCohostLogoPreviews] = useState<
+    (string | null)[]
+  >([]);
+  const [cohostLogoUploading, setCohostLogoUploading] = useState<boolean[]>([]);
+  const [cohostLogoUploadProgress, setCohostLogoUploadProgress] = useState<
+    number[]
+  >([]);
+  const [cohostLogoUploadErrors, setCohostLogoUploadErrors] = useState<
+    (string | null)[]
+  >([]);
+  const cohostFileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const addCohost = () => {
     if (cohosts.length < 3) {
       setCohosts([...cohosts, cohosts.length]);
+      // Initialize logo states for new cohost
+      setCohostLogoPreviews([...cohostLogoPreviews, null]);
+      setCohostLogoUploading([...cohostLogoUploading, false]);
+      setCohostLogoUploadProgress([...cohostLogoUploadProgress, 0]);
+      setCohostLogoUploadErrors([...cohostLogoUploadErrors, null]);
     }
   };
 
@@ -101,6 +126,17 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
     const currentCohosts = form.getValues('cohosts') || [];
     currentCohosts.splice(index, 1);
     form.setValue('cohosts', currentCohosts);
+
+    // Remove logo states for this cohost
+    const newPreviews = cohostLogoPreviews.filter((_, i) => i !== index);
+    const newUploading = cohostLogoUploading.filter((_, i) => i !== index);
+    const newProgress = cohostLogoUploadProgress.filter((_, i) => i !== index);
+    const newErrors = cohostLogoUploadErrors.filter((_, i) => i !== index);
+
+    setCohostLogoPreviews(newPreviews);
+    setCohostLogoUploading(newUploading);
+    setCohostLogoUploadProgress(newProgress);
+    setCohostLogoUploadErrors(newErrors);
   };
 
   const removeTheme = (themeId: string) => {
@@ -188,6 +224,14 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
   };
 
   const handleLogoClick = () => {
+    setModalTargetType('main');
+    setModalCohostIndex(null);
+    setShowLogoModal(true);
+  };
+
+  const handleCohostLogoClick = (cohostIndex: number) => {
+    setModalTargetType('cohost');
+    setModalCohostIndex(cohostIndex);
     setShowLogoModal(true);
   };
 
@@ -253,22 +297,66 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
   const handleModalSubmit = async () => {
     if (!modalSelectedFile || !contrastCheckResult?.isGoodContrast) return;
 
-    setLogoUploading(true);
-    setLogoUploadProgress(0);
+    if (modalTargetType === 'main') {
+      setLogoUploading(true);
+      setLogoUploadProgress(0);
+    } else if (modalTargetType === 'cohost' && modalCohostIndex !== null) {
+      const newUploading = [...cohostLogoUploading];
+      const newProgress = [...cohostLogoUploadProgress];
+      newUploading[modalCohostIndex] = true;
+      newProgress[modalCohostIndex] = 0;
+      setCohostLogoUploading(newUploading);
+      setCohostLogoUploadProgress(newProgress);
+    }
 
     try {
       // Upload to Vercel Blob with progress tracking
       const logoUrl = await uploadImageFile(modalSelectedFile, (progress) => {
-        setLogoUploadProgress(progress);
+        if (modalTargetType === 'main') {
+          setLogoUploadProgress(progress);
+        } else if (modalTargetType === 'cohost' && modalCohostIndex !== null) {
+          const newProgress = [...cohostLogoUploadProgress];
+          newProgress[modalCohostIndex] = progress;
+          setCohostLogoUploadProgress(newProgress);
+        }
       });
 
-      // Set form values
-      form.setValue('logoFile', modalSelectedFile);
-      form.setValue('companyLogoUrl', logoUrl);
-      form.trigger(['logoFile', 'companyLogoUrl']);
+      if (modalTargetType === 'main') {
+        // Set form values for main logo
+        form.setValue('logoFile', modalSelectedFile);
+        form.setValue('companyLogoUrl', logoUrl);
+        form.trigger(['logoFile', 'companyLogoUrl']);
 
-      // Set preview for the main form
-      setLogoPreview(modalPreviewUrl);
+        // Set preview for the main form
+        setLogoPreview(modalPreviewUrl);
+      } else if (modalTargetType === 'cohost' && modalCohostIndex !== null) {
+        // Set form values for cohost logo
+        const currentCohosts = form.getValues('cohosts') || [];
+        if (!currentCohosts[modalCohostIndex]) {
+          currentCohosts[modalCohostIndex] = {
+            companyName: '',
+            companyLogoUrl: '',
+            logoFile: new File([], ''),
+            primaryContactName: '',
+            primaryContactEmail: '',
+            primaryContactPhoneNumber: '',
+            primaryContactWebsite: '',
+            primaryContactLinkedin: '',
+          };
+        }
+        currentCohosts[modalCohostIndex].logoFile = modalSelectedFile;
+        currentCohosts[modalCohostIndex].companyLogoUrl = logoUrl;
+        form.setValue('cohosts', currentCohosts);
+        form.trigger([
+          `cohosts.${modalCohostIndex}.logoFile`,
+          `cohosts.${modalCohostIndex}.companyLogoUrl`,
+        ]);
+
+        // Set preview for the cohost
+        const newPreviews = [...cohostLogoPreviews];
+        newPreviews[modalCohostIndex] = modalPreviewUrl;
+        setCohostLogoPreviews(newPreviews);
+      }
 
       // Close modal and reset modal state
       setShowLogoModal(false);
@@ -279,8 +367,17 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
         error instanceof Error ? error.message : 'Failed to upload logo',
       );
     } finally {
-      setLogoUploading(false);
-      setLogoUploadProgress(0);
+      if (modalTargetType === 'main') {
+        setLogoUploading(false);
+        setLogoUploadProgress(0);
+      } else if (modalTargetType === 'cohost' && modalCohostIndex !== null) {
+        const newUploading = [...cohostLogoUploading];
+        const newProgress = [...cohostLogoUploadProgress];
+        newUploading[modalCohostIndex] = false;
+        newProgress[modalCohostIndex] = 0;
+        setCohostLogoUploading(newUploading);
+        setCohostLogoUploadProgress(newProgress);
+      }
     }
   };
 
@@ -290,6 +387,8 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
     setContrastCheckResult(null);
     setIsCheckingContrast(false);
     setLogoUploadError(null);
+    setModalTargetType('main');
+    setModalCohostIndex(null);
     if (modalFileInputRef.current) {
       modalFileInputRef.current.value = '';
     }
@@ -298,6 +397,35 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
   const handleModalClose = () => {
     setShowLogoModal(false);
     resetModalState();
+  };
+
+  const handleCohostLogoRemove = (cohostIndex: number) => {
+    const newPreviews = [...cohostLogoPreviews];
+    const newErrors = [...cohostLogoUploadErrors];
+    const newProgress = [...cohostLogoUploadProgress];
+
+    newPreviews[cohostIndex] = null;
+    newErrors[cohostIndex] = null;
+    newProgress[cohostIndex] = 0;
+
+    setCohostLogoPreviews(newPreviews);
+    setCohostLogoUploadErrors(newErrors);
+    setCohostLogoUploadProgress(newProgress);
+
+    const currentCohosts = form.getValues('cohosts') || [];
+    if (currentCohosts[cohostIndex]) {
+      currentCohosts[cohostIndex] = {
+        ...currentCohosts[cohostIndex],
+        logoFile: new File([], ''),
+        companyLogoUrl: '',
+      };
+      form.setValue('cohosts', currentCohosts);
+    }
+
+    const fileInput = cohostFileInputRefs.current[cohostIndex];
+    if (fileInput) {
+      fileInput.value = '';
+    }
   };
 
   const { form, handleSubmit, serverState, isPending } =
@@ -585,6 +713,14 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                   </p>
                 </div>
               )}
+
+              {/* Event Calendar */}
+              <div className="space-y-4">
+                <h4 className="font-bold font-mono text-black text-lg uppercase tracking-wider">
+                  CURRENT EVENT SCHEDULE
+                </h4>
+                <EventCalendar eventCounts={eventCounts} />
+              </div>
 
               <FormField
                 control={form.control}
@@ -930,146 +1066,230 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                     </Button>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name={`cohosts.${index}.companyName`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
-                            COMPANY NAME *
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Company Name"
-                              disabled={isPending}
-                              className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <div className="space-y-4">
+                    {/* Company Name and Logo Section */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name={`cohosts.${index}.companyName`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                              COMPANY NAME *
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Company Name"
+                                disabled={isPending}
+                                className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name={`cohosts.${index}.primaryContactName`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
-                            CONTACT NAME *
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="John Doe"
-                              disabled={isPending}
-                              className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      {/* Cohost Logo Upload */}
+                      <FormField
+                        control={form.control}
+                        name={`cohosts.${index}.logoFile`}
+                        render={() => (
+                          <FormItem>
+                            <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                              COMPANY LOGO *
+                            </FormLabel>
+                            <div className="space-y-4">
+                              {/* Upload area or preview */}
+                              {cohostLogoPreviews[index] ? (
+                                <div className="relative border-4 border-black bg-white p-4">
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden border-2 border-gray-300 bg-gray-50">
+                                      <div
+                                        style={{
+                                          backgroundImage: `url(${cohostLogoPreviews[index]})`,
+                                        }}
+                                        className="h-full w-full bg-center bg-contain bg-no-repeat"
+                                      />
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-bold font-mono text-black text-sm uppercase tracking-wider">
+                                        LOGO UPLOADED
+                                      </p>
+                                      <p className="font-mono text-gray-600 text-xs uppercase tracking-wider">
+                                        Logo file
+                                      </p>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      onClick={() =>
+                                        handleCohostLogoRemove(index)
+                                      }
+                                      disabled={
+                                        isPending ||
+                                        cohostLogoUploading[index] ||
+                                        false
+                                      }
+                                      className="h-8 w-8 border-2 border-red-500 bg-red-500 p-0 text-white hover:bg-red-600"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex justify-center">
+                                  <Button
+                                    type="button"
+                                    onClick={() => handleCohostLogoClick(index)}
+                                    disabled={
+                                      isPending ||
+                                      cohostLogoUploading[index] ||
+                                      false
+                                    }
+                                    className="hover:-translate-y-1 transform border-4 border-black bg-white px-4 py-2 font-bold font-mono text-black text-sm uppercase tracking-wider transition-all duration-200 hover:shadow-[4px_4px_0px_0px_theme(colors.black)] disabled:opacity-50"
+                                  >
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    {cohostLogoUploading[index]
+                                      ? `UPLOADING... ${Math.round(cohostLogoUploadProgress[index] || 0)}%`
+                                      : 'UPLOAD LOGO'}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                            <FormMessage />
+                            {cohostLogoUploadErrors[index] && (
+                              <div className="mt-2 border-4 border-red-500 bg-red-50 p-3">
+                                <p className="font-bold font-mono text-red-600 text-sm uppercase tracking-wider">
+                                  {cohostLogoUploadErrors[index]}
+                                </p>
+                              </div>
+                            )}
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                    <FormField
-                      control={form.control}
-                      name={`cohosts.${index}.primaryContactEmail`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
-                            CONTACT EMAIL *
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="email"
-                              placeholder="contact@company.com"
-                              disabled={isPending}
-                              className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
-                              {...field}
-                              onBlur={() => {
-                                form.trigger(
-                                  `cohosts.${index}.primaryContactEmail`,
-                                );
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Contact Information Section */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name={`cohosts.${index}.primaryContactName`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                              CONTACT NAME *
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="John Doe"
+                                disabled={isPending}
+                                className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name={`cohosts.${index}.primaryContactPhoneNumber`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
-                            CONTACT PHONE (OPTIONAL)
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="tel"
-                              placeholder="+56 9 8765 4321"
-                              disabled={isPending}
-                              className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
-                              {...field}
-                              onBlur={() => {
-                                form.trigger(
-                                  `cohosts.${index}.primaryContactPhoneNumber`,
-                                );
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name={`cohosts.${index}.primaryContactEmail`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                              CONTACT EMAIL *
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="contact@company.com"
+                                disabled={isPending}
+                                className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                                {...field}
+                                onBlur={() => {
+                                  form.trigger(
+                                    `cohosts.${index}.primaryContactEmail`,
+                                  );
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name={`cohosts.${index}.primaryContactWebsite`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
-                            WEBSITE (OPTIONAL)
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="https://company.com"
-                              disabled={isPending}
-                              className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name={`cohosts.${index}.primaryContactPhoneNumber`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                              CONTACT PHONE (OPTIONAL)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="tel"
+                                placeholder="+56 9 8765 4321"
+                                disabled={isPending}
+                                className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                                {...field}
+                                onBlur={() => {
+                                  form.trigger(
+                                    `cohosts.${index}.primaryContactPhoneNumber`,
+                                  );
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name={`cohosts.${index}.primaryContactLinkedin`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
-                            LINKEDIN (OPTIONAL)
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="https://linkedin.com/in/username"
-                              disabled={isPending}
-                              className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name={`cohosts.${index}.primaryContactWebsite`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                              WEBSITE (OPTIONAL)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="url"
+                                placeholder="https://company.com"
+                                disabled={isPending}
+                                className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name={`cohosts.${index}.primaryContactLinkedin`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                              LINKEDIN (OPTIONAL)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="url"
+                                placeholder="https://linkedin.com/in/username"
+                                disabled={isPending}
+                                className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1228,15 +1448,34 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
             )}
 
             {/* Upload Progress */}
-            {logoUploading && (
+            {(logoUploading ||
+              (modalTargetType === 'cohost' &&
+                modalCohostIndex !== null &&
+                cohostLogoUploading[modalCohostIndex])) && (
               <div className="rounded border-2 border-blue-400 bg-blue-900/20 p-4">
                 <p className="font-bold font-mono text-blue-400 text-sm uppercase tracking-wider">
-                  UPLOADING... {Math.round(logoUploadProgress)}%
+                  UPLOADING...{' '}
+                  {Math.round(
+                    modalTargetType === 'main'
+                      ? logoUploadProgress
+                      : modalCohostIndex !== null
+                        ? cohostLogoUploadProgress[modalCohostIndex] || 0
+                        : 0,
+                  )}
+                  %
                 </p>
                 <div className="mt-2 h-2 w-full rounded-full bg-gray-700">
                   <div
                     className="h-2 rounded-full bg-blue-400 transition-all duration-300"
-                    style={{ width: `${logoUploadProgress}%` }}
+                    style={{
+                      width: `${
+                        modalTargetType === 'main'
+                          ? logoUploadProgress
+                          : modalCohostIndex !== null
+                            ? cohostLogoUploadProgress[modalCohostIndex] || 0
+                            : 0
+                      }%`,
+                    }}
                   />
                 </div>
               </div>
@@ -1247,7 +1486,12 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
             <Button
               type="button"
               onClick={handleModalClose}
-              disabled={logoUploading}
+              disabled={
+                logoUploading ||
+                (modalTargetType === 'cohost' &&
+                  modalCohostIndex !== null &&
+                  cohostLogoUploading[modalCohostIndex])
+              }
               className="border-2 border-white bg-transparent font-bold font-mono text-white uppercase tracking-wider hover:bg-gray-800"
             >
               CANCEL
@@ -1259,11 +1503,19 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                 !modalSelectedFile ||
                 !contrastCheckResult?.isGoodContrast ||
                 logoUploading ||
+                (modalTargetType === 'cohost' &&
+                  modalCohostIndex !== null &&
+                  cohostLogoUploading[modalCohostIndex]) ||
                 isCheckingContrast
               }
               className="border-2 border-white bg-white font-bold font-mono text-black uppercase tracking-wider hover:bg-gray-200 disabled:opacity-50"
             >
-              {logoUploading ? 'UPLOADING...' : 'SUBMIT'}
+              {logoUploading ||
+              (modalTargetType === 'cohost' &&
+                modalCohostIndex !== null &&
+                cohostLogoUploading[modalCohostIndex])
+                ? 'UPLOADING...'
+                : 'SUBMIT'}
             </Button>
           </DialogFooter>
         </DialogContent>

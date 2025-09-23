@@ -1,0 +1,1 @@
+ALTER TABLE "EventCohosts" ADD COLUMN "company_logo_url" varchar(500);
