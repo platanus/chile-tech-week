@@ -9,6 +9,7 @@
   "ignoreDependencies": [
     "posthog-node",
     "tailwindcss",
+    "prettier",
     "@tailwindcss/typography",
     "tw-animate-css",
     "@react-email/preview-server"

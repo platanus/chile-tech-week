@@ -7,7 +7,7 @@ import { getOutboundEmail } from '@/src/queries/emails';
 
 export async function resendEmailAction(emailId: string) {
   try {
-    const sessionUser = await onlyAdmin();
+    await onlyAdmin();
 
     const originalEmail = await getOutboundEmail(emailId);
     if (!originalEmail) {
@@ -23,7 +23,6 @@ export async function resendEmailAction(emailId: string) {
       cc: originalEmail.cc || undefined,
       bcc: originalEmail.bcc || undefined,
       subject: originalEmail.subject,
-      sentByUserId: sessionUser.id,
     });
 
     revalidatePath('/emails');

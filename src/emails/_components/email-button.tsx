@@ -1,4 +1,5 @@
 import { Button } from '@react-email/components';
+import React from 'react';
 
 interface EmailButtonProps {
   href: string;
@@ -14,15 +15,19 @@ export default function EmailButton({ href, children }: EmailButtonProps) {
 }
 
 const button = {
-  backgroundColor: '#007ee6',
-  borderRadius: '4px',
-  color: '#fff',
+  backgroundColor: '#000000',
+  border: '4px solid #000000',
+  borderRadius: '0px',
+  color: '#ffffff',
   fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
+    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
   fontSize: '16px',
   fontWeight: 'bold',
   textDecoration: 'none',
   textAlign: 'center' as const,
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.05em',
   display: 'block',
-  padding: '12px 20px',
+  padding: '16px 24px',
+  boxShadow: '4px 4px 0px 0px hsl(0, 85%, 55%)',
 };

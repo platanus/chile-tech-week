@@ -14,7 +14,6 @@ export interface SendEmailOptions<T = Record<string, any>> {
   cc?: string[];
   bcc?: string[];
   subject: string;
-  sentByUserId: string;
 }
 
 export interface SendPreRenderedEmailOptions {
@@ -26,7 +25,6 @@ export interface SendPreRenderedEmailOptions {
   cc?: string[];
   bcc?: string[];
   subject: string;
-  sentByUserId: string;
 }
 
 function shouldSendEmails(): boolean {
@@ -54,7 +52,6 @@ async function sendEmailInternal(params: {
   cc?: string[];
   bcc?: string[];
   subject: string;
-  sentByUserId: string;
 }) {
   const emailRecord = await createOutboundEmail({
     templateName: params.templateName,
@@ -65,7 +62,6 @@ async function sendEmailInternal(params: {
     htmlContent: params.htmlContent,
     textContent: params.textContent,
     templateData: params.templateData,
-    sentByUserId: params.sentByUserId,
     status: 'pending',
   });
 
@@ -153,7 +149,6 @@ export async function sendEmail<T>(options: SendEmailOptions<T>) {
     cc: options.cc,
     bcc: options.bcc,
     subject: options.subject,
-    sentByUserId: options.sentByUserId,
   });
 }
 
@@ -169,6 +164,5 @@ export async function sendPreRenderedEmail(
     cc: options.cc,
     bcc: options.bcc,
     subject: options.subject,
-    sentByUserId: options.sentByUserId,
   });
 }

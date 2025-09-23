@@ -81,9 +81,6 @@ export const outboundEmails = pgTable('OutboundEmails', {
   sentAt: timestamp('sent_at', { withTimezone: true }),
   failureReason: text('failure_reason'),
   externalMessageId: varchar('external_message_id', { length: 255 }), // Resend message ID
-  sentByUserId: uuid('sent_by_user_id')
-    .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

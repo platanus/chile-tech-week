@@ -138,7 +138,6 @@ ${validatedData.cohosts && validatedData.cohosts.length > 0 ? `🤝 *Co-hosts:* 
         },
         to: validatedData.authorEmail,
         subject: `Event "${validatedData.title}" submitted successfully - Chile Tech Week 2025`,
-        sentByUserId: 'system', // Using system as there's no authenticated user
       }).catch(console.error);
     } catch (error) {
       console.error('Failed to send notifications for event:', error);

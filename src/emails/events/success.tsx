@@ -1,4 +1,5 @@
 import { Heading, Hr, Section, Text } from '@react-email/components';
+import React from 'react';
 import EmailButton from '../_components/email-button';
 import EmailLayout from '../_components/email-layout';
 
@@ -108,36 +109,57 @@ export default function EventSuccessEmail({
 }
 
 const h1 = {
-  color: '#333',
-  fontSize: '24px',
+  color: '#000000',
+  fontSize: '28px',
   fontWeight: 'bold',
+  fontFamily:
+    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.05em',
   margin: '40px 0 20px',
-  padding: '0',
+  padding: '16px',
+  backgroundColor: 'hsl(0, 85%, 55%)',
+  border: '4px solid #000000',
 };
 
 const text = {
-  color: '#333',
+  color: '#000000',
   fontSize: '16px',
+  fontFamily:
+    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+  fontWeight: 'normal',
   lineHeight: '24px',
   margin: '16px 0',
 };
 
 const sectionTitle = {
-  color: '#333',
-  fontSize: '18px',
+  color: '#000000',
+  fontSize: '20px',
+  fontFamily:
+    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
   fontWeight: 'bold',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.05em',
   margin: '24px 0 16px',
+  padding: '12px',
+  backgroundColor: 'hsl(0, 85%, 55%)',
+  border: '4px solid #000000',
 };
 
 const eventDetail = {
-  color: '#555',
+  color: '#000000',
   fontSize: '14px',
+  fontFamily:
+    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+  fontWeight: 'normal',
   lineHeight: '20px',
   margin: '8px 0',
 };
 
 const hr = {
-  borderColor: '#e6e6e6',
+  borderColor: '#000000',
+  borderWidth: '4px',
+  borderStyle: 'solid',
   margin: '24px 0',
 };
 
@@ -147,13 +169,22 @@ const buttonContainer = {
 };
 
 const link = {
-  color: '#007ee6',
+  color: 'hsl(0, 85%, 55%)',
+  fontFamily:
+    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+  fontWeight: 'bold',
   textDecoration: 'underline',
 };
 
 const footer = {
-  color: '#666',
+  color: '#666666',
   fontSize: '14px',
+  fontFamily:
+    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+  fontWeight: 'normal',
   lineHeight: '20px',
   margin: '32px 0 0',
+  padding: '16px',
+  border: '4px solid #000000',
+  backgroundColor: '#ffffff',
 };

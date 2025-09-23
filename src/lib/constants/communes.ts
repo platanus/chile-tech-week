@@ -5,14 +5,14 @@ export const SANTIAGO_COMMUNES = [
   'Vitacura',
   'Ñuñoa',
   'Santiago',
-  
+
   // Other central communes
   'Recoleta',
   'Independencia',
   'Conchalí',
   'Huechuraba',
   'Quilicura',
-  
+
   // Eastern communes
   'La Reina',
   'Peñalolén',
@@ -26,7 +26,7 @@ export const SANTIAGO_COMMUNES = [
   'San Miguel',
   'Pedro Aguirre Cerda',
   'Lo Espejo',
-  
+
   // Western communes
   'Quinta Normal',
   'Estación Central',
@@ -36,7 +36,7 @@ export const SANTIAGO_COMMUNES = [
   'Lo Prado',
   'Cerro Navia',
   'Renca',
-  
+
   // Southern communes
   'San Bernardo',
   'Puente Alto',
@@ -47,4 +47,4 @@ export const SANTIAGO_COMMUNES = [
   'Paine',
 ] as const;
 
-export type SantiagoCommune = typeof SANTIAGO_COMMUNES[number];
+export type SantiagoCommune = (typeof SANTIAGO_COMMUNES)[number];

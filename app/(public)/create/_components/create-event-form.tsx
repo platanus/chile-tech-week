@@ -50,6 +50,7 @@ import {
 } from '@/src/components/ui/select';
 import { Textarea } from '@/src/components/ui/textarea';
 import { useFormAction } from '@/src/hooks/use-form-action';
+import { SANTIAGO_COMMUNES } from '@/src/lib/constants/communes';
 import type { EventTheme } from '@/src/lib/db/schema';
 import { eventFormats } from '@/src/lib/db/schema';
 import {
@@ -57,11 +58,10 @@ import {
   createEventFormSchema,
   eventFormatLabels,
 } from '@/src/lib/schemas/events.schema';
+import { cn } from '@/src/lib/utils';
 import { uploadImageFile } from '@/src/lib/utils/blob';
 import { checkImageContrast } from '@/src/lib/utils/contrast';
 import { createEventAction } from '../_actions/create-event.action';
-import { SANTIAGO_COMMUNES } from '@/src/lib/constants/communes';
-import { cn } from '@/src/lib/utils';
 
 interface CreateEventFormProps {
   themes: EventTheme[];
@@ -540,6 +540,7 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                           minDate={new Date('2025-11-17')}
                           maxDate={new Date('2025-11-24')}
                           defaultMonth={new Date('2025-11-17')}
+                          className="h-10"
                         />
                       </FormControl>
                       <FormMessage />
@@ -568,6 +569,7 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                           minDate={new Date('2025-11-17')}
                           maxDate={new Date('2025-11-24')}
                           defaultMonth={new Date('2025-11-17')}
+                          className="h-10"
                         />
                       </FormControl>
                       <FormMessage />
@@ -601,19 +603,21 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                             aria-expanded={communeOpen}
                             disabled={isPending}
                             className={cn(
-                              "w-full justify-between border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider hover:bg-gray-50 focus:border-primary h-auto py-3",
-                              !field.value && "text-gray-500"
+                              'h-10 w-full justify-between border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider hover:bg-gray-50 focus:border-primary',
+                              !field.value && 'text-gray-500',
                             )}
                           >
                             {field.value
-                              ? SANTIAGO_COMMUNES.find((commune) => commune === field.value)
-                              : "SELECT COMMUNE"}
+                              ? SANTIAGO_COMMUNES.find(
+                                  (commune) => commune === field.value,
+                                )
+                              : 'SELECT COMMUNE'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent 
-                        className="w-[--radix-popover-trigger-width] p-0 border-4 border-black bg-white shadow-[8px_8px_0px_0px_theme(colors.black)]"
+                      <PopoverContent
+                        className="w-[--radix-popover-trigger-width] border-4 border-black bg-white p-0 shadow-[8px_8px_0px_0px_theme(colors.black)]"
                         align="start"
                         side="bottom"
                         sideOffset={12}
@@ -627,7 +631,7 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                             className="h-9 font-bold font-mono text-black uppercase tracking-wider"
                           />
                           <CommandList className="max-h-[200px]">
-                            <CommandEmpty className="font-bold font-mono text-black uppercase tracking-wider py-6 text-center text-sm">
+                            <CommandEmpty className="py-6 text-center font-bold font-mono text-black text-sm uppercase tracking-wider">
                               NO COMMUNE FOUND.
                             </CommandEmpty>
                             <CommandGroup>
@@ -636,15 +640,21 @@ export function CreateEventForm({ themes }: CreateEventFormProps) {
                                   key={commune}
                                   value={commune}
                                   onSelect={(currentValue) => {
-                                    field.onChange(currentValue === field.value ? "" : currentValue);
+                                    field.onChange(
+                                      currentValue === field.value
+                                        ? ''
+                                        : currentValue,
+                                    );
                                     setCommuneOpen(false);
                                   }}
-                                  className="font-bold font-mono text-black uppercase tracking-wider hover:bg-primary hover:text-black focus:bg-primary focus:text-black data-[selected=true]:bg-primary data-[selected=true]:text-black py-2"
+                                  className="py-2 font-bold font-mono text-black uppercase tracking-wider hover:bg-primary hover:text-black focus:bg-primary focus:text-black data-[selected=true]:bg-primary data-[selected=true]:text-black"
                                 >
                                   <Check
                                     className={cn(
-                                      "mr-2 h-4 w-4",
-                                      field.value === commune ? "opacity-100" : "opacity-0"
+                                      'mr-2 h-4 w-4',
+                                      field.value === commune
+                                        ? 'opacity-100'
+                                        : 'opacity-0',
                                     )}
                                   />
                                   {commune}

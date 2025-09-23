@@ -212,7 +212,6 @@ export default async function CreateSuccessPage({
             <Link href="/create">CREATE ANOTHER EVENT</Link>
           </Button>
         </div>
-
       </div>
     </SuccessClientWrapper>
   );

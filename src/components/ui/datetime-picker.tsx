@@ -83,7 +83,7 @@ export function DateTimePicker({
           <Button
             variant="outline"
             className={cn(
-              'w-full sm:flex-1 h-12 justify-start text-left font-normal border-4 border-black bg-white font-bold font-mono text-black text-xs uppercase tracking-wider focus:border-primary overflow-hidden',
+              'w-full sm:flex-1 h-10 justify-start text-left font-normal border-4 border-black bg-white font-bold font-mono text-black text-xs uppercase tracking-wider focus:border-primary overflow-hidden',
               !selectedDate && 'text-muted-foreground',
               className,
             )}
@@ -140,7 +140,7 @@ export function DateTimePicker({
           type="time"
           value={timeValue}
           onChange={(e) => handleTimeChange(e.target.value)}
-          className="pl-10 w-full h-12 border-4 border-black bg-white font-bold font-mono text-black text-xs uppercase tracking-wider focus:border-primary"
+          className="pl-10 w-full h-10 border-4 border-black bg-white font-bold font-mono text-black text-xs uppercase tracking-wider focus:border-primary"
           disabled={disabled}
         />
       </div>
