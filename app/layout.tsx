@@ -1,6 +1,6 @@
 import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
-import { JetBrains_Mono, Oxanium } from 'next/font/google';
+import { JetBrains_Mono } from 'next/font/google';
 import { headers } from 'next/headers';
 import { SessionProvider } from 'next-auth/react';
 import { Toaster } from 'sonner';
@@ -20,13 +20,6 @@ export const metadata: Metadata = {
 export const viewport = {
   maximumScale: 1, // Disable auto-zoom on mobile Safari
 };
-
-const oxanium = Oxanium({
-  weight: ['400', '500'],
-  subsets: ['latin'],
-  variable: '--font-oxanium',
-  display: 'swap',
-});
 
 const jetBrainsMono = JetBrains_Mono({
   weight: ['400', '700'],
@@ -75,7 +68,7 @@ export default async function RootLayout({
       // prop is necessary to avoid the React hydration mismatch warning.
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
-      className={`${oxanium.variable} ${jetBrainsMono.variable} ${GeistSans.variable}`}
+      className={`${jetBrainsMono.variable} ${GeistSans.variable}`}
     >
       <head>
         <script

@@ -4,8 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: var(--font-jetbrains-mono);
-  --font-logo: var(--font-oxanium);
+  --font-mono: var(--font-jetbrains-mono);
   --font-geist: var(--font-geist-sans);
 
   --breakpoint-toast-mobile: 600px;
@@ -219,7 +218,13 @@
   }
 
   .slit-mask {
-    mask-image: linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      black 10%,
+      black 90%,
+      transparent 100%
+    );
     mask-size: 100% 100%;
     mask-repeat: no-repeat;
   }
@@ -230,7 +235,9 @@
   }
 
   .slit-shadow {
-    box-shadow: inset 2px 0 4px rgba(0, 0, 0, 0.3), inset -2px 0 4px rgba(0, 0, 0, 0.3);
+    box-shadow:
+      inset 2px 0 4px rgba(0, 0, 0, 0.3),
+      inset -2px 0 4px rgba(0, 0, 0, 0.3);
   }
 }
 
