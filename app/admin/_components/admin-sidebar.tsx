@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, LogOut, Settings } from 'lucide-react';
+import { Calendar, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
@@ -21,11 +21,6 @@ const navigation = [
     title: 'Events',
     url: '/admin/events',
     icon: Calendar,
-  },
-  {
-    title: 'Settings',
-    url: '/admin/settings',
-    icon: Settings,
   },
 ];
 

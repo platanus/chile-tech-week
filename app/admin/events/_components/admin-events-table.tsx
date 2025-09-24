@@ -4,19 +4,15 @@ import { format } from 'date-fns';
 import {
   Building2,
   Calendar,
-  Check,
   ChevronLeft,
   ChevronRight,
   Clock,
-  ExternalLink,
-  Eye,
   Search,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import { Badge } from '@/src/components/ui/badge';
 import { Button } from '@/src/components/ui/button';
 import { Card, CardContent } from '@/src/components/ui/card';
@@ -29,10 +25,6 @@ import {
   SelectValue,
 } from '@/src/components/ui/select';
 import type { EventStatus, EventWithDetails } from '@/src/queries/events';
-import {
-  approveEventAction,
-  rejectEventAction,
-} from '../_actions/event-moderation.action';
 
 interface AdminEventsTableProps {
   events: EventWithDetails[];
@@ -53,8 +45,6 @@ export function AdminEventsTable({
 }: AdminEventsTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [_isPending, startTransition] = useTransition();
-  const [pendingActions, setPendingActions] = useState<Set<string>>(new Set());
   const [searchInput, setSearchInput] = useState(currentSearch);
 
   const handleStatusChange = (status: EventStatus) => {
@@ -91,57 +81,42 @@ export function AdminEventsTable({
   };
 
   const getStatusBadge = (event: EventWithDetails) => {
-    if (event.approvedAt) {
-      return (
-        <Badge className="border-2 border-white bg-primary font-bold font-mono text-primary-foreground uppercase tracking-wide">
-          Approved
-        </Badge>
-      );
-    }
-    if (event.rejectedAt) {
-      return (
-        <Badge className="border-2 border-primary bg-black font-bold font-mono text-white uppercase tracking-wide">
-          Rejected
-        </Badge>
-      );
-    }
-    return (
-      <Badge className="border-2 border-black bg-white font-bold font-mono text-black uppercase tracking-wide">
-        Pending
-      </Badge>
-    );
+    const stateDisplayMap = {
+      submitted: {
+        label: 'Submitted',
+        className:
+          'border-2 border-black bg-white font-bold font-mono text-black uppercase tracking-wide',
+      },
+      rejected: {
+        label: 'Rejected',
+        className:
+          'border-2 border-primary bg-black font-bold font-mono text-white uppercase tracking-wide',
+      },
+      'waiting-luma-edit': {
+        label: 'Waiting Luma Edit',
+        className:
+          'border-2 border-yellow-500 bg-yellow-500 font-bold font-mono text-black uppercase tracking-wide',
+      },
+      published: {
+        label: 'Published',
+        className:
+          'border-2 border-white bg-primary font-bold font-mono text-primary-foreground uppercase tracking-wide',
+      },
+      deleted: {
+        label: 'Deleted',
+        className:
+          'border-2 border-red-500 bg-red-500 font-bold font-mono text-white uppercase tracking-wide',
+      },
+    };
+
+    const stateInfo = stateDisplayMap[event.state] || stateDisplayMap.submitted;
+
+    return <Badge className={stateInfo.className}>{stateInfo.label}</Badge>;
   };
 
   const formatDate = (date: Date | null) => {
     if (!date) return '-';
     return format(new Date(date), 'MMM dd, yyyy HH:mm');
-  };
-
-  const handleEventAction = (eventId: string, action: 'approve' | 'reject') => {
-    setPendingActions((prev) => new Set([...prev, eventId]));
-
-    startTransition(async () => {
-      try {
-        const result =
-          action === 'approve'
-            ? await approveEventAction(eventId)
-            : await rejectEventAction(eventId);
-
-        if (result.success) {
-          toast.success(result.message);
-        } else {
-          toast.error(result.error);
-        }
-      } catch (_error) {
-        toast.error('An error occurred');
-      } finally {
-        setPendingActions((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(eventId);
-          return newSet;
-        });
-      }
-    });
   };
 
   return (
@@ -198,22 +173,34 @@ export function AdminEventsTable({
               </SelectTrigger>
               <SelectContent className="border-2 border-white bg-black">
                 <SelectItem
-                  value="pending"
+                  value="submitted"
                   className="font-mono text-sm text-white"
                 >
-                  Pending
-                </SelectItem>
-                <SelectItem
-                  value="approved"
-                  className="font-mono text-sm text-white"
-                >
-                  Approved
+                  Submitted
                 </SelectItem>
                 <SelectItem
                   value="rejected"
                   className="font-mono text-sm text-white"
                 >
                   Rejected
+                </SelectItem>
+                <SelectItem
+                  value="waiting-luma-edit"
+                  className="font-mono text-sm text-white"
+                >
+                  Waiting Luma Edit
+                </SelectItem>
+                <SelectItem
+                  value="published"
+                  className="font-mono text-sm text-white"
+                >
+                  Published
+                </SelectItem>
+                <SelectItem
+                  value="deleted"
+                  className="font-mono text-sm text-white"
+                >
+                  Deleted
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -248,131 +235,49 @@ export function AdminEventsTable({
             <div className="text-center">
               <Calendar className="mx-auto mb-4 h-16 w-16 text-white/50" />
               <p className="font-bold font-mono text-white text-xl uppercase tracking-wide">
-                No events found for {currentStatus} status
+                No events found for {currentStatus.replace(/-/g, ' ')} status
               </p>
             </div>
           </div>
         ) : (
           <div className="h-full space-y-2 overflow-y-auto pr-2">
             {events.map((event) => {
-              const isPendingAction = pendingActions.has(event.id);
               return (
-                <Card
-                  key={event.id}
-                  className="border-2 border-white bg-black shadow-[2px_2px_0px_0px_#ffffff] transition-all duration-200 hover:shadow-[4px_4px_0px_0px_hsl(var(--primary))]"
-                >
-                  <CardContent className="p-3">
-                    <div className="grid grid-cols-12 items-center gap-4">
-                      {/* Logo */}
-                      <div className="col-span-1">
-                        {event.companyLogoUrl ? (
-                          <div className="flex h-8 w-8 items-center justify-center overflow-hidden border border-white bg-black">
-                            <div
-                              style={{
-                                backgroundImage: `url(${event.companyLogoUrl})`,
-                              }}
-                              className="h-full w-full bg-center bg-contain bg-no-repeat"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex h-8 w-8 items-center justify-center border border-white bg-gray-700">
-                            <Building2 className="h-4 w-4 text-white/50" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Event Details */}
-                      <div className="col-span-8">
-                        <div className="mb-1 flex items-center justify-between">
+                <Link key={event.id} href={`/admin/events/${event.id}`}>
+                  <Card className="cursor-pointer border-2 border-white bg-black shadow-[2px_2px_0px_0px_#ffffff] transition-all duration-200 hover:shadow-[4px_4px_0px_0px_hsl(var(--primary))]">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        {/* Event Title */}
+                        <div className="mr-4 min-w-0 flex-1">
                           <h3 className="truncate font-black font-mono text-lg text-white uppercase tracking-wide">
                             {event.title}
                           </h3>
-                          {getStatusBadge(event)}
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm text-white/80">
-                          <div className="flex items-center gap-1">
-                            <Building2 className="h-3 w-3" />
-                            <span className="font-bold font-mono uppercase tracking-wide">
-                              {event.companyName}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span className="font-bold font-mono">
-                              {formatDate(event.startDate)}
-                            </span>
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className="border border-primary px-2 py-0 font-bold font-mono text-primary text-xs uppercase tracking-wide"
-                          >
-                            {event.format.replace(/_/g, ' ')}
-                          </Badge>
-                          <span className="ml-auto font-mono text-white/50 text-xs">
-                            {formatDate(event.createdAt)}
+                        {/* Company */}
+                        <div className="mr-4 flex min-w-0 items-center gap-2">
+                          <Building2 className="h-4 w-4 flex-shrink-0 text-white/60" />
+                          <span className="truncate font-bold font-mono text-sm text-white uppercase tracking-wide">
+                            {event.companyName}
                           </span>
                         </div>
+
+                        {/* Submitted Date */}
+                        <div className="mr-4 flex min-w-0 items-center gap-2">
+                          <Clock className="h-4 w-4 flex-shrink-0 text-white/60" />
+                          <span className="font-mono text-sm text-white/80">
+                            {formatDate(event.submittedAt)}
+                          </span>
+                        </div>
+
+                        {/* Status Badge */}
+                        <div className="flex-shrink-0">
+                          {getStatusBadge(event)}
+                        </div>
                       </div>
-
-                      {/* Actions */}
-                      <div className="col-span-3 flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border border-white px-2 font-bold font-mono text-white uppercase tracking-wide hover:bg-white hover:text-black"
-                          asChild
-                        >
-                          <Link href={`/admin/events/${event.id}`}>
-                            <Eye className="h-3 w-3" />
-                          </Link>
-                        </Button>
-
-                        {event.lumaEventUrl && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border border-primary px-2 font-bold font-mono text-primary text-xs hover:bg-primary hover:text-primary-foreground"
-                            asChild
-                          >
-                            <Link
-                              href={event.lumaEventUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </Link>
-                          </Button>
-                        )}
-
-                        {currentStatus === 'pending' && (
-                          <>
-                            <Button
-                              onClick={() =>
-                                handleEventAction(event.id, 'approve')
-                              }
-                              disabled={isPendingAction}
-                              className="border border-white bg-green-600 px-2 font-bold font-mono text-white text-xs hover:bg-green-700"
-                              size="sm"
-                            >
-                              <Check className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              onClick={() =>
-                                handleEventAction(event.id, 'reject')
-                              }
-                              disabled={isPendingAction}
-                              className="border border-white bg-red-600 px-2 font-bold font-mono text-white text-xs hover:bg-red-700"
-                              size="sm"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>

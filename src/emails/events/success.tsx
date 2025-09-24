@@ -101,11 +101,11 @@ export default function EventSuccessEmail({
         </Section>
 
         <Text style={text}>
-          If you have any questions or need to make changes to your submission,
-          please contact us at{' '}
-          <a href="mailto:hello@chiletechweek.com" style={link}>
-            hello@chiletechweek.com
+          If you have any questions, contact the Chile Tech Week team at{' '}
+          <a href="mailto:hello@techweek.cl" style={link}>
+            hello@techweek.cl
           </a>
+          .
         </Text>
       </Section>
     </EmailLayout>

@@ -20,6 +20,7 @@ import {
 } from '@/src/components/ui/card';
 import { Separator } from '@/src/components/ui/separator';
 import { getEventById } from '@/src/queries/events';
+import { ModerationButtons } from '../_components/moderation-buttons';
 
 interface AdminEventDetailPageProps {
   params: Promise<{ id: string }>;
@@ -36,25 +37,37 @@ export default async function AdminEventDetailPage({
   }
 
   const getStatusBadge = () => {
-    if (event.approvedAt) {
-      return (
-        <Badge className="border-2 border-white bg-primary font-bold font-mono text-primary-foreground uppercase tracking-wide">
-          Approved
-        </Badge>
-      );
-    }
-    if (event.rejectedAt) {
-      return (
-        <Badge className="border-2 border-primary bg-black font-bold font-mono text-white uppercase tracking-wide">
-          Rejected
-        </Badge>
-      );
-    }
-    return (
-      <Badge className="border-2 border-black bg-white font-bold font-mono text-black uppercase tracking-wide">
-        Pending
-      </Badge>
-    );
+    const stateDisplayMap = {
+      submitted: {
+        label: 'Submitted',
+        className:
+          'border-2 border-black bg-white font-bold font-mono text-black uppercase tracking-wide',
+      },
+      rejected: {
+        label: 'Rejected',
+        className:
+          'border-2 border-primary bg-black font-bold font-mono text-white uppercase tracking-wide',
+      },
+      'waiting-luma-edit': {
+        label: 'Waiting Luma Edit',
+        className:
+          'border-2 border-yellow-500 bg-yellow-500 font-bold font-mono text-black uppercase tracking-wide',
+      },
+      published: {
+        label: 'Published',
+        className:
+          'border-2 border-white bg-primary font-bold font-mono text-primary-foreground uppercase tracking-wide',
+      },
+      deleted: {
+        label: 'Deleted',
+        className:
+          'border-2 border-red-500 bg-red-500 font-bold font-mono text-white uppercase tracking-wide',
+      },
+    };
+
+    const stateInfo = stateDisplayMap[event.state] || stateDisplayMap.submitted;
+
+    return <Badge className={stateInfo.className}>{stateInfo.label}</Badge>;
   };
 
   const formatDate = (date: Date) => {
@@ -87,6 +100,9 @@ export default async function AdminEventDetailPage({
               <p className="mt-2 font-bold font-mono text-white/60 uppercase tracking-wide">
                 Event ID: {event.id}
               </p>
+              <p className="font-bold font-mono text-white/60 uppercase tracking-wide">
+                Public ID: {event.publicId}
+              </p>
             </div>
             {event.companyLogoUrl && (
               <div className="mt-2">
@@ -101,7 +117,10 @@ export default async function AdminEventDetailPage({
               </div>
             )}
           </div>
-          {getStatusBadge()}
+          <div className="flex flex-col items-end gap-4">
+            {getStatusBadge()}
+            <ModerationButtons eventId={event.id} eventState={event.state} />
+          </div>
         </div>
 
         {/* Basic Event Information */}
@@ -147,6 +166,21 @@ export default async function AdminEventDetailPage({
                   {event.commune}
                 </p>
               </div>
+              <div>
+                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                  Capacity
+                </p>
+                <p className="font-mono text-white">{event.capacity} people</p>
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                Description
+              </p>
+              <p className="whitespace-pre-wrap font-mono text-white">
+                {event.description}
+              </p>
             </div>
 
             {event.latitude && event.longitude && (
@@ -228,6 +262,20 @@ export default async function AdminEventDetailPage({
                   {event.authorPhoneNumber}
                 </a>
               </div>
+              <div>
+                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                  Company Website
+                </p>
+                <a
+                  href={event.companyWebsite}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 font-bold font-mono text-primary hover:text-primary/80"
+                >
+                  <Globe className="h-4 w-4" />
+                  {event.companyWebsite}
+                </a>
+              </div>
             </div>
 
             {event.companyLogoUrl && (
@@ -264,7 +312,7 @@ export default async function AdminEventDetailPage({
                 {event.themes.map((theme) => (
                   <Badge
                     key={theme.id}
-                    className="border-2 border-primary font-bold font-mono text-primary uppercase tracking-wide"
+                    className="border-2 border-primary bg-primary font-bold font-mono text-white uppercase tracking-wide"
                   >
                     {theme.name}
                   </Badge>
@@ -294,10 +342,23 @@ export default async function AdminEventDetailPage({
                         <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
                           Company
                         </p>
-                        <p className="flex items-center gap-1 font-mono text-white">
-                          <Building className="h-4 w-4" />
-                          {cohost.companyName}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          {cohost.companyLogoUrl ? (
+                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden border border-white bg-black">
+                              <div
+                                style={{
+                                  backgroundImage: `url(${cohost.companyLogoUrl})`,
+                                }}
+                                className="h-full w-full bg-center bg-contain bg-no-repeat"
+                              />
+                            </div>
+                          ) : (
+                            <Building className="h-4 w-4 text-white/60" />
+                          )}
+                          <span className="font-mono text-white">
+                            {cohost.companyName}
+                          </span>
+                        </div>
                       </div>
                       <div>
                         <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
@@ -431,6 +492,22 @@ export default async function AdminEventDetailPage({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                  Current State
+                </p>
+                <p className="font-mono text-white capitalize">
+                  {event.state.replace(/-/g, ' ')}
+                </p>
+              </div>
+              <div>
+                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                  Created At
+                </p>
+                <p className="font-mono text-white">
+                  {formatDate(event.createdAt)}
+                </p>
+              </div>
+              <div>
+                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
                   Submitted At
                 </p>
                 <p className="font-mono text-white">
@@ -441,10 +518,10 @@ export default async function AdminEventDetailPage({
               </div>
               <div>
                 <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                  Created At
+                  Last Updated
                 </p>
                 <p className="font-mono text-white">
-                  {formatDate(event.createdAt)}
+                  {formatDate(event.updatedAt)}
                 </p>
               </div>
               {event.approvedAt && (
@@ -467,6 +544,36 @@ export default async function AdminEventDetailPage({
                   </p>
                 </div>
               )}
+              {event.waitingLumaEditAt && (
+                <div>
+                  <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                    Waiting Luma Edit At
+                  </p>
+                  <p className="font-mono text-white">
+                    {formatDate(event.waitingLumaEditAt)}
+                  </p>
+                </div>
+              )}
+              {event.publishedAt && (
+                <div>
+                  <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                    Published At
+                  </p>
+                  <p className="font-mono text-white">
+                    {formatDate(event.publishedAt)}
+                  </p>
+                </div>
+              )}
+              {event.deletedAt && (
+                <div>
+                  <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                    Deleted At
+                  </p>
+                  <p className="font-mono text-white">
+                    {formatDate(event.deletedAt)}
+                  </p>
+                </div>
+              )}
               {event.rejectionReason && (
                 <div className="md:col-span-2">
                   <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
@@ -477,14 +584,6 @@ export default async function AdminEventDetailPage({
                   </p>
                 </div>
               )}
-              <div>
-                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                  Last Updated
-                </p>
-                <p className="font-mono text-white">
-                  {formatDate(event.updatedAt)}
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>

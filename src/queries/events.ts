@@ -6,8 +6,6 @@ import {
   gte,
   ilike,
   inArray,
-  isNotNull,
-  isNull,
   lte,
   or,
   sql,
@@ -184,7 +182,12 @@ export const getAllEventThemes = async (): Promise<EventTheme[]> => {
 };
 
 // Admin-specific queries
-export type EventStatus = 'approved' | 'rejected' | 'pending';
+export type EventStatus =
+  | 'submitted'
+  | 'rejected'
+  | 'waiting-luma-edit'
+  | 'published'
+  | 'deleted';
 
 export type AdminEventsFilter = {
   status?: EventStatus;
@@ -203,26 +206,11 @@ export type AdminEventsResult = {
 export const getAdminEvents = async (
   filter: AdminEventsFilter = {},
 ): Promise<AdminEventsResult> => {
-  const { status = 'pending', page = 1, limit = 10, search } = filter;
+  const { status = 'submitted', page = 1, limit = 10, search } = filter;
   const offset = (page - 1) * limit;
 
-  // Build status condition
-  let statusCondition: any;
-  switch (status) {
-    case 'approved':
-      statusCondition = isNotNull(events.approvedAt);
-      break;
-    case 'rejected':
-      statusCondition = isNotNull(events.rejectedAt);
-      break;
-    case 'pending':
-    default:
-      statusCondition = and(
-        isNull(events.approvedAt),
-        isNull(events.rejectedAt),
-      );
-      break;
-  }
+  // Build status condition based on state field
+  const statusCondition = eq(events.state, status);
 
   // Build search condition - simplified to avoid parameter binding issues
   let searchCondition: any;
@@ -326,6 +314,7 @@ export const approveEvent = async (eventId: string): Promise<void> => {
   await db
     .update(events)
     .set({
+      state: 'waiting-luma-edit',
       approvedAt: new Date(),
       rejectedAt: null, // Clear rejected status if previously rejected
     })
@@ -336,8 +325,10 @@ export const rejectEvent = async (eventId: string): Promise<void> => {
   await db
     .update(events)
     .set({
+      state: 'rejected',
       rejectedAt: new Date(),
       approvedAt: null, // Clear approved status if previously approved
+      publishedAt: null, // Clear published status if previously published
     })
     .where(eq(events.id, eventId));
 };

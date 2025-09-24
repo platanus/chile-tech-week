@@ -13,7 +13,7 @@ export default async function AdminEventsPage({
   searchParams,
 }: AdminEventsPageProps) {
   const params = await searchParams;
-  const status = params.status || 'pending';
+  const status = params.status || 'submitted';
   const page = Number(params.page) || 1;
   const search = params.search || '';
 
