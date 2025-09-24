@@ -7,6 +7,7 @@
     "dev:kill": "pkill -f 'next dev --turbo' && rm -f .dev-server.log || echo 'No dev server running'",
     "dev:logs": "./scripts/dev-logs.sh",
     "dev:main": "dotenvx run -f .env.local -- npx tsx src/lib/dev/main.ts",
+    "dev:create-admin-users": "dotenvx run -f .env.local -- npx tsx src/lib/dev/create-admin-users.ts",
     "email:dev": "email dev --port 3001 --dir src/emails",
     "typecheck": "tsc --noEmit",
     "build": "tsx src/lib/db/migrate && next build",
