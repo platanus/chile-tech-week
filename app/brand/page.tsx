@@ -22,7 +22,7 @@ export default function BrandKitPage() {
   const brandAssets: BrandAsset[] = [
     {
       id: 'logo-rectangle',
-      name: 'RECTANGLE LOGO',
+      name: 'RECTANGLE LOGO BLACK BACKGROUND',
       description: 'Full horizontal logo for social media posts and banners',
       pngPath: '/assets/brand/logo-rectangle.png',
       svgPath: '/assets/brand/logo-rectangle.svg',
@@ -30,11 +30,27 @@ export default function BrandKitPage() {
     },
     {
       id: 'logo-icon',
-      name: 'ICON LOGO',
+      name: 'ICON LOGO BLACK BACKGROUND',
       description: 'Square icon for profile pictures and favicons',
       pngPath: '/assets/brand/logo-icon.png',
       svgPath: '/assets/brand/logo-icon.svg',
       preview: '/assets/brand/logo-icon.png',
+    },
+    {
+      id: 'logo-rectangle-transparent',
+      name: 'RECTANGLE LOGO TRANSPARENT',
+      description: 'Full horizontal logo with transparent background',
+      pngPath: '/assets/brand/logo-rectangle-transparent.png',
+      svgPath: '/assets/brand/logo-rectangle-transparent.svg',
+      preview: '/assets/brand/logo-rectangle-transparent.png',
+    },
+    {
+      id: 'logo-icon-transparent',
+      name: 'ICON LOGO TRANSPARENT',
+      description: 'Square icon with transparent background',
+      pngPath: '/assets/brand/logo-icon-transparent.png',
+      svgPath: '/assets/brand/logo-icon-transparent.svg',
+      preview: '/assets/brand/logo-icon-transparent.png',
     },
   ];
 
@@ -182,8 +198,18 @@ export default function BrandKitPage() {
             return (
               <div key={asset.id} className="border-4 border-white bg-black">
                 {/* Asset Preview */}
-                <div className="border-white border-b-4 bg-white p-8">
-                  <div className="relative flex h-48 items-center justify-center">
+                <div
+                  className={`border-white border-b-4 p-8 ${
+                    asset.id.includes('transparent') ? 'bg-white' : 'bg-white'
+                  }`}
+                >
+                  <div
+                    className={`relative flex h-48 items-center justify-center ${
+                      asset.id.includes('transparent')
+                        ? 'bg-[0_0,0_20px,20px_-20px,-20px_0px] bg-[length:40px_40px] bg-[linear-gradient(45deg,#000_25%,transparent_25%),linear-gradient(-45deg,#000_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#000_75%),linear-gradient(-45deg,transparent_75%,#000_75%)] bg-gray-700'
+                        : ''
+                    }`}
+                  >
                     <Image
                       src={asset.preview}
                       alt={asset.name}
