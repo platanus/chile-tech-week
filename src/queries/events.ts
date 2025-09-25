@@ -13,9 +13,12 @@ import {
 import { db } from '@/src/lib/db';
 import {
   type Event,
+  type EventAudience,
   type EventCohost,
   type EventFormat,
   type EventTheme,
+  eventAudienceRelations,
+  eventAudiences,
   eventCohosts,
   events,
   eventThemeRelations,
@@ -25,6 +28,7 @@ import {
 export type EventWithDetails = Event & {
   themes: EventTheme[];
   cohosts: EventCohost[];
+  audiences: EventAudience[];
 };
 
 export const getAllEvents = async (): Promise<EventWithDetails[]> => {
@@ -34,10 +38,10 @@ export const getAllEvents = async (): Promise<EventWithDetails[]> => {
     .where(sql`approved_at IS NOT NULL`)
     .orderBy(events.startDate);
 
-  // Get themes and cohosts for all events
+  // Get themes, audiences and cohosts for all events
   const eventIds = allEvents.map((event) => event.id);
 
-  const [allThemes, allCohosts] = await Promise.all([
+  const [allThemes, allAudiences, allCohosts] = await Promise.all([
     // Get all themes for these events
     db
       .select({
@@ -48,6 +52,19 @@ export const getAllEvents = async (): Promise<EventWithDetails[]> => {
       .innerJoin(eventThemes, eq(eventThemeRelations.themeId, eventThemes.id))
       .where(inArray(eventThemeRelations.eventId, eventIds)),
 
+    // Get all audiences for these events
+    db
+      .select({
+        eventId: eventAudienceRelations.eventId,
+        audience: eventAudiences,
+      })
+      .from(eventAudienceRelations)
+      .innerJoin(
+        eventAudiences,
+        eq(eventAudienceRelations.audienceId, eventAudiences.id),
+      )
+      .where(inArray(eventAudienceRelations.eventId, eventIds)),
+
     // Get all cohosts for these events
     db
       .select()
@@ -55,7 +72,7 @@ export const getAllEvents = async (): Promise<EventWithDetails[]> => {
       .where(inArray(eventCohosts.eventId, eventIds)),
   ]);
 
-  // Group themes and cohosts by event ID
+  // Group themes, audiences and cohosts by event ID
   const themesByEvent = allThemes.reduce(
     (acc, { eventId, theme }) => {
       if (!acc[eventId]) acc[eventId] = [];
@@ -63,6 +80,15 @@ export const getAllEvents = async (): Promise<EventWithDetails[]> => {
       return acc;
     },
     {} as Record<string, EventTheme[]>,
+  );
+
+  const audiencesByEvent = allAudiences.reduce(
+    (acc, { eventId, audience }) => {
+      if (!acc[eventId]) acc[eventId] = [];
+      acc[eventId].push(audience);
+      return acc;
+    },
+    {} as Record<string, EventAudience[]>,
   );
 
   const cohostsByEvent = allCohosts.reduce(
@@ -78,6 +104,7 @@ export const getAllEvents = async (): Promise<EventWithDetails[]> => {
   return allEvents.map((event) => ({
     ...event,
     themes: themesByEvent[event.id] || [],
+    audiences: audiencesByEvent[event.id] || [],
     cohosts: cohostsByEvent[event.id] || [],
   }));
 };
@@ -104,7 +131,7 @@ export const getEventsByDateRange = async (
 
   const eventIds = eventsInRange.map((event) => event.id);
 
-  const [allThemes, allCohosts] = await Promise.all([
+  const [allThemes, allAudiences, allCohosts] = await Promise.all([
     db
       .select({
         eventId: eventThemeRelations.eventId,
@@ -113,6 +140,18 @@ export const getEventsByDateRange = async (
       .from(eventThemeRelations)
       .innerJoin(eventThemes, eq(eventThemeRelations.themeId, eventThemes.id))
       .where(inArray(eventThemeRelations.eventId, eventIds)),
+
+    db
+      .select({
+        eventId: eventAudienceRelations.eventId,
+        audience: eventAudiences,
+      })
+      .from(eventAudienceRelations)
+      .innerJoin(
+        eventAudiences,
+        eq(eventAudienceRelations.audienceId, eventAudiences.id),
+      )
+      .where(inArray(eventAudienceRelations.eventId, eventIds)),
 
     db
       .select()
@@ -129,6 +168,15 @@ export const getEventsByDateRange = async (
     {} as Record<string, EventTheme[]>,
   );
 
+  const audiencesByEvent = allAudiences.reduce(
+    (acc, { eventId, audience }) => {
+      if (!acc[eventId]) acc[eventId] = [];
+      acc[eventId].push(audience);
+      return acc;
+    },
+    {} as Record<string, EventAudience[]>,
+  );
+
   const cohostsByEvent = allCohosts.reduce(
     (acc, cohost) => {
       if (!acc[cohost.eventId]) acc[cohost.eventId] = [];
@@ -141,6 +189,7 @@ export const getEventsByDateRange = async (
   return eventsInRange.map((event) => ({
     ...event,
     themes: themesByEvent[event.id] || [],
+    audiences: audiencesByEvent[event.id] || [],
     cohosts: cohostsByEvent[event.id] || [],
   }));
 };
@@ -158,7 +207,7 @@ export const getEventById = async (
     return null;
   }
 
-  const [themes, cohosts] = await Promise.all([
+  const [themes, audiences, cohosts] = await Promise.all([
     db
       .select({
         theme: eventThemes,
@@ -167,18 +216,34 @@ export const getEventById = async (
       .innerJoin(eventThemes, eq(eventThemeRelations.themeId, eventThemes.id))
       .where(eq(eventThemeRelations.eventId, id)),
 
+    db
+      .select({
+        audience: eventAudiences,
+      })
+      .from(eventAudienceRelations)
+      .innerJoin(
+        eventAudiences,
+        eq(eventAudienceRelations.audienceId, eventAudiences.id),
+      )
+      .where(eq(eventAudienceRelations.eventId, id)),
+
     db.select().from(eventCohosts).where(eq(eventCohosts.eventId, id)),
   ]);
 
   return {
     ...event[0],
     themes: themes.map((t) => t.theme),
+    audiences: audiences.map((a) => a.audience),
     cohosts,
   };
 };
 
 export const getAllEventThemes = async (): Promise<EventTheme[]> => {
   return db.select().from(eventThemes).orderBy(eventThemes.name);
+};
+
+export const getAllEventAudiences = async (): Promise<EventAudience[]> => {
+  return db.select().from(eventAudiences).orderBy(eventAudiences.name);
 };
 
 // Admin-specific queries
@@ -257,10 +322,10 @@ export const getAdminEvents = async (
     };
   }
 
-  // Get themes and cohosts for these events
+  // Get themes, audiences and cohosts for these events
   const eventIds = adminEvents.map((event) => event.id);
 
-  const [allThemes, allCohosts] = await Promise.all([
+  const [allThemes, allAudiences, allCohosts] = await Promise.all([
     db
       .select({
         eventId: eventThemeRelations.eventId,
@@ -271,12 +336,24 @@ export const getAdminEvents = async (
       .where(inArray(eventThemeRelations.eventId, eventIds)),
 
     db
+      .select({
+        eventId: eventAudienceRelations.eventId,
+        audience: eventAudiences,
+      })
+      .from(eventAudienceRelations)
+      .innerJoin(
+        eventAudiences,
+        eq(eventAudienceRelations.audienceId, eventAudiences.id),
+      )
+      .where(inArray(eventAudienceRelations.eventId, eventIds)),
+
+    db
       .select()
       .from(eventCohosts)
       .where(inArray(eventCohosts.eventId, eventIds)),
   ]);
 
-  // Group themes and cohosts by event ID
+  // Group themes, audiences and cohosts by event ID
   const themesByEvent = allThemes.reduce(
     (acc, { eventId, theme }) => {
       if (!acc[eventId]) acc[eventId] = [];
@@ -284,6 +361,15 @@ export const getAdminEvents = async (
       return acc;
     },
     {} as Record<string, EventTheme[]>,
+  );
+
+  const audiencesByEvent = allAudiences.reduce(
+    (acc, { eventId, audience }) => {
+      if (!acc[eventId]) acc[eventId] = [];
+      acc[eventId].push(audience);
+      return acc;
+    },
+    {} as Record<string, EventAudience[]>,
   );
 
   const cohostsByEvent = allCohosts.reduce(
@@ -299,6 +385,7 @@ export const getAdminEvents = async (
   const eventsWithDetails = adminEvents.map((event) => ({
     ...event,
     themes: themesByEvent[event.id] || [],
+    audiences: audiencesByEvent[event.id] || [],
     cohosts: cohostsByEvent[event.id] || [],
   }));
 
@@ -409,6 +496,20 @@ export const createEventThemeRelations = async (
     themeIds.map((themeId) => ({
       eventId,
       themeId,
+    })),
+  );
+};
+
+export const createEventAudienceRelations = async (
+  eventId: string,
+  audienceIds: string[],
+): Promise<void> => {
+  if (audienceIds.length === 0) return;
+
+  await db.insert(eventAudienceRelations).values(
+    audienceIds.map((audienceId) => ({
+      eventId,
+      audienceId,
     })),
   );
 };

@@ -27,10 +27,20 @@ export const createEventFormSchema = z
       .max(50, 'Phone number is too long')
       .refine(
         (phone) => {
-          return phone.startsWith('+56') && phone.length >= 12;
+          // Must start with +56
+          if (!phone.startsWith('+56')) {
+            return false;
+          }
+
+          // Remove +56 and any spaces/dashes to count only digits
+          const digitsOnly = phone.slice(3).replace(/[\s-]/g, '');
+
+          // Should have exactly 9 digits after +56 (Chilean mobile format)
+          return /^\d{9}$/.test(digitsOnly);
         },
         {
-          message: 'Phone number must start with +56 and be at least 12 digits',
+          message:
+            'Phone number must be in format +56 9 XXXX XXXX (9 digits after +56)',
         },
       ),
 
@@ -177,11 +187,21 @@ export const createEventFormSchema = z
             .refine(
               (phone) => {
                 if (!phone || phone.trim() === '') return true; // Optional field
-                return phone.startsWith('+56') && phone.length >= 12;
+
+                // Must start with +56
+                if (!phone.startsWith('+56')) {
+                  return false;
+                }
+
+                // Remove +56 and any spaces/dashes to count only digits
+                const digitsOnly = phone.slice(3).replace(/[\s-]/g, '');
+
+                // Should have exactly 9 digits after +56 (Chilean mobile format)
+                return /^\d{9}$/.test(digitsOnly);
               },
               {
                 message:
-                  'Phone number must start with +56 and be at least 12 digits',
+                  'Phone number must be in format +56 9 XXXX XXXX (9 digits after +56)',
               },
             )
             .optional(),
@@ -205,6 +225,11 @@ export const createEventFormSchema = z
     themeIds: z
       .array(z.string().uuid('Invalid theme ID'))
       .min(1, 'Please select at least one theme'),
+
+    // Audiences (required array of audience IDs)
+    audienceIds: z
+      .array(z.string().uuid('Invalid audience ID'))
+      .min(1, 'Please select at least one target audience'),
   })
   .refine((data) => new Date(data.endDate) > new Date(data.startDate), {
     message: 'End date must be after start date',

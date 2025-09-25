@@ -31,7 +31,10 @@ export class LumaService {
   /**
    * Create an event on Luma based on the form data
    */
-  async createEventFromFormData(formData: CreateEventFormData): Promise<{
+  async createEventFromFormData(
+    formData: CreateEventFormData,
+    eventId?: string,
+  ): Promise<{
     success: boolean;
     eventUrl?: string;
     eventApiId?: string;
@@ -61,13 +64,20 @@ export class LumaService {
           .filter(Boolean) || []),
       ];
 
+      // Create geo_address_json with commune information
+      const geoAddress = {
+        type: 'manual' as const,
+        address: formData.commune,
+      };
+
       // Create event data for Luma API
       const eventData = {
         name: formData.title,
         start_at: formData.startDate.toISOString(),
         duration_minutes: durationMinutes,
-        description: this.generateEventDescription(formData),
+        description_md: this.generateEventDescription(formData, eventId),
         location: formData.commune,
+        geo_address_json: geoAddress,
         timezone: 'America/Santiago', // Chile timezone
         require_rsvp: true,
         require_rsvp_approval: false, // Can be configured based on requirements
@@ -85,9 +95,12 @@ export class LumaService {
       console.log('Luma event created:', result);
       console.log('Full event object:', JSON.stringify(result.event, null, 2));
 
+      // Generate event URL from API ID since it's not returned by the API
+      const eventUrl = `https://luma.com/event/${result.event.api_id}`;
+
       return {
         success: true,
-        eventUrl: result.event.url,
+        eventUrl: eventUrl,
         eventApiId: result.event.api_id,
         cohostResult: result.cohostResult
           ? {
@@ -109,41 +122,78 @@ export class LumaService {
   }
 
   /**
-   * Generate a formatted description for the Luma event
+   * Generate a formatted Markdown description for the Luma event
    */
-  private generateEventDescription(formData: CreateEventFormData): string {
+  public generateEventDescription(
+    formData: CreateEventFormData,
+    eventId?: string,
+  ): string {
     const parts: string[] = [];
 
-    // Add organizer information
-    parts.push(
-      `Organized by: ${formData.authorName} (${formData.authorEmail})`,
-    );
+    // Add template editing warning with markdown styling
+    parts.push('## ⚠️ RECUERDA EDITAR EL EVENTO ⚠️');
+    parts.push('');
+    parts.push('### CHECKLIST DE EDICIÓN:');
+    parts.push('- [ ] Verificar horario y fecha del evento');
+    parts.push('- [ ] Agregar imágenes del evento');
+    parts.push('- [ ] Verificar ubicación del evento');
+    parts.push('');
 
-    // Add event format
-    parts.push(`Format: ${formData.format}`);
+    // Add event descriptions with proper markdown formatting
+    parts.push('## DESCRIPCIÓN EN ESPAÑOL');
+    parts.push(formData.description || '*Descripción pendiente de editar*');
+    parts.push('');
+    parts.push('## ENGLISH DESCRIPTION');
+    parts.push(formData.description || '*Description pending edit*');
+    parts.push('');
+
+    // Add event status link with markdown formatting
+    if (eventId) {
+      parts.push(
+        `📊 [Ver estado del evento](https://techweek.cl/events/${eventId}/status)`,
+      );
+      parts.push('');
+    }
+
+    // Add separator
+    parts.push('---');
+    parts.push('');
+    parts.push('## INFORMACIÓN ORGANIZACIONAL');
+    parts.push('');
+
+    // Add organizer information with markdown formatting
+    parts.push(
+      `**Organizer:** ${formData.authorName} (${formData.authorEmail})`,
+    );
+    parts.push(`**Format:** ${formData.format}`);
 
     // Add co-hosts information if any
     if (formData.cohosts && formData.cohosts.length > 0) {
-      parts.push('\nCo-hosts:');
+      parts.push('');
+      parts.push('**Co-hosts:**');
       formData.cohosts.forEach((cohost, index) => {
         parts.push(
-          `${index + 1}. ${cohost.companyName} - ${cohost.primaryContactName} (${cohost.primaryContactEmail})`,
+          `${index + 1}. **${cohost.companyName}** - ${cohost.primaryContactName} (${cohost.primaryContactEmail})`,
         );
       });
     }
 
     // Add original Luma link if provided
     if (formData.lumaLink) {
-      parts.push(`\nOriginal Luma Link: ${formData.lumaLink}`);
+      parts.push('');
+      parts.push(`**Original Luma Link:** ${formData.lumaLink}`);
     }
 
     // Add contact information
     if (formData.authorPhoneNumber) {
-      parts.push(`\nContact: ${formData.authorPhoneNumber}`);
+      parts.push('');
+      parts.push(`**Contact:** ${formData.authorPhoneNumber}`);
     }
 
+    parts.push('');
+    parts.push('---');
     parts.push(
-      '\n---\nThis event was created through Chile Tech Week event submission system.',
+      '*This event was created through Chile Tech Week event submission system.*',
     );
 
     return parts.join('\n');

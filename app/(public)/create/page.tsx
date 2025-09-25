@@ -1,9 +1,14 @@
-import { getAllEventThemes, getEventCountsByHour } from '@/src/queries/events';
+import {
+  getAllEventAudiences,
+  getAllEventThemes,
+  getEventCountsByHour,
+} from '@/src/queries/events';
 import { CreateEventForm } from './_components/create-event-form';
 
 export default async function CreateEventPage() {
-  const [themes, eventCounts] = await Promise.all([
+  const [themes, audiences, eventCounts] = await Promise.all([
     getAllEventThemes(),
+    getAllEventAudiences(),
     getEventCountsByHour(
       new Date('2025-11-17'),
       new Date('2025-11-23T23:59:59'),
@@ -34,7 +39,11 @@ export default async function CreateEventPage() {
           </div>
 
           {/* Form */}
-          <CreateEventForm themes={themes} eventCounts={eventCounts} />
+          <CreateEventForm
+            themes={themes}
+            audiences={audiences}
+            eventCounts={eventCounts}
+          />
         </div>
       </div>
     </div>

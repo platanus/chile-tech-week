@@ -198,6 +198,40 @@ export type InsertEventThemeRelation = InferInsertModel<
   typeof eventThemeRelations
 >;
 
+// Event audiences table
+export const eventAudiences = pgTable('EventAudiences', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  name: varchar('name', { length: 100 }).notNull().unique(),
+  slug: varchar('slug', { length: 100 }).notNull().unique(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type EventAudience = InferSelectModel<typeof eventAudiences>;
+export type InsertEventAudience = InferInsertModel<typeof eventAudiences>;
+
+// Event audience relations (many-to-many)
+export const eventAudienceRelations = pgTable('EventAudienceRelations', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  eventId: uuid('event_id')
+    .notNull()
+    .references(() => events.id, { onDelete: 'cascade' }),
+  audienceId: uuid('audience_id')
+    .notNull()
+    .references(() => eventAudiences.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type EventAudienceRelation = InferSelectModel<
+  typeof eventAudienceRelations
+>;
+export type InsertEventAudienceRelation = InferInsertModel<
+  typeof eventAudienceRelations
+>;
+
 // Event co-hosts table
 export const eventCohosts = pgTable('EventCohosts', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -239,6 +273,7 @@ export type InsertEventCohost = InferInsertModel<typeof eventCohosts>;
 export const eventsRelations = relations(events, ({ many }) => ({
   cohosts: many(eventCohosts),
   themes: many(eventThemeRelations),
+  audiences: many(eventAudienceRelations),
 }));
 
 export const eventCohostsRelations = relations(eventCohosts, ({ one }) => ({
@@ -265,3 +300,24 @@ export const eventThemeRelationsRelations = relations(
 export const eventThemesRelations = relations(eventThemes, ({ many }) => ({
   events: many(eventThemeRelations),
 }));
+
+export const eventAudienceRelationsRelations = relations(
+  eventAudienceRelations,
+  ({ one }) => ({
+    event: one(events, {
+      fields: [eventAudienceRelations.eventId],
+      references: [events.id],
+    }),
+    audience: one(eventAudiences, {
+      fields: [eventAudienceRelations.audienceId],
+      references: [eventAudiences.id],
+    }),
+  }),
+);
+
+export const eventAudiencesRelations = relations(
+  eventAudiences,
+  ({ many }) => ({
+    events: many(eventAudienceRelations),
+  }),
+);

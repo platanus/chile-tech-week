@@ -2,7 +2,8 @@
 
 import { Check, ChevronsUpDown, Plus, Trash2, Upload, X } from 'lucide-react';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { EventCalendar } from '@/src/components/event-calendar';
 import { Button } from '@/src/components/ui/button';
 import {
@@ -52,7 +53,7 @@ import {
 import { Textarea } from '@/src/components/ui/textarea';
 import { useFormAction } from '@/src/hooks/use-form-action';
 import { SANTIAGO_COMMUNES } from '@/src/lib/constants/communes';
-import type { EventTheme } from '@/src/lib/db/schema';
+import type { EventAudience, EventTheme } from '@/src/lib/db/schema';
 import { eventFormats } from '@/src/lib/db/schema';
 import {
   type CreateEventFormData,
@@ -67,12 +68,162 @@ import { createEventAction } from '../_actions/create-event.action';
 
 interface CreateEventFormProps {
   themes: EventTheme[];
+  audiences: EventAudience[];
   eventCounts: EventCountByHour[];
 }
 
-export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
-  const [cohosts, setCohosts] = useState<number[]>([]);
-  const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+export function CreateEventForm({
+  themes,
+  audiences,
+  eventCounts,
+}: CreateEventFormProps) {
+  const searchParams = useSearchParams();
+
+  // Helper to get a URL param with fallback
+  const getParam = (key: string, fallback: string = '') =>
+    searchParams.get(key) || fallback;
+
+  // Helper to parse date from URL param
+  const parseDate = (dateParam: string | null) => {
+    if (!dateParam) return undefined;
+    try {
+      return new Date(dateParam);
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Helper function to get default values from query params
+  const getDefaultValuesFromParams = (): Partial<CreateEventFormData> => ({
+    authorEmail: getParam('authorEmail'),
+    authorName: getParam('authorName'),
+    companyName: getParam('companyName'),
+    companyWebsite: getParam('companyWebsite'),
+    authorPhoneNumber: getParam('authorPhoneNumber'),
+    title: getParam('title'),
+    description: getParam('description'),
+    commune: getParam('commune'),
+    format: parseEventFormat(searchParams.get('format')),
+    capacity: searchParams.get('capacity')
+      ? Number(searchParams.get('capacity'))
+      : undefined,
+    lumaLink: getParam('lumaLink'),
+    startDate: parseDate(searchParams.get('startDate')),
+    endDate: parseDate(searchParams.get('endDate')),
+    // Don't set companyLogoUrl and logoFile here - they need to be uploaded
+  });
+
+  // Helper function to parse event format from URL param
+  const parseEventFormat = (formatParam: string | null) => {
+    if (!formatParam) return undefined;
+
+    // Try direct match first
+    if (eventFormats.includes(formatParam as any)) {
+      return formatParam as any;
+    }
+
+    // Try fuzzy matching by removing spaces and converting to lowercase
+    const normalizedParam = formatParam.toLowerCase().replace(/[^a-z]/g, '');
+    const match = eventFormats.find((format) => {
+      const normalizedFormat = format.toLowerCase().replace(/[^a-z]/g, '');
+      return normalizedFormat === normalizedParam;
+    });
+
+    return match || undefined;
+  };
+
+  // Generic helper to match items by ID, slug, name, or partial name
+  const findMatchingIds = <
+    T extends { id: string; slug: string; name: string },
+  >(
+    items: T[],
+    searchTerms: string[],
+  ): string[] => {
+    return searchTerms
+      .map((term) => {
+        const lowerTerm = term.toLowerCase();
+
+        // Try exact ID match first
+        const exactMatch = items.find((item) => item.id === term);
+        if (exactMatch) return exactMatch.id;
+
+        // Try slug match
+        const slugMatch = items.find((item) => item.slug === lowerTerm);
+        if (slugMatch) return slugMatch.id;
+
+        // Try name match (case insensitive)
+        const nameMatch = items.find(
+          (item) => item.name.toLowerCase() === lowerTerm,
+        );
+        if (nameMatch) return nameMatch.id;
+
+        // Try partial name match
+        const partialMatch = items.find(
+          (item) =>
+            item.name.toLowerCase().includes(lowerTerm) ||
+            lowerTerm.includes(item.name.toLowerCase()),
+        );
+
+        return partialMatch?.id || term; // fallback to original if no match
+      })
+      .filter(Boolean);
+  };
+
+  // Helper to parse comma-separated IDs from URL params
+  const parseCommaSeparatedIds = <
+    T extends { id: string; slug: string; name: string },
+  >(
+    param: string | null,
+    items: T[],
+  ): string[] => {
+    if (!param) return [];
+    return findMatchingIds(items, param.split(',').filter(Boolean));
+  };
+
+  // Get initial values from URL params
+  const urlDefaults = getDefaultValuesFromParams();
+  const initialThemeIds = parseCommaSeparatedIds(
+    searchParams.get('themeIds'),
+    themes,
+  );
+  const initialAudienceIds = parseCommaSeparatedIds(
+    searchParams.get('audienceIds'),
+    audiences,
+  );
+
+  // Parse cohosts from URL params
+  const parseCohostsFromParams = () => {
+    const cohosts = [];
+    let index = 0;
+
+    while (searchParams.get(`cohost${index}_companyName`)) {
+      const getParam = (field: string) =>
+        searchParams.get(`cohost${index}_${field}`) || '';
+
+      cohosts.push({
+        companyName: getParam('companyName'),
+        companyLogoUrl: '',
+        logoFile: new File([], ''),
+        primaryContactName: getParam('primaryContactName'),
+        primaryContactEmail: getParam('primaryContactEmail'),
+        primaryContactPhoneNumber: getParam('primaryContactPhoneNumber'),
+        primaryContactWebsite: getParam('primaryContactWebsite'),
+        primaryContactLinkedin: getParam('primaryContactLinkedin'),
+      });
+      index++;
+    }
+
+    return cohosts;
+  };
+
+  const initialCohosts = parseCohostsFromParams();
+  const [cohosts, setCohosts] = useState<number[]>(
+    initialCohosts.map((_, i) => i),
+  );
+  const [selectedThemes, setSelectedThemes] =
+    useState<string[]>(initialThemeIds);
+  const [selectedAudiences, setSelectedAudiences] =
+    useState<string[]>(initialAudienceIds);
   const [communeOpen, setCommuneOpen] = useState(false);
   const [durationWarning, setDurationWarning] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -106,6 +257,16 @@ export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
     (string | null)[]
   >([]);
   const cohostFileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Initialize cohost logo states based on initial cohosts from URL params
+  useEffect(() => {
+    if (initialCohosts.length > 0) {
+      setCohostLogoPreviews(new Array(initialCohosts.length).fill(null));
+      setCohostLogoUploading(new Array(initialCohosts.length).fill(false));
+      setCohostLogoUploadProgress(new Array(initialCohosts.length).fill(0));
+      setCohostLogoUploadErrors(new Array(initialCohosts.length).fill(null));
+    }
+  }, []);
 
   const addCohost = () => {
     if (cohosts.length < 3) {
@@ -143,6 +304,14 @@ export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
     const newSelectedThemes = selectedThemes.filter((id) => id !== themeId);
     setSelectedThemes(newSelectedThemes);
     form.setValue('themeIds', newSelectedThemes);
+  };
+
+  const removeAudience = (audienceId: string) => {
+    const newSelectedAudiences = selectedAudiences.filter(
+      (id) => id !== audienceId,
+    );
+    setSelectedAudiences(newSelectedAudiences);
+    form.setValue('audienceIds', newSelectedAudiences);
   };
 
   const checkEventDuration = (
@@ -433,24 +602,32 @@ export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
       schema: createEventFormSchema,
       action: createEventAction,
       defaultValues: {
-        authorEmail: '',
-        authorName: '',
-        companyName: '',
-        companyWebsite: '',
-        authorPhoneNumber: '',
-        title: '',
-        description: '',
-        startDate: undefined,
-        endDate: undefined,
-        commune: '',
-        format: undefined,
-        capacity: undefined,
-        lumaLink: '',
-        companyLogoUrl: '',
-        cohosts: [],
-        themeIds: undefined,
+        ...urlDefaults,
+        cohosts: initialCohosts,
+        themeIds: initialThemeIds.length > 0 ? initialThemeIds : undefined,
+        audienceIds:
+          initialAudienceIds.length > 0 ? initialAudienceIds : undefined,
       },
     });
+
+  // Trigger validation after form is initialized with URL params
+  useEffect(() => {
+    // Check if we have any search params (to avoid triggering on empty forms)
+    const hasParams = searchParams.size > 0;
+
+    if (hasParams) {
+      // Ensure themes and audiences are set in form state
+      if (initialThemeIds.length > 0) {
+        form.setValue('themeIds', initialThemeIds);
+      }
+      if (initialAudienceIds.length > 0) {
+        form.setValue('audienceIds', initialAudienceIds);
+      }
+
+      // Trigger validation once
+      form.trigger();
+    }
+  }, []); // Empty dependency array - only run once on mount
 
   return (
     <Card className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_theme(colors.black)]">
@@ -1014,6 +1191,86 @@ export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
                                 <Button
                                   type="button"
                                   onClick={() => removeTheme(themeId)}
+                                  disabled={isPending}
+                                  className="h-4 w-4 border-none bg-transparent p-0 text-black hover:bg-transparent"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </FormItem>
+                )}
+              />
+
+              {/* Event Audiences */}
+              <FormField
+                control={form.control}
+                name="audienceIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                      TARGET AUDIENCES *
+                    </FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        const newAudiences = field.value || [];
+                        if (!newAudiences.includes(value)) {
+                          const updatedAudiences = [...newAudiences, value];
+                          field.onChange(updatedAudiences);
+                          setSelectedAudiences(updatedAudiences);
+                        }
+                      }}
+                      disabled={isPending}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary">
+                          <SelectValue placeholder="SELECT A TARGET AUDIENCE" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="border-4 border-black bg-white">
+                        {audiences
+                          .filter(
+                            (audience) =>
+                              !selectedAudiences.includes(audience.id),
+                          )
+                          .map((audience) => (
+                            <SelectItem
+                              key={audience.id}
+                              value={audience.id}
+                              className="font-bold font-mono text-black uppercase tracking-wider hover:bg-primary hover:text-black focus:bg-primary focus:text-black"
+                            >
+                              {audience.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    {selectedAudiences.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="font-bold font-mono text-black text-sm uppercase tracking-wider">
+                          SELECTED AUDIENCES:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedAudiences.map((audienceId) => {
+                            const audience = audiences.find(
+                              (a) => a.id === audienceId,
+                            );
+                            if (!audience) return null;
+                            return (
+                              <div
+                                key={audienceId}
+                                className="flex items-center gap-2 border-2 border-black bg-primary px-3 py-1"
+                              >
+                                <span className="font-bold font-mono text-black text-xs uppercase tracking-wider">
+                                  {audience.name}
+                                </span>
+                                <Button
+                                  type="button"
+                                  onClick={() => removeAudience(audienceId)}
                                   disabled={isPending}
                                   className="h-4 w-4 border-none bg-transparent p-0 text-black hover:bg-transparent"
                                 >

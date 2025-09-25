@@ -16,8 +16,10 @@ import {
 import {
   type CreateCohostData,
   createEvent,
+  createEventAudienceRelations,
   createEventCohosts,
   createEventThemeRelations,
+  getAllEventAudiences,
   getAllEventThemes,
 } from '@/src/queries/events';
 import { slackService } from '@/src/services/slack';
@@ -69,12 +71,29 @@ export async function createEventAction(
       await createEventThemeRelations(newEvent.id, validatedData.themeIds);
     }
 
+    // Add audience relations if any
+    if (validatedData.audienceIds && validatedData.audienceIds.length > 0) {
+      await createEventAudienceRelations(
+        newEvent.id,
+        validatedData.audienceIds,
+      );
+    }
+
     // Send formatted Slack notification and success email (don't await to avoid blocking response)
     try {
-      const themes = await getAllEventThemes();
+      const [themes, audiences] = await Promise.all([
+        getAllEventThemes(),
+        getAllEventAudiences(),
+      ]);
+
       const selectedThemes = themes
         .filter((theme) => validatedData.themeIds?.includes(theme.id))
         .map((theme) => theme.name)
+        .join(', ');
+
+      const selectedAudiences = audiences
+        .filter((audience) => validatedData.audienceIds?.includes(audience.id))
+        .map((audience) => audience.name)
         .join(', ');
 
       const startDateFormatted = validatedData.startDate.toLocaleDateString(
@@ -110,6 +129,7 @@ export async function createEventAction(
 👤 *Organizer:* ${validatedData.authorName} from ${validatedData.companyName} (${validatedData.authorEmail})
 🏷️ *Format:* ${eventFormatLabels[validatedData.format]}
 🎯 *Themes:* ${selectedThemes || 'No themes selected'}
+👥 *Audiences:* ${selectedAudiences || 'No audiences selected'}
 
 📅 *Start:* ${startDateFormatted}
 📅 *End:* ${endDateFormatted}
