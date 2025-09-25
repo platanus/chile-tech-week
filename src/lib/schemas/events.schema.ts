@@ -205,6 +205,11 @@ export const createEventFormSchema = z
     themeIds: z
       .array(z.string().uuid('Invalid theme ID'))
       .min(1, 'Please select at least one theme'),
+
+    // Audiences (required array of audience IDs)
+    audienceIds: z
+      .array(z.string().uuid('Invalid audience ID'))
+      .min(1, 'Please select at least one target audience'),
   })
   .refine((data) => new Date(data.endDate) > new Date(data.startDate), {
     message: 'End date must be after start date',

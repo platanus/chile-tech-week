@@ -322,6 +322,29 @@ export default async function AdminEventDetailPage({
           </Card>
         )}
 
+        {/* Audiences */}
+        {event.audiences.length > 0 && (
+          <Card className="border-2 border-white bg-black shadow-[4px_4px_0px_0px_#ffffff]">
+            <CardHeader>
+              <CardTitle className="font-bold font-mono text-white uppercase tracking-wide">
+                Target Audiences
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {event.audiences.map((audience) => (
+                  <Badge
+                    key={audience.id}
+                    className="border-2 border-white bg-white font-bold font-mono text-black uppercase tracking-wide"
+                  >
+                    {audience.name}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Co-hosts */}
         {event.cohosts.length > 0 && (
           <Card className="border-2 border-white bg-black shadow-[4px_4px_0px_0px_#ffffff]">

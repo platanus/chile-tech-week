@@ -31,7 +31,7 @@ export class LumaService {
   /**
    * Create an event on Luma based on the form data
    */
-  async createEventFromFormData(formData: CreateEventFormData): Promise<{
+  async createEventFromFormData(formData: CreateEventFormData, eventId?: string): Promise<{
     success: boolean;
     eventUrl?: string;
     eventApiId?: string;
@@ -66,7 +66,7 @@ export class LumaService {
         name: formData.title,
         start_at: formData.startDate.toISOString(),
         duration_minutes: durationMinutes,
-        description: this.generateEventDescription(formData),
+        description: this.generateEventDescription(formData, eventId),
         location: formData.commune,
         timezone: 'America/Santiago', // Chile timezone
         require_rsvp: true,
@@ -111,8 +111,35 @@ export class LumaService {
   /**
    * Generate a formatted description for the Luma event
    */
-  private generateEventDescription(formData: CreateEventFormData): string {
+  private generateEventDescription(formData: CreateEventFormData, eventId?: string): string {
     const parts: string[] = [];
+
+    // Add template editing warning and checklist
+    parts.push('⚠️ RECUERDA EDITAR EL EVENTO ⚠️');
+    parts.push('');
+    parts.push('CHECKLIST DE EDICIÓN:');
+    parts.push('□ Verificar horario y fecha del evento');
+    parts.push('□ Agregar imágenes del evento');
+    parts.push('□ Verificar ubicación del evento');
+    parts.push('');
+
+    // Add event descriptions
+    parts.push('=== DESCRIPCIÓN EN ESPAÑOL ===');
+    parts.push(formData.description || 'Descripción pendiente de editar');
+    parts.push('');
+    parts.push('=== ENGLISH DESCRIPTION ===');
+    parts.push(formData.description || 'Description pending edit');
+    parts.push('');
+
+    // Add event status link
+    if (eventId) {
+      parts.push(`📊 Ver estado del evento: https://techweek.cl/events/${eventId}/status`);
+    }
+    parts.push('');
+
+    // Add separator
+    parts.push('--- INFORMACIÓN ORGANIZACIONAL ---');
+    parts.push('');
 
     // Add organizer information
     parts.push(

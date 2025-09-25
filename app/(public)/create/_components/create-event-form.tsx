@@ -52,7 +52,7 @@ import {
 import { Textarea } from '@/src/components/ui/textarea';
 import { useFormAction } from '@/src/hooks/use-form-action';
 import { SANTIAGO_COMMUNES } from '@/src/lib/constants/communes';
-import type { EventTheme } from '@/src/lib/db/schema';
+import type { EventAudience, EventTheme } from '@/src/lib/db/schema';
 import { eventFormats } from '@/src/lib/db/schema';
 import {
   type CreateEventFormData,
@@ -67,12 +67,14 @@ import { createEventAction } from '../_actions/create-event.action';
 
 interface CreateEventFormProps {
   themes: EventTheme[];
+  audiences: EventAudience[];
   eventCounts: EventCountByHour[];
 }
 
-export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
+export function CreateEventForm({ themes, audiences, eventCounts }: CreateEventFormProps) {
   const [cohosts, setCohosts] = useState<number[]>([]);
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+  const [selectedAudiences, setSelectedAudiences] = useState<string[]>([]);
   const [communeOpen, setCommuneOpen] = useState(false);
   const [durationWarning, setDurationWarning] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -143,6 +145,12 @@ export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
     const newSelectedThemes = selectedThemes.filter((id) => id !== themeId);
     setSelectedThemes(newSelectedThemes);
     form.setValue('themeIds', newSelectedThemes);
+  };
+
+  const removeAudience = (audienceId: string) => {
+    const newSelectedAudiences = selectedAudiences.filter((id) => id !== audienceId);
+    setSelectedAudiences(newSelectedAudiences);
+    form.setValue('audienceIds', newSelectedAudiences);
   };
 
   const checkEventDuration = (
@@ -449,6 +457,7 @@ export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
         companyLogoUrl: '',
         cohosts: [],
         themeIds: undefined,
+        audienceIds: undefined,
       },
     });
 
@@ -1014,6 +1023,81 @@ export function CreateEventForm({ themes, eventCounts }: CreateEventFormProps) {
                                 <Button
                                   type="button"
                                   onClick={() => removeTheme(themeId)}
+                                  disabled={isPending}
+                                  className="h-4 w-4 border-none bg-transparent p-0 text-black hover:bg-transparent"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </FormItem>
+                )}
+              />
+
+              {/* Event Audiences */}
+              <FormField
+                control={form.control}
+                name="audienceIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
+                      TARGET AUDIENCES *
+                    </FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        const newAudiences = field.value || [];
+                        if (!newAudiences.includes(value)) {
+                          const updatedAudiences = [...newAudiences, value];
+                          field.onChange(updatedAudiences);
+                          setSelectedAudiences(updatedAudiences);
+                        }
+                      }}
+                      disabled={isPending}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary">
+                          <SelectValue placeholder="SELECT A TARGET AUDIENCE" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="border-4 border-black bg-white">
+                        {audiences
+                          .filter((audience) => !selectedAudiences.includes(audience.id))
+                          .map((audience) => (
+                            <SelectItem
+                              key={audience.id}
+                              value={audience.id}
+                              className="font-bold font-mono text-black uppercase tracking-wider hover:bg-primary hover:text-black focus:bg-primary focus:text-black"
+                            >
+                              {audience.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    {selectedAudiences.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="font-bold font-mono text-black text-sm uppercase tracking-wider">
+                          SELECTED AUDIENCES:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedAudiences.map((audienceId) => {
+                            const audience = audiences.find((a) => a.id === audienceId);
+                            if (!audience) return null;
+                            return (
+                              <div
+                                key={audienceId}
+                                className="flex items-center gap-2 border-2 border-black bg-primary px-3 py-1"
+                              >
+                                <span className="font-bold font-mono text-black text-xs uppercase tracking-wider">
+                                  {audience.name}
+                                </span>
+                                <Button
+                                  type="button"
+                                  onClick={() => removeAudience(audienceId)}
                                   disabled={isPending}
                                   className="h-4 w-4 border-none bg-transparent p-0 text-black hover:bg-transparent"
                                 >
