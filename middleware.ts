@@ -46,7 +46,10 @@ export async function middleware(request: NextRequest) {
   // Handle login/register redirects first
   if (['/login', '/register'].includes(pathname)) {
     if (token) {
-      return NextResponse.redirect(new URL('/', request.url));
+      const redirectUrl = request.nextUrl.searchParams.get('redirectUrl');
+      return NextResponse.redirect(
+        new URL(redirectUrl || '/admin', request.url),
+      );
     }
     return response;
   }
@@ -72,11 +75,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/',
-    '/api/:path*',
-    '/login',
-    '/register',
-
     /*
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
