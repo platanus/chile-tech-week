@@ -52,7 +52,7 @@ export const createEventFormSchema = z
     description: z
       .string()
       .min(1, 'Event description is required')
-      .max(100, 'Event description must be 100 characters or less'),
+      .max(300, 'Event description must be 300 characters or less'),
     startDate: z
       .date({
         required_error: 'Start date is required',

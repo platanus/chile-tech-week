@@ -802,12 +802,12 @@ export function CreateEventForm({
                         placeholder="A short description of your event"
                         disabled={isPending}
                         className="min-h-[120px] resize-none border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
-                        maxLength={100}
+                        maxLength={300}
                         {...field}
                       />
                     </FormControl>
                     <p className="font-mono text-gray-600 text-xs uppercase tracking-wider">
-                      {field.value?.length || 0}/100 CHARACTERS
+                      {field.value?.length || 0}/300 CHARACTERS
                     </p>
                     <FormMessage />
                   </FormItem>
