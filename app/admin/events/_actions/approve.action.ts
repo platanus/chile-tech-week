@@ -1,14 +1,18 @@
 'use server';
 
+import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { approveEvent, getEventById, getAllEventThemes } from '@/src/queries/events';
-import { lumaService } from '@/src/services/luma';
+import EditLumaEmail from '@/src/emails/events/edit-luma';
 import { db } from '@/src/lib/db';
 import { events } from '@/src/lib/db/schema';
-import { eq } from 'drizzle-orm';
 import { sendEmail } from '@/src/lib/email';
-import EditLumaEmail from '@/src/emails/events/edit-luma';
 import { eventFormatLabels } from '@/src/lib/schemas/events.schema';
+import {
+  approveEvent,
+  getAllEventThemes,
+  getEventById,
+} from '@/src/queries/events';
+import { lumaService } from '@/src/services/luma';
 
 export type ModerationResult = {
   success: boolean;
@@ -49,7 +53,7 @@ export async function approveEventAction(
       lumaLink: event.lumaLink || '',
       companyLogoUrl: event.companyLogoUrl,
       logoFile: new File([], ''), // Empty file since we already have the URL
-      cohosts: event.cohosts.map(cohost => ({
+      cohosts: event.cohosts.map((cohost) => ({
         companyName: cohost.companyName,
         companyLogoUrl: '', // Cohosts don't have logo URLs in the current schema
         logoFile: new File([], ''), // Empty file
@@ -59,11 +63,14 @@ export async function approveEventAction(
         primaryContactWebsite: cohost.primaryContactWebsite || '',
         primaryContactLinkedin: cohost.primaryContactLinkedin || '',
       })),
-      themeIds: event.themes.map(theme => theme.id),
-      audienceIds: event.audiences.map(audience => audience.id),
+      themeIds: event.themes.map((theme) => theme.id),
+      audienceIds: event.audiences.map((audience) => audience.id),
     };
 
-    const lumaResult = await lumaService.createEventFromFormData(formData, eventId);
+    const lumaResult = await lumaService.createEventFromFormData(
+      formData,
+      eventId,
+    );
 
     // Update the event with Luma details if successful
     if (lumaResult.success && lumaResult.eventUrl && lumaResult.eventApiId) {
@@ -80,37 +87,33 @@ export async function approveEventAction(
     // Send notification email to event organizer
     try {
       const themes = await getAllEventThemes();
-      
+
       const selectedThemes = themes
-        .filter((theme) => event.themes.some(eventTheme => eventTheme.id === theme.id))
+        .filter((theme) =>
+          event.themes.some((eventTheme) => eventTheme.id === theme.id),
+        )
         .map((theme) => theme.name)
         .join(', ');
 
-      const startDateFormatted = event.startDate.toLocaleDateString(
-        'en-US',
-        {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: 'America/Santiago',
-        },
-      );
+      const startDateFormatted = event.startDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Santiago',
+      });
 
-      const endDateFormatted = event.endDate.toLocaleDateString(
-        'en-US',
-        {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: 'America/Santiago',
-        },
-      );
+      const endDateFormatted = event.endDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Santiago',
+      });
 
       // Send edit-luma email to event organizer
       sendEmail({
@@ -139,7 +142,8 @@ export async function approveEventAction(
     if (lumaResult.success) {
       return {
         success: true,
-        message: 'Event approved, Luma event created, and notification email sent successfully',
+        message:
+          'Event approved, Luma event created, and notification email sent successfully',
       };
     } else {
       // Event was approved but Luma creation failed

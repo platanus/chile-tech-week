@@ -2,7 +2,7 @@ interface LumaEventRequest {
   name: string;
   start_at: string; // ISO 8601 format
   duration_minutes: number;
-  description?: string;
+  description_md?: string; // Markdown description field
   cover_url?: string;
   require_rsvp?: boolean;
   require_rsvp_approval?: boolean;
@@ -17,6 +17,10 @@ interface LumaEventRequest {
   zoom_session_type?: string;
   community_api_id?: string;
   location?: string;
+  geo_address_json?: {
+    type: 'manual';
+    address: string;
+  }; // Manual address object
   timezone?: string;
   capacity?: number; // Maximum number of attendees
 }
@@ -28,7 +32,7 @@ interface LumaEventResponse {
   duration_minutes: number;
   url: string;
   cover_url?: string;
-  description?: string;
+  description_md?: string; // Markdown description field
   location?: string;
   timezone: string;
   require_rsvp: boolean;
@@ -100,6 +104,16 @@ export class LumaClient {
    */
   async getSelf(): Promise<LumaUserResponse> {
     return this.makeRequest<LumaUserResponse>('/user/get-self');
+  }
+
+  /**
+   * Get event details by event API ID
+   * Note: This endpoint may not be publicly available in the Luma API
+   */
+  async getEvent(eventApiId: string): Promise<LumaEventResponse> {
+    return this.makeRequest<LumaEventResponse>(
+      `/event/get?event_api_id=${eventApiId}`,
+    );
   }
 
   /**

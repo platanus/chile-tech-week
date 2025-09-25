@@ -225,7 +225,9 @@ export const eventAudienceRelations = pgTable('EventAudienceRelations', {
     .defaultNow(),
 });
 
-export type EventAudienceRelation = InferSelectModel<typeof eventAudienceRelations>;
+export type EventAudienceRelation = InferSelectModel<
+  typeof eventAudienceRelations
+>;
 export type InsertEventAudienceRelation = InferInsertModel<
   typeof eventAudienceRelations
 >;
@@ -313,6 +315,9 @@ export const eventAudienceRelationsRelations = relations(
   }),
 );
 
-export const eventAudiencesRelations = relations(eventAudiences, ({ many }) => ({
-  events: many(eventAudienceRelations),
-}));
+export const eventAudiencesRelations = relations(
+  eventAudiences,
+  ({ many }) => ({
+    events: many(eventAudienceRelations),
+  }),
+);

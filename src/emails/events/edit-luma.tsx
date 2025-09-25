@@ -37,7 +37,8 @@ export default function EditLumaEmail({
         <Text style={text}>Hi {authorName},</Text>
 
         <Text style={text}>
-          Great news! Your event has been approved and is now ready for the next step.
+          Great news! Your event has been approved and is now ready for the next
+          step.
         </Text>
 
         <Hr style={hr} />
@@ -77,7 +78,9 @@ export default function EditLumaEmail({
             <Text style={processStepText}>✓ 1. SUBMIT EVENT - COMPLETED</Text>
           </div>
           <div style={processStepCompleted}>
-            <Text style={processStepText}>✓ 2. EVENT CHECKING & APPROVAL - COMPLETED</Text>
+            <Text style={processStepText}>
+              ✓ 2. EVENT CHECKING & APPROVAL - COMPLETED
+            </Text>
           </div>
           <div style={processStepActive}>
             <Text style={processStepText}>
@@ -90,7 +93,10 @@ export default function EditLumaEmail({
         </div>
 
         <Text style={text}>
-          <strong>You should have received an invitation to edit your Luma event in your email.</strong>
+          <strong>
+            You should have received an invitation to edit your Luma event in
+            your email.
+          </strong>
         </Text>
 
         <Text style={text}>
@@ -105,11 +111,14 @@ export default function EditLumaEmail({
         </div>
 
         <Text style={text}>
-          Once you've finished editing your Luma event, click the button below to publish it:
+          Once you've finished editing your Luma event, click the button below
+          to publish it:
         </Text>
 
         <Section style={buttonContainer}>
-          <EmailButton href={eventStatusUrl}>Luma Edited - Publish Event</EmailButton>
+          <EmailButton href={eventStatusUrl}>
+            Luma Edited - Publish Event
+          </EmailButton>
         </Section>
 
         <Text style={text}>

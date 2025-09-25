@@ -73,7 +73,10 @@ export async function createEventAction(
 
     // Add audience relations if any
     if (validatedData.audienceIds && validatedData.audienceIds.length > 0) {
-      await createEventAudienceRelations(newEvent.id, validatedData.audienceIds);
+      await createEventAudienceRelations(
+        newEvent.id,
+        validatedData.audienceIds,
+      );
     }
 
     // Send formatted Slack notification and success email (don't await to avoid blocking response)
@@ -82,7 +85,7 @@ export async function createEventAction(
         getAllEventThemes(),
         getAllEventAudiences(),
       ]);
-      
+
       const selectedThemes = themes
         .filter((theme) => validatedData.themeIds?.includes(theme.id))
         .map((theme) => theme.name)

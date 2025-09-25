@@ -59,7 +59,10 @@ export const getAllEvents = async (): Promise<EventWithDetails[]> => {
         audience: eventAudiences,
       })
       .from(eventAudienceRelations)
-      .innerJoin(eventAudiences, eq(eventAudienceRelations.audienceId, eventAudiences.id))
+      .innerJoin(
+        eventAudiences,
+        eq(eventAudienceRelations.audienceId, eventAudiences.id),
+      )
       .where(inArray(eventAudienceRelations.eventId, eventIds)),
 
     // Get all cohosts for these events
@@ -144,7 +147,10 @@ export const getEventsByDateRange = async (
         audience: eventAudiences,
       })
       .from(eventAudienceRelations)
-      .innerJoin(eventAudiences, eq(eventAudienceRelations.audienceId, eventAudiences.id))
+      .innerJoin(
+        eventAudiences,
+        eq(eventAudienceRelations.audienceId, eventAudiences.id),
+      )
       .where(inArray(eventAudienceRelations.eventId, eventIds)),
 
     db
@@ -215,7 +221,10 @@ export const getEventById = async (
         audience: eventAudiences,
       })
       .from(eventAudienceRelations)
-      .innerJoin(eventAudiences, eq(eventAudienceRelations.audienceId, eventAudiences.id))
+      .innerJoin(
+        eventAudiences,
+        eq(eventAudienceRelations.audienceId, eventAudiences.id),
+      )
       .where(eq(eventAudienceRelations.eventId, id)),
 
     db.select().from(eventCohosts).where(eq(eventCohosts.eventId, id)),
@@ -332,7 +341,10 @@ export const getAdminEvents = async (
         audience: eventAudiences,
       })
       .from(eventAudienceRelations)
-      .innerJoin(eventAudiences, eq(eventAudienceRelations.audienceId, eventAudiences.id))
+      .innerJoin(
+        eventAudiences,
+        eq(eventAudienceRelations.audienceId, eventAudiences.id),
+      )
       .where(inArray(eventAudienceRelations.eventId, eventIds)),
 
     db

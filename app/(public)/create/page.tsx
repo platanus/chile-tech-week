@@ -1,4 +1,8 @@
-import { getAllEventAudiences, getAllEventThemes, getEventCountsByHour } from '@/src/queries/events';
+import {
+  getAllEventAudiences,
+  getAllEventThemes,
+  getEventCountsByHour,
+} from '@/src/queries/events';
 import { CreateEventForm } from './_components/create-event-form';
 
 export default async function CreateEventPage() {
@@ -35,7 +39,11 @@ export default async function CreateEventPage() {
           </div>
 
           {/* Form */}
-          <CreateEventForm themes={themes} audiences={audiences} eventCounts={eventCounts} />
+          <CreateEventForm
+            themes={themes}
+            audiences={audiences}
+            eventCounts={eventCounts}
+          />
         </div>
       </div>
     </div>
