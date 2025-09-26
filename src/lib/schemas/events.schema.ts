@@ -19,8 +19,23 @@ export const createEventFormSchema = z
     companyWebsite: z
       .string()
       .min(1, 'Company website is required')
-      .url('Please enter a valid URL')
-      .max(500, 'Website URL is too long'),
+      .max(500, 'Website URL is too long')
+      .refine((url) => url.startsWith('https://'), {
+        message: 'URL is missing https://',
+      })
+      .refine(
+        (url) => {
+          try {
+            new URL(url);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        {
+          message: 'Please enter a valid URL',
+        },
+      ),
     authorPhoneNumber: z
       .string()
       .min(1, 'Phone number is required')
@@ -207,8 +222,24 @@ export const createEventFormSchema = z
             .optional(),
           primaryContactWebsite: z
             .string()
-            .url('Please enter a valid URL')
             .max(500, 'Website URL is too long')
+            .refine((url) => !url || url.startsWith('https://'), {
+              message: 'URL is missing https://',
+            })
+            .refine(
+              (url) => {
+                if (!url) return true; // Allow empty values since it's optional
+                try {
+                  new URL(url);
+                  return true;
+                } catch {
+                  return false;
+                }
+              },
+              {
+                message: 'Please enter a valid URL',
+              },
+            )
             .optional()
             .or(z.literal('')),
           primaryContactLinkedin: z
