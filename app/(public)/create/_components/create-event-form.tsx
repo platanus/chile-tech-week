@@ -682,6 +682,9 @@ export function CreateEventForm({
                           disabled={isPending}
                           className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
                           {...field}
+                          onBlur={() => {
+                            form.trigger('companyWebsite');
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -1518,6 +1521,11 @@ export function CreateEventForm({
                                 disabled={isPending}
                                 className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
                                 {...field}
+                                onBlur={() => {
+                                  form.trigger(
+                                    `cohosts.${index}.primaryContactWebsite`,
+                                  );
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
