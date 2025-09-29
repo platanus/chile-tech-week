@@ -1447,6 +1447,9 @@ export function CreateEventForm({
                                 {...field}
                               />
                             </FormControl>
+                            <p className="invisible font-mono text-gray-600 text-xs uppercase tracking-wider">
+                              PLACEHOLDER
+                            </p>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -1474,6 +1477,9 @@ export function CreateEventForm({
                                 }}
                               />
                             </FormControl>
+                            <p className="font-mono text-gray-600 text-xs uppercase tracking-wider">
+                              LUMA EDITOR INVITE WILL BE SENT TO THIS EMAIL
+                            </p>
                             <FormMessage />
                           </FormItem>
                         )}

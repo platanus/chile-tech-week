@@ -6,7 +6,7 @@ export default async function EventsPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="mx-auto max-w-7xl px-6 py-12">
+      <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
         <EventsClient events={events} />
       </div>
     </div>

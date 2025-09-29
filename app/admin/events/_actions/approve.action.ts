@@ -3,6 +3,7 @@
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import EditLumaEmail from '@/src/emails/events/edit-luma';
+import { onlyAdmin } from '@/src/lib/auth/server';
 import { db } from '@/src/lib/db';
 import { events } from '@/src/lib/db/schema';
 import { sendEmail } from '@/src/lib/email';
@@ -24,6 +25,8 @@ export async function approveEventAction(
   eventId: string,
 ): Promise<ModerationResult> {
   try {
+    await onlyAdmin();
+
     // First, get the event details
     const event = await getEventById(eventId);
     if (!event) {
@@ -128,6 +131,7 @@ export async function approveEventAction(
           eventFormat: eventFormatLabels[event.format],
           themes: selectedThemes || 'No themes selected',
           eventId: event.id,
+          lumaEventUrl: lumaResult.eventUrl || '',
         },
         to: event.authorEmail,
         subject: `Event approved - Edit your Luma event - Chile Tech Week 2025`,

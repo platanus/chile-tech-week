@@ -1,21 +1,10 @@
 interface LumaEventRequest {
   name: string;
   start_at: string; // ISO 8601 format
-  duration_minutes: number;
+  end_at: string; // ISO 8601 format
   description_md?: string; // Markdown description field
   cover_url?: string;
-  require_rsvp?: boolean;
-  require_rsvp_approval?: boolean;
   visibility?: 'public' | 'private' | 'member-only';
-  zoom_creation_method?:
-    | 'created-automatically'
-    | 'existing-attached'
-    | 'manually-entered';
-  zoom_meeting_id?: string;
-  zoom_meeting_password?: string;
-  zoom_meeting_url?: string;
-  zoom_session_type?: string;
-  community_api_id?: string;
   location?: string;
   geo_address_json?: {
     type: 'manual';
@@ -108,12 +97,12 @@ export class LumaClient {
 
   /**
    * Get event details by event API ID
-   * Note: This endpoint may not be publicly available in the Luma API
    */
   async getEvent(eventApiId: string): Promise<LumaEventResponse> {
-    return this.makeRequest<LumaEventResponse>(
-      `/event/get?event_api_id=${eventApiId}`,
+    const response = await this.makeRequest<{ event: LumaEventResponse }>(
+      `/event/get?api_id=${eventApiId}`,
     );
+    return response.event;
   }
 
   /**

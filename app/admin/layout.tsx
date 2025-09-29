@@ -1,12 +1,15 @@
 import type { ReactNode } from 'react';
 import { SidebarInset, SidebarProvider } from '@/src/components/ui/sidebar';
+import { onlyAdmin } from '@/src/lib/auth/server';
 import { AdminSidebar } from './_components/admin-sidebar';
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default async function AdminLayout({ children }: AdminLayoutProps) {
+  await onlyAdmin();
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-black">

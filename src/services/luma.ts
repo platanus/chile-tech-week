@@ -51,14 +51,8 @@ export class LumaService {
     };
   }> {
     try {
-      // Calculate duration in minutes
-      const durationMs =
-        formData.endDate.getTime() - formData.startDate.getTime();
-      const durationMinutes = Math.round(durationMs / (1000 * 60));
-
-      // Prepare co-host emails including the primary contact
+      // Prepare co-host emails from form data
       const cohostEmails = [
-        formData.authorEmail, // Add primary contact as co-host
         ...(formData.cohosts
           ?.map((cohost) => cohost.primaryContactEmail)
           .filter(Boolean) || []),
@@ -74,16 +68,15 @@ export class LumaService {
       const eventData = {
         name: formData.title,
         start_at: formData.startDate.toISOString(),
-        duration_minutes: durationMinutes,
+        end_at: formData.endDate.toISOString(),
+        cover_url: process.env.LUMA_COVER_URL,
         description_md: this.generateEventDescription(formData, eventId),
+        tint_color: '#ee2b2b',
         location: formData.commune,
         geo_address_json: geoAddress,
         timezone: 'America/Santiago', // Chile timezone
-        require_rsvp: true,
-        require_rsvp_approval: false, // Can be configured based on requirements
         visibility: 'private' as const, // Make events private/hidden by default
         capacity: formData.capacity, // Set the event capacity
-        // ...(formData.companyLogoUrl && { cover_url: formData.companyLogoUrl }),
       };
 
       // Create event with co-hosts
@@ -93,10 +86,22 @@ export class LumaService {
       });
 
       console.log('Luma event created:', result);
-      console.log('Full event object:', JSON.stringify(result.event, null, 2));
+      console.log('Full event object:', JSON.stringify(result, null, 2));
 
-      // Generate event URL from API ID since it's not returned by the API
-      const eventUrl = `https://luma.com/event/${result.event.api_id}`;
+      // Try to fetch the full event details to get the actual URL
+      // If this fails, fall back to the URL from the create response
+      let eventUrl = result.event.url;
+      try {
+        const eventDetails = await this.client.getEvent(result.event.api_id);
+        console.log('Event details fetched:', eventDetails);
+        console.log('Event URL from get call:', eventDetails.url);
+        eventUrl = eventDetails.url;
+      } catch (error) {
+        console.warn(
+          'Failed to fetch event details, using URL from create response:',
+          error,
+        );
+      }
 
       return {
         success: true,
@@ -131,7 +136,7 @@ export class LumaService {
     const parts: string[] = [];
 
     // Add template editing warning with markdown styling
-    parts.push('## ⚠️ RECUERDA EDITAR EL EVENTO ⚠️');
+    parts.push('## ⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️');
     parts.push('');
     parts.push('### CHECKLIST DE EDICIÓN:');
     parts.push('- [ ] Verificar horario y fecha del evento');
@@ -150,7 +155,7 @@ export class LumaService {
     // Add event status link with markdown formatting
     if (eventId) {
       parts.push(
-        `📊 [Ver estado del evento](https://techweek.cl/events/${eventId}/status)`,
+        `🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/${eventId}/status)`,
       );
       parts.push('');
     }
@@ -195,6 +200,8 @@ export class LumaService {
     parts.push(
       '*This event was created through Chile Tech Week event submission system.*',
     );
+    parts.push('');
+    parts.push('⚠️ FIN DE DESCRIPCIÓN AUTOGENERADA - ELIMINAR ESTA PARTE ⚠️');
 
     return parts.join('\n');
   }

@@ -125,7 +125,7 @@ export function AdminEventsTable({
       <div className="space-y-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="w-fit border-4 border-white bg-primary px-4 py-2 font-black font-mono text-white text-xl uppercase tracking-wider shadow-[8px_8px_0px_0px_#ffffff] md:px-8 md:py-4 md:text-4xl">
+            <h1 className="w-fit border-4 border-white bg-primary px-4 py-2 font-black font-mono text-sm text-white uppercase tracking-wider shadow-[8px_8px_0px_0px_#ffffff] md:px-8 md:py-4 md:text-4xl">
               Event Management
             </h1>
             <p className="mt-2 font-bold font-mono text-sm text-white uppercase tracking-wide md:text-base">

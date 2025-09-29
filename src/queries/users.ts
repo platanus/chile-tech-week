@@ -1,4 +1,13 @@
-import { and, count, desc, eq, ilike, inArray, or } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  or,
+} from 'drizzle-orm';
 import { db } from '@/src/lib/db';
 import { type InsertUser, type UserRole, user } from '@/src/lib/db/schema';
 import { generateHashedPassword } from '@/src/lib/db/utils';
@@ -120,4 +129,17 @@ export async function getUsers(
       totalPages,
     },
   };
+}
+
+// Get users with notifications enabled
+export async function getUsersWithNotificationsEnabled() {
+  return db
+    .select({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    })
+    .from(user)
+    .where(isNotNull(user.notificationsEnabledAt));
 }

@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import NewEventSubmissionEmail from '@/src/emails/events/new-submission';
 import EventSuccessEmail from '@/src/emails/events/success';
 import { sendEmail } from '@/src/lib/email';
 import {
@@ -22,6 +23,7 @@ import {
   getAllEventAudiences,
   getAllEventThemes,
 } from '@/src/queries/events';
+import { getUsersWithNotificationsEnabled } from '@/src/queries/users';
 import { slackService } from '@/src/services/slack';
 
 export async function createEventAction(
@@ -160,6 +162,21 @@ ${validatedData.cohosts && validatedData.cohosts.length > 0 ? `🤝 *Co-hosts:* 
         to: validatedData.authorEmail,
         subject: `Event submitted successfully - Chile Tech Week 2025`,
       }).catch(console.error);
+
+      // Notify users with notifications enabled
+      const notifiedUsers = await getUsersWithNotificationsEnabled();
+      for (const notifiedUser of notifiedUsers) {
+        sendEmail({
+          template: NewEventSubmissionEmail,
+          templateProps: {
+            eventTitle: validatedData.title,
+            companyName: validatedData.companyName,
+            eventId: newEvent.id,
+          },
+          to: notifiedUser.email,
+          subject: `New event submission: ${validatedData.title}`,
+        }).catch(console.error);
+      }
     } catch (error) {
       console.error('Failed to send notifications for event:', error);
     }

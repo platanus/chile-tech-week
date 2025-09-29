@@ -149,20 +149,20 @@ export function EventsClient({ events }: EventsClientProps) {
       <div className="space-y-8">
         <div>
           <a href="/">
-            <h1 className="-skew-x-2 transform border-8 border-primary bg-black p-8 font-black font-mono text-6xl text-white uppercase tracking-wider shadow-[8px_8px_0px_0px_theme(colors.primary)] transition-all duration-200 hover:shadow-[12px_12px_0px_0px_theme(colors.primary)]">
+            <h1 className="-skew-x-2 transform border-4 border-primary bg-black p-4 font-black font-mono text-3xl text-white uppercase tracking-wider shadow-[4px_4px_0px_0px_theme(colors.primary)] transition-all duration-200 hover:shadow-[6px_6px_0px_0px_theme(colors.primary)] md:border-8 md:p-8 md:text-6xl md:shadow-[8px_8px_0px_0px_theme(colors.primary)] md:hover:shadow-[12px_12px_0px_0px_theme(colors.primary)]">
               CHILE TECH WEEK 2025
             </h1>
           </a>
         </div>
 
         {/* Day Filter Tabs */}
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-2 md:gap-4">
           {DAYS.map((day) => (
             <button
               key={day.key}
               type="button"
               onClick={() => setSelectedDay(day.key)}
-              className={`transform border-4 px-6 py-4 font-bold font-mono text-lg uppercase transition-all duration-200 ${
+              className={`transform border-4 px-3 py-2 font-bold font-mono text-sm uppercase transition-all duration-200 md:px-6 md:py-4 md:text-lg ${
                 selectedDay === day.key
                   ? '-translate-y-1 border-primary bg-primary text-black shadow-[4px_4px_0px_0px_theme(colors.white)]'
                   : 'hover:-translate-y-1 border-white bg-black text-white hover:bg-white hover:text-black hover:shadow-[4px_4px_0px_0px_theme(colors.primary)]'
@@ -174,9 +174,20 @@ export function EventsClient({ events }: EventsClientProps) {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-4">
-        {/* Filters Sidebar */}
-        <div className="lg:col-span-1">
+      <div className="space-y-4 lg:space-y-8">
+        <div className="flex flex-col gap-4 lg:hidden">
+          {/* Search Bar - Mobile */}
+          <div className="transform border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_theme(colors.black)]">
+            <Input
+              type="text"
+              placeholder="SEARCH EVENTS..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border-4 border-black bg-white p-6 font-bold font-mono text-black text-lg uppercase tracking-wider transition-all placeholder:text-black/60 focus:border-primary focus:shadow-[4px_4px_0px_0px_theme(colors.primary)]"
+            />
+          </div>
+
+          {/* Filters - Mobile */}
           <div className="transform border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_theme(colors.black)]">
             <EventFilters
               topics={allTopics}
@@ -191,31 +202,49 @@ export function EventsClient({ events }: EventsClientProps) {
           </div>
         </div>
 
-        {/* Events List */}
-        <div className="lg:col-span-3">
-          <div className="space-y-4">
-            {/* Search Bar */}
+        <div className="grid gap-8 lg:grid-cols-4">
+          {/* Filters Sidebar - Desktop */}
+          <div className="hidden lg:col-span-1 lg:block">
             <div className="transform border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_theme(colors.black)]">
-              <Input
-                type="text"
-                placeholder="SEARCH EVENTS..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-4 border-black bg-white p-6 font-bold font-mono text-black text-lg uppercase tracking-wider transition-all placeholder:text-black/60 focus:border-primary focus:shadow-[4px_4px_0px_0px_theme(colors.primary)]"
+              <EventFilters
+                topics={allTopics}
+                selectedTopics={selectedTopics}
+                onTopicsChange={setSelectedTopics}
+                selectedStartTimes={selectedStartTimes}
+                onStartTimesChange={setSelectedStartTimes}
+                types={allTypes}
+                selectedTypes={selectedTypes}
+                onTypesChange={setSelectedTypes}
               />
             </div>
+          </div>
 
-            {filteredEvents.length === 0 ? (
-              <div className="transform border-4 border-black bg-primary p-12 text-center shadow-[8px_8px_0px_0px_theme(colors.black)]">
-                <p className="font-bold font-mono text-2xl text-black uppercase tracking-wider">
-                  NO EVENTS FOUND MATCHING YOUR FILTERS
-                </p>
+          {/* Events List */}
+          <div className="lg:col-span-3">
+            <div className="space-y-4">
+              {/* Search Bar - Desktop */}
+              <div className="hidden transform border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_theme(colors.black)] lg:block">
+                <Input
+                  type="text"
+                  placeholder="SEARCH EVENTS..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="border-4 border-black bg-white p-6 font-bold font-mono text-black text-lg uppercase tracking-wider transition-all placeholder:text-black/60 focus:border-primary focus:shadow-[4px_4px_0px_0px_theme(colors.primary)]"
+                />
               </div>
-            ) : (
-              filteredEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))
-            )}
+
+              {filteredEvents.length === 0 ? (
+                <div className="transform border-4 border-black bg-primary p-12 text-center shadow-[8px_8px_0px_0px_theme(colors.black)]">
+                  <p className="font-bold font-mono text-2xl text-black uppercase tracking-wider">
+                    NO EVENTS FOUND MATCHING YOUR FILTERS
+                  </p>
+                </div>
+              ) : (
+                filteredEvents.map((event) => (
+                  <EventCard key={event.id} event={event} />
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

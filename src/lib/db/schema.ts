@@ -52,6 +52,9 @@ export const user = pgTable('User', {
   firstName: varchar('first_name', { length: 100 }).notNull(),
   lastName: varchar('last_name', { length: 100 }).notNull(),
   role: userRoleEnum('role').notNull().default('default'),
+  notificationsEnabledAt: timestamp('notifications_enabled_at', {
+    withTimezone: true,
+  }),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

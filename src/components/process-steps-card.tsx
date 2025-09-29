@@ -51,14 +51,20 @@ export function ProcessStepsCard({ currentStep }: ProcessStepsCardProps) {
   ];
 
   const getStepIcon = (step: ProcessStep) => {
-    if (step.completed) {
-      return <CheckCircle className="h-6 w-6 text-black" />;
-    }
-
     // Special case for step 2 - show hourglass when currentStep is 1 (submitted state)
     // This indicates that step 2 (approval) is "in progress"
     if (step.number === 2 && currentStep === 1) {
       return <Hourglass className="h-6 w-6 text-black" />;
+    }
+
+    // Special case for step 3 - show hourglass when currentStep is 3 (waiting-luma-edit state)
+    // This indicates that step 3 (Luma editing) is "in progress"
+    if (step.number === 3 && currentStep === 3) {
+      return <Hourglass className="h-6 w-6 text-black" />;
+    }
+
+    if (step.completed) {
+      return <CheckCircle className="h-6 w-6 text-black" />;
     }
 
     // For active step (in status page), show yellow circle
@@ -85,6 +91,16 @@ export function ProcessStepsCard({ currentStep }: ProcessStepsCardProps) {
   };
 
   const getStepStatusText = (step: ProcessStep) => {
+    // Special case for step 3 when currentStep is 3 (waiting-luma-edit state)
+    if (step.number === 3 && currentStep === 3) {
+      return 'WAITING FOR LUMA EDITION AND PUBLISH';
+    }
+
+    // Special case for step 2 when currentStep is 1 (submitted state)
+    if (step.number === 2 && currentStep === 1) {
+      return 'IN PROGRESS...';
+    }
+
     if (step.completed) {
       return 'COMPLETED ✓';
     }
@@ -95,6 +111,16 @@ export function ProcessStepsCard({ currentStep }: ProcessStepsCardProps) {
   };
 
   const getStepStatusTextColor = (step: ProcessStep) => {
+    // Special case for step 3 when currentStep is 3 (waiting-luma-edit state)
+    if (step.number === 3 && currentStep === 3) {
+      return 'text-black';
+    }
+
+    // Special case for step 2 when currentStep is 1 (submitted state)
+    if (step.number === 2 && currentStep === 1) {
+      return 'text-gray-600';
+    }
+
     if (step.completed) {
       return 'text-black';
     }

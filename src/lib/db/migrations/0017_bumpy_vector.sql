@@ -1,0 +1,1 @@
+ALTER TABLE "User" ADD COLUMN "notifications_enabled_at" timestamp with time zone;

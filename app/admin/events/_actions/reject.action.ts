@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import EventRejectedEmail from '@/src/emails/events/rejected';
+import { onlyAdmin } from '@/src/lib/auth/server';
 import { sendEmail } from '@/src/lib/email';
 import { getEventById, rejectEvent } from '@/src/queries/events';
 
@@ -16,6 +17,7 @@ export async function rejectEventAction(
   rejectionReason: string,
 ): Promise<ModerationResult> {
   try {
+    await onlyAdmin();
     const event = await getEventById(eventId);
     if (!event) {
       return {

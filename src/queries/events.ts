@@ -35,7 +35,7 @@ export const getAllEvents = async (): Promise<EventWithDetails[]> => {
   const allEvents = await db
     .select()
     .from(events)
-    .where(sql`approved_at IS NOT NULL`)
+    .where(eq(events.state, 'published'))
     .orderBy(events.startDate);
 
   // Get themes, audiences and cohosts for all events
@@ -420,6 +420,16 @@ export const rejectEvent = async (
       rejectionReason,
       approvedAt: null, // Clear approved status if previously approved
       publishedAt: null, // Clear published status if previously published
+    })
+    .where(eq(events.id, eventId));
+};
+
+export const publishEvent = async (eventId: string): Promise<void> => {
+  await db
+    .update(events)
+    .set({
+      state: 'published',
+      publishedAt: new Date(),
     })
     .where(eq(events.id, eventId));
 };

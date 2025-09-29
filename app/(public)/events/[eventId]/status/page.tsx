@@ -4,15 +4,19 @@ import { ProcessStepsCard } from '@/src/components/process-steps-card';
 import { Card, CardContent } from '@/src/components/ui/card';
 import { getCurrentEventStep } from '@/src/lib/utils/event-steps';
 import { getEventById } from '@/src/queries/events';
+import { PublishEventModalWrapper } from './_components/publish-event-modal-wrapper';
 
 interface EventStatusPageProps {
   params: Promise<{ eventId: string }>;
+  searchParams: Promise<{ publish?: string }>;
 }
 
 export default async function EventStatusPage({
   params,
+  searchParams,
 }: EventStatusPageProps) {
   const { eventId } = await params;
+  const { publish } = await searchParams;
   const eventDetails = await getEventById(eventId);
 
   if (!eventDetails) {
@@ -20,6 +24,7 @@ export default async function EventStatusPage({
   }
 
   const currentStep = getCurrentEventStep(eventDetails);
+  const shouldOpenModal = publish === 'true' && currentStep === 3;
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-4">
@@ -65,6 +70,14 @@ export default async function EventStatusPage({
 
       {/* Process Steps */}
       <ProcessStepsCard currentStep={currentStep} />
+
+      {/* Publish Modal Wrapper */}
+      {currentStep === 3 && (
+        <PublishEventModalWrapper
+          event={eventDetails}
+          openInitially={shouldOpenModal}
+        />
+      )}
     </div>
   );
 }
