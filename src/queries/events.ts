@@ -408,12 +408,16 @@ export const approveEvent = async (eventId: string): Promise<void> => {
     .where(eq(events.id, eventId));
 };
 
-export const rejectEvent = async (eventId: string): Promise<void> => {
+export const rejectEvent = async (
+  eventId: string,
+  rejectionReason: string,
+): Promise<void> => {
   await db
     .update(events)
     .set({
       state: 'rejected',
       rejectedAt: new Date(),
+      rejectionReason,
       approvedAt: null, // Clear approved status if previously approved
       publishedAt: null, // Clear published status if previously published
     })

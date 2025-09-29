@@ -93,7 +93,8 @@ export default function EventSuccessEmail({
 
         <Text style={text}>
           Your event will be reviewed by our team. Once approved, you'll receive
-          another email with the next steps.
+          another email with the next steps, including the link to edit your
+          Luma event.
         </Text>
 
         <Section style={buttonContainer}>
