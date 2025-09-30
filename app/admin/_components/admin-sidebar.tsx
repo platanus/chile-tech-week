@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, LogOut, Mail } from 'lucide-react';
+import { Calendar, Clock, LogOut, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
@@ -26,6 +26,11 @@ const navigation = [
     title: 'Emails',
     url: '/admin/emails',
     icon: Mail,
+  },
+  {
+    title: 'Cron Jobs',
+    url: '/admin/cron',
+    icon: Clock,
   },
 ];
 

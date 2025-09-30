@@ -44,6 +44,19 @@ export type EventState = (typeof eventStates)[number];
 
 export const eventStateEnum = pgEnum('event_state', eventStates);
 
+export const outboundEmailStatuses = [
+  'queued',
+  'pending',
+  'sent',
+  'failed',
+] as const;
+export type OutboundEmailStatus = (typeof outboundEmailStatuses)[number];
+
+export const outboundEmailStatusEnum = pgEnum(
+  'outbound_email_status',
+  outboundEmailStatuses,
+);
+
 // Core User table
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -74,16 +87,17 @@ export const outboundEmails = pgTable('OutboundEmails', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   templateName: varchar('template_name', { length: 100 }).notNull(),
   to: varchar('to', { length: 255 }).notNull(),
-  cc: json('cc').$type<string[]>(), // JSON array of email addresses
-  bcc: json('bcc').$type<string[]>(), // JSON array of email addresses
+  cc: json('cc').$type<string[]>(),
+  bcc: json('bcc').$type<string[]>(),
   subject: varchar('subject', { length: 500 }).notNull(),
   htmlContent: text('html_content').notNull(),
   textContent: text('text_content'),
-  templateData: json('template_data'), // JSON data used to render template
-  status: varchar('status', { length: 50 }).notNull().default('pending'), // pending, sent, failed
+  templateData: json('template_data'),
+  status: outboundEmailStatusEnum('status').notNull().default('queued'),
+  queuedAt: timestamp('queued_at', { withTimezone: true }),
   sentAt: timestamp('sent_at', { withTimezone: true }),
   failureReason: text('failure_reason'),
-  externalMessageId: varchar('external_message_id', { length: 255 }), // Resend message ID
+  externalMessageId: varchar('external_message_id', { length: 255 }),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -323,3 +337,24 @@ export const eventAudiencesRelations = relations(
     events: many(eventAudienceRelations),
   }),
 );
+
+export const jobExecutions = pgTable('JobExecutions', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  jobId: text('job_id').notNull().unique(),
+  lastExecutedAt: timestamp('last_executed_at', { withTimezone: true }),
+  lastStatus: varchar('last_status', { length: 20 }).$type<
+    'success' | 'error'
+  >(),
+  lastError: text('last_error'),
+  executionCount: integer('execution_count').default(0).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export type JobExecution = InferSelectModel<typeof jobExecutions>;
+export type InsertJobExecution = InferInsertModel<typeof jobExecutions>;

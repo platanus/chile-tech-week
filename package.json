@@ -59,6 +59,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "country-data-list": "^1.5.3",
+    "cron-parser": "^5.4.0",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.34.1",

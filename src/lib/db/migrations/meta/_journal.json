@@ -134,6 +134,20 @@
       "when": 1759273358560,
       "tag": "0018_graceful_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1759274188997,
+      "tag": "0019_reflective_blue_shield",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1759274953864,
+      "tag": "0020_giant_deathstrike",
+      "breakpoints": true
     }
   ]
 }

@@ -56,6 +56,29 @@ async function sendEmailInternal(params: {
   replyTo?: string;
   subject: string;
 }) {
+  const skipQueue = process.env.SKIP_EMAIL_QUEUE === 'true';
+
+  if (!skipQueue) {
+    const emailRecord = await createOutboundEmail({
+      templateName: params.templateName,
+      to: Array.isArray(params.to) ? params.to[0] : params.to,
+      cc: params.cc || null,
+      bcc: params.bcc || null,
+      subject: params.subject,
+      htmlContent: params.htmlContent,
+      textContent: params.textContent,
+      templateData: params.templateData,
+      status: 'queued',
+      queuedAt: new Date(),
+    });
+
+    console.log('📧 Email queued for sending');
+    console.log(`📧 To: ${params.to}`);
+    console.log(`📧 Subject: ${params.subject}`);
+
+    return { success: true, outboundEmailId: emailRecord.id };
+  }
+
   const emailRecord = await createOutboundEmail({
     templateName: params.templateName,
     to: Array.isArray(params.to) ? params.to[0] : params.to,
