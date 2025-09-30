@@ -29,7 +29,7 @@ export default function EditLumaEmail({
   lumaEventUrl,
 }: EditLumaEmailProps) {
   const preview = `Event "${eventTitle}" approved! Edit your Luma event to publish`;
-  const eventStatusUrl = `${process.env.DOMAIN}/events/${eventId}/status?publish=true`;
+  const eventStatusUrl = `https://${process.env.DOMAIN}/events/${eventId}/status?publish=true`;
 
   return (
     <EmailLayout preview={preview}>

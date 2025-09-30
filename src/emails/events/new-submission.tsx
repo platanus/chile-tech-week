@@ -15,7 +15,7 @@ export default function NewEventSubmissionEmail({
   eventId,
 }: NewEventSubmissionEmailProps) {
   const preview = `New event submission: ${eventTitle} by ${companyName}`;
-  const adminUrl = `${process.env.DOMAIN}/admin/events/${eventId}`;
+  const adminUrl = `https://${process.env.DOMAIN}/admin/events/${eventId}`;
 
   return (
     <EmailLayout preview={preview}>

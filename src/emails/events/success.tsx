@@ -27,7 +27,7 @@ export default function EventSuccessEmail({
   eventId,
 }: EventSuccessEmailProps) {
   const preview = `Event "${eventTitle}" submitted successfully for Chile Tech Week 2025`;
-  const eventStatusUrl = `${process.env.DOMAIN}/events/${eventId}/status`;
+  const eventStatusUrl = `https://${process.env.DOMAIN}/events/${eventId}/status`;
 
   return (
     <EmailLayout preview={preview}>

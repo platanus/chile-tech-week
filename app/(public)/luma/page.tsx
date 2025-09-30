@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
 export default function LumaPage() {
-  redirect('https://lu.ma/cltw-2025');
+  redirect('https://lu.ma/cltw');
 }

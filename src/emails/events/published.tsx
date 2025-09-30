@@ -29,8 +29,8 @@ export default function PublishedEmail({
   lumaEventUrl,
 }: PublishedEmailProps) {
   const preview = `Event "${eventTitle}" is now published!`;
-  const eventStatusUrl = `${process.env.DOMAIN}/events/${eventId}/status`;
-  const websiteUrl = `${process.env.DOMAIN}/events`;
+  const eventStatusUrl = `https://${process.env.DOMAIN}/events/${eventId}/status`;
+  const websiteUrl = `https://${process.env.DOMAIN}/events`;
   const lumaCalendarUrl = 'https://lu.ma/cltw-2025';
 
   return (

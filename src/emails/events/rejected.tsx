@@ -15,7 +15,7 @@ export default function EventRejectedEmail({
   rejectionReason,
 }: EventRejectedEmailProps) {
   const preview = `Event "${eventTitle}" requires changes - Chile Tech Week 2025`;
-  const createEventUrl = `${process.env.DOMAIN}/create`;
+  const createEventUrl = `https://${process.env.DOMAIN}/create`;
 
   return (
     <EmailLayout preview={preview}>
