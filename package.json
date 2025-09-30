@@ -29,6 +29,9 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
+    "db:production:dump": "npx tsx src/lib/dev/db-dump.ts",
+    "db:production:restore": "npx tsx src/lib/dev/db-restore.ts",
+    "db:production:dump-restore": "pnpm db:production:dump && pnpm db:production:restore",
     "gen-route-types": "npx next-typesafe-url --srcPath .",
     "knip": "knip",
     "knip:fix": "knip --fix"

@@ -50,3 +50,6 @@ tsconfig.tsbuildinfo
 
 # Dev server files
 .dev-server.log
+
+# Database dumps
+dumps/

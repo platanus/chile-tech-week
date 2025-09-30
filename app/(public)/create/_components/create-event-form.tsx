@@ -303,7 +303,7 @@ export function CreateEventForm({
   const removeTheme = (themeId: string) => {
     const newSelectedThemes = selectedThemes.filter((id) => id !== themeId);
     setSelectedThemes(newSelectedThemes);
-    form.setValue('themeIds', newSelectedThemes);
+    form.setValue('themeIds', newSelectedThemes, { shouldValidate: true });
   };
 
   const removeAudience = (audienceId: string) => {
@@ -311,7 +311,9 @@ export function CreateEventForm({
       (id) => id !== audienceId,
     );
     setSelectedAudiences(newSelectedAudiences);
-    form.setValue('audienceIds', newSelectedAudiences);
+    form.setValue('audienceIds', newSelectedAudiences, {
+      shouldValidate: true,
+    });
   };
 
   const checkEventDuration = (
@@ -620,10 +622,12 @@ export function CreateEventForm({
     if (hasParams) {
       // Ensure themes and audiences are set in form state
       if (initialThemeIds.length > 0) {
-        form.setValue('themeIds', initialThemeIds);
+        form.setValue('themeIds', initialThemeIds, { shouldValidate: true });
       }
       if (initialAudienceIds.length > 0) {
-        form.setValue('audienceIds', initialAudienceIds);
+        form.setValue('audienceIds', initialAudienceIds, {
+          shouldValidate: true,
+        });
       }
 
       // Trigger validation once
@@ -1039,6 +1043,9 @@ export function CreateEventForm({
                         className="border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider focus:border-primary"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
+                        onBlur={() => {
+                          form.trigger('capacity');
+                        }}
                       />
                     </FormControl>
                     <p className="font-mono text-gray-600 text-xs uppercase tracking-wider">

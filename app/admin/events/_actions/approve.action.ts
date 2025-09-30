@@ -36,9 +36,6 @@ export async function approveEventAction(
       };
     }
 
-    // Approve the event in the database
-    await approveEvent(eventId);
-
     // Create Luma event
     const formData = {
       authorEmail: event.authorEmail,
@@ -75,17 +72,18 @@ export async function approveEventAction(
       eventId,
     );
 
-    // Update the event with Luma details if successful
-    if (lumaResult.success && lumaResult.eventUrl && lumaResult.eventApiId) {
-      await db
-        .update(events)
-        .set({
-          lumaEventUrl: lumaResult.eventUrl,
-          lumaEventApiId: lumaResult.eventApiId,
-          lumaEventCreatedAt: new Date(),
-        })
-        .where(eq(events.id, eventId));
-    }
+    // Approve the event in the database
+    await approveEvent(eventId);
+
+    // Update the event with Luma details
+    await db
+      .update(events)
+      .set({
+        lumaEventUrl: lumaResult.eventUrl,
+        lumaEventApiId: lumaResult.eventApiId,
+        lumaEventCreatedAt: new Date(),
+      })
+      .where(eq(events.id, eventId));
 
     // Send notification email to event organizer
     try {
@@ -131,7 +129,7 @@ export async function approveEventAction(
           eventFormat: eventFormatLabels[event.format],
           themes: selectedThemes || 'No themes selected',
           eventId: event.id,
-          lumaEventUrl: lumaResult.eventUrl || '',
+          lumaEventUrl: lumaResult.eventUrl,
         },
         to: event.authorEmail,
         subject: `Event approved - Edit your Luma event - Chile Tech Week 2025`,
@@ -143,19 +141,11 @@ export async function approveEventAction(
     revalidatePath('/admin/events');
     revalidatePath(`/admin/events/${eventId}`);
 
-    if (lumaResult.success) {
-      return {
-        success: true,
-        message:
-          'Event approved, Luma event created, and notification email sent successfully',
-      };
-    } else {
-      // Event was approved but Luma creation failed
-      return {
-        success: true,
-        message: `Event approved successfully, but Luma event creation failed: ${lumaResult.error}`,
-      };
-    }
+    return {
+      success: true,
+      message:
+        'Event approved, Luma event created, and notification email sent successfully',
+    };
   } catch (error) {
     console.error('Error approving event:', error);
     return {

@@ -38,13 +38,13 @@ export async function publishEventAction(
       };
     }
 
-    // Publish the event
-    await publishEvent(eventId);
-
-    // Update Luma event visibility to public
+    // Update Luma event visibility to public before publishing
     if (event.lumaEventApiId) {
       await lumaService.updateEventVisibility(event.lumaEventApiId, 'public');
     }
+
+    // Publish the event
+    await publishEvent(eventId);
 
     // Send confirmation email to event organizer
     try {

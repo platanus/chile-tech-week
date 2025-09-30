@@ -1,6 +1,20 @@
 import { z } from 'zod';
 import { eventFormats } from '@/src/lib/db/schema';
 
+// Helper function to titleize names (e.g., "rodrigo peña" => "Rodrigo Peña")
+function titleize(str: string): string {
+  return str
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+// Helper function to capitalize titles (same as titleize for now)
+function capitalize(str: string): string {
+  return titleize(str);
+}
+
 export const createEventFormSchema = z
   .object({
     // Author information
@@ -11,7 +25,8 @@ export const createEventFormSchema = z
     authorName: z
       .string()
       .min(1, 'Author name is required')
-      .max(255, 'Author name is too long'),
+      .max(255, 'Author name is too long')
+      .transform(titleize),
     companyName: z
       .string()
       .min(1, 'Company name is required')
@@ -63,7 +78,8 @@ export const createEventFormSchema = z
     title: z
       .string()
       .min(1, 'Event title is required')
-      .max(500, 'Event title is too long'),
+      .max(500, 'Event title is too long')
+      .transform(capitalize),
     description: z
       .string()
       .min(1, 'Event description is required')
@@ -114,7 +130,7 @@ export const createEventFormSchema = z
       .number()
       .int('Capacity must be a whole number')
       .min(1, 'Capacity must be at least 1 person')
-      .max(10000, 'Capacity cannot exceed 10,000 people'),
+      .max(500000, 'Capacity cannot exceed 500,000 people'),
     lumaLink: z
       .string()
       .url('Please enter a valid URL')
@@ -191,7 +207,8 @@ export const createEventFormSchema = z
           primaryContactName: z
             .string()
             .min(1, 'Primary contact name is required')
-            .max(255, 'Primary contact name is too long'),
+            .max(255, 'Primary contact name is too long')
+            .transform(titleize),
           primaryContactEmail: z
             .string()
             .email('Please enter a valid email address')

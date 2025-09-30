@@ -403,6 +403,7 @@ export const approveEvent = async (eventId: string): Promise<void> => {
     .set({
       state: 'waiting-luma-edit',
       approvedAt: new Date(),
+      waitingLumaEditAt: new Date(),
       rejectedAt: null, // Clear rejected status if previously rejected
     })
     .where(eq(events.id, eventId));
