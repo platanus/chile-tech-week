@@ -44,6 +44,7 @@ export function ResendEmailButton({ emailId }: ResendEmailButtonProps) {
       disabled={isPending}
       variant="outline"
       size="sm"
+      className="border-2 border-white bg-black font-bold font-mono text-white text-xs uppercase tracking-wide hover:bg-white hover:text-black disabled:bg-black/50"
     >
       <RotateCcw className="mr-2 h-4 w-4" />
       {isPending ? 'Resending...' : 'Resend Email'}

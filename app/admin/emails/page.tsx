@@ -1,6 +1,6 @@
 import { onlyAdmin } from '@/src/lib/auth/server';
-import { EmailList } from './_components/email-list';
-import { EmailStats } from './_components/email-stats';
+import { getOutboundEmails } from '@/src/queries/emails';
+import { AdminEmailsTable } from './_components/admin-emails-table';
 
 interface EmailsPageProps {
   searchParams: Promise<{
@@ -13,16 +13,23 @@ export default async function EmailsPage({ searchParams }: EmailsPageProps) {
   await onlyAdmin();
 
   const { page, search } = await searchParams;
+  const currentPage = Number(page) || 1;
+  const currentSearch = search || '';
+
+  const { emails, pagination } = await getOutboundEmails({
+    page: currentPage,
+    search: currentSearch,
+  });
 
   return (
-    <div className="container space-y-6 py-6">
-      <div>
-        <h1 className="font-bold text-3xl">Email Management</h1>
-        <p className="text-muted-foreground">View and manage all sent emails</p>
-      </div>
-
-      <EmailStats />
-      <EmailList page={page} search={search} />
+    <div className="flex h-screen flex-col overflow-hidden bg-black p-4 md:p-6">
+      <AdminEmailsTable
+        emails={emails}
+        total={pagination.total}
+        totalPages={pagination.totalPages}
+        currentPage={currentPage}
+        currentSearch={currentSearch}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { LumaClient } from '@/src/clients/luma';
+import { isDevelopmentEnvironment } from '@/src/lib/constants';
 import type { CreateEventFormData } from '@/src/lib/schemas/events.schema';
 
 export class LumaService {
@@ -49,12 +50,29 @@ export class LumaService {
     };
   }> {
     // Prepare co-host emails including the primary contact
-    const cohostEmails = [
+    let cohostEmails = [
       formData.authorEmail, // Add primary contact as co-host
       ...(formData.cohosts
         ?.map((cohost) => cohost.primaryContactEmail)
         .filter(Boolean) || []),
     ];
+
+    // In development, filter co-hosts by allowed emails
+    if (isDevelopmentEnvironment) {
+      const allowedEmails = process.env.LUMA_ALLOWED_COHOST_DEV?.split(',')
+        .map((email) => email.trim())
+        .filter(Boolean);
+
+      if (allowedEmails && allowedEmails.length > 0) {
+        cohostEmails = cohostEmails.filter((email) =>
+          allowedEmails.includes(email),
+        );
+        console.log(
+          'Development mode: Filtered co-hosts to allowed emails:',
+          cohostEmails,
+        );
+      }
+    }
 
     // Create geo_address_json with commune information
     const geoAddress = {

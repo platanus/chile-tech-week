@@ -67,14 +67,21 @@ export function EmailPreview({ htmlContent }: EmailPreviewProps) {
   }, [htmlContent]);
 
   return (
-    <Card>
+    <Card className="border-2 border-white bg-black shadow-[4px_4px_0px_0px_#ffffff]">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle>Email Preview</CardTitle>
+        <CardTitle className="font-black font-mono text-white uppercase tracking-wide">
+          Email Preview
+        </CardTitle>
         <div className="flex gap-2">
           <Button
             variant={viewMode === 'preview' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('preview')}
+            className={
+              viewMode === 'preview'
+                ? 'border-2 border-primary bg-primary font-bold font-mono text-primary-foreground text-xs uppercase tracking-wide'
+                : 'border-2 border-white bg-black font-bold font-mono text-white text-xs uppercase tracking-wide hover:bg-white hover:text-black'
+            }
           >
             Preview
           </Button>
@@ -82,6 +89,11 @@ export function EmailPreview({ htmlContent }: EmailPreviewProps) {
             variant={viewMode === 'source' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('source')}
+            className={
+              viewMode === 'source'
+                ? 'border-2 border-primary bg-primary font-bold font-mono text-primary-foreground text-xs uppercase tracking-wide'
+                : 'border-2 border-white bg-black font-bold font-mono text-white text-xs uppercase tracking-wide hover:bg-white hover:text-black'
+            }
           >
             Source
           </Button>
@@ -89,7 +101,7 @@ export function EmailPreview({ htmlContent }: EmailPreviewProps) {
       </CardHeader>
       <CardContent>
         {viewMode === 'preview' ? (
-          <div className="overflow-hidden rounded-md border">
+          <div className="overflow-hidden border-2 border-white">
             <iframe
               srcDoc={htmlContent}
               className="h-[600px] w-full border-0"
@@ -98,8 +110,8 @@ export function EmailPreview({ htmlContent }: EmailPreviewProps) {
             />
           </div>
         ) : (
-          <div className="overflow-hidden rounded-md border">
-            <pre className="h-[600px] overflow-auto bg-muted p-4 text-sm">
+          <div className="overflow-hidden border-2 border-white">
+            <pre className="h-[600px] overflow-auto bg-black p-4 font-mono text-sm text-white">
               <code>{formattedHtml}</code>
             </pre>
           </div>
