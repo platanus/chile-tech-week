@@ -193,23 +193,6 @@ export default async function AdminEventDetailPage({
                 </p>
               </div>
             )}
-
-            {event.lumaLink && (
-              <div>
-                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                  Luma Link
-                </p>
-                <a
-                  href={event.lumaLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 font-bold font-mono text-primary hover:text-primary/80"
-                >
-                  {event.lumaLink}
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
-            )}
           </CardContent>
         </Card>
 

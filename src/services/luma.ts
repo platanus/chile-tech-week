@@ -190,12 +190,6 @@ export class LumaService {
       });
     }
 
-    // Add original Luma link if provided
-    if (formData.lumaLink) {
-      parts.push('');
-      parts.push(`**Original Luma Link:** ${formData.lumaLink}`);
-    }
-
     // Add contact information
     if (formData.authorPhoneNumber) {
       parts.push('');

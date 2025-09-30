@@ -1,0 +1,1 @@
+ALTER TABLE "Events" DROP COLUMN IF EXISTS "luma_link";

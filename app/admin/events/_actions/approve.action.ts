@@ -50,7 +50,6 @@ export async function approveEventAction(
       commune: event.commune,
       format: event.format,
       capacity: event.capacity,
-      lumaLink: event.lumaLink || '',
       companyLogoUrl: event.companyLogoUrl,
       logoFile: new File([], ''), // Empty file since we already have the URL
       cohosts: event.cohosts.map((cohost) => ({

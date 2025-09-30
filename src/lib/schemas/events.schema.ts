@@ -131,12 +131,6 @@ export const createEventFormSchema = z
       .int('Capacity must be a whole number')
       .min(1, 'Capacity must be at least 1 person')
       .max(500000, 'Capacity cannot exceed 500,000 people'),
-    lumaLink: z
-      .string()
-      .url('Please enter a valid URL')
-      .max(500, 'Luma link is too long')
-      .optional()
-      .or(z.literal('')),
     companyLogoUrl: z
       .string()
       .min(1, 'Company logo is required')

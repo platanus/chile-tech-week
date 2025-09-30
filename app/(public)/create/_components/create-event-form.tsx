@@ -107,7 +107,6 @@ export function CreateEventForm({
     capacity: searchParams.get('capacity')
       ? Number(searchParams.get('capacity'))
       : undefined,
-    lumaLink: getParam('lumaLink'),
     startDate: parseDate(searchParams.get('startDate')),
     endDate: parseDate(searchParams.get('endDate')),
     // Don't set companyLogoUrl and logoFile here - they need to be uploaded

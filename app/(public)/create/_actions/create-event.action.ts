@@ -47,7 +47,6 @@ export async function createEventAction(
       commune: validatedData.commune,
       format: validatedData.format,
       capacity: validatedData.capacity,
-      lumaLink: validatedData.lumaLink || null,
       companyLogoUrl: validatedData.companyLogoUrl,
     });
 
@@ -136,9 +135,6 @@ export async function createEventAction(
 📅 *Start:* ${startDateFormatted}
 📅 *End:* ${endDateFormatted}
 📍 *Commune:* ${validatedData.commune}
-
-🎯 *Luma Event:* Created separately via form workflow
-${validatedData.lumaLink ? `🔗 *Original Luma:* ${validatedData.lumaLink}` : ''}
 ${validatedData.cohosts && validatedData.cohosts.length > 0 ? `🤝 *Co-hosts:* ${validatedData.cohosts.length} companies` : ''}
 
 ⚠️ *Requires approval before going live*`;

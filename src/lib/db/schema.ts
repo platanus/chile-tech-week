@@ -134,7 +134,6 @@ export const events = pgTable('Events', {
   // Event properties
   format: eventFormatEnum('format').notNull(),
   capacity: integer('capacity').notNull().default(100),
-  lumaLink: varchar('luma_link', { length: 500 }),
   companyLogoUrl: varchar('company_logo_url', { length: 500 }).notNull(),
 
   // Luma integration
