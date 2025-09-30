@@ -116,6 +116,22 @@ export class LumaClient {
   }
 
   /**
+   * Update an existing event on Luma
+   */
+  async updateEvent(
+    eventApiId: string,
+    eventData: Partial<LumaEventRequest>,
+  ): Promise<LumaEventResponse> {
+    return this.makeRequest<LumaEventResponse>('/event/update', {
+      method: 'POST',
+      body: {
+        event_api_id: eventApiId,
+        ...eventData,
+      },
+    });
+  }
+
+  /**
    * Add a host to an event
    */
   async addHost(eventId: string, email: string): Promise<LumaAddHostResponse> {

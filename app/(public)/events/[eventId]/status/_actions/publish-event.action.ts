@@ -9,6 +9,7 @@ import {
   getEventById,
   publishEvent,
 } from '@/src/queries/events';
+import { lumaService } from '@/src/services/luma';
 
 export type PublishEventResult = {
   success: boolean;
@@ -39,6 +40,11 @@ export async function publishEventAction(
 
     // Publish the event
     await publishEvent(eventId);
+
+    // Update Luma event visibility to public
+    if (event.lumaEventApiId) {
+      await lumaService.updateEventVisibility(event.lumaEventApiId, 'public');
+    }
 
     // Send confirmation email to event organizer
     try {

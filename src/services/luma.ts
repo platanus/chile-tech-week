@@ -251,6 +251,16 @@ export class LumaService {
       };
     }
   }
+
+  /**
+   * Update event visibility to public
+   */
+  async updateEventVisibility(
+    eventApiId: string,
+    visibility: 'public' | 'private' | 'member-only',
+  ): Promise<void> {
+    await this.client.updateEvent(eventApiId, { visibility });
+  }
 }
 
 // Export a singleton instance

@@ -326,7 +326,9 @@ export function CreateEventForm({
     const durationHours =
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
 
-    if (durationHours > 4) {
+    if (durationHours < 0) {
+      setDurationWarning('❌ End date must be after start date.');
+    } else if (durationHours > 4) {
       const roundedHours = Math.round(durationHours);
       setDurationWarning(
         `⚠️ This event lasts ${roundedHours} hours. Is this correct? Most events are 4 hours or less.`,
