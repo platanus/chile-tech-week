@@ -1,4 +1,4 @@
-import { and, eq, isNotNull } from 'drizzle-orm';
+import { and, eq, isNotNull, or } from 'drizzle-orm';
 import LumaCancelledEmail from '@/src/emails/events/luma-cancelled';
 import LumaSyncUpdateEmail from '@/src/emails/events/luma-sync-update';
 import { db } from '@/src/lib/db';
@@ -7,24 +7,28 @@ import { sendEmail } from '@/src/lib/email';
 import { lumaService } from '@/src/services/luma';
 
 async function syncLumaEvents() {
-  const publishedEvents = await db
+  const eventsToSync = await db
     .select()
     .from(events)
     .where(
-      and(eq(events.state, 'published'), isNotNull(events.lumaEventApiId)),
+      and(
+        isNotNull(events.lumaEventApiId),
+        or(
+          eq(events.state, 'published'),
+          eq(events.state, 'waiting-luma-edit'),
+        ),
+      ),
     );
 
-  if (publishedEvents.length === 0) {
-    console.log('🔄 No published events with Luma integration to sync');
+  if (eventsToSync.length === 0) {
+    console.log('🔄 No events with Luma integration to sync');
     return;
   }
 
-  console.log(
-    `🔄 Syncing ${publishedEvents.length} published events with Luma`,
-  );
+  console.log(`🔄 Syncing ${eventsToSync.length} events with Luma`);
 
   const results = await Promise.allSettled(
-    publishedEvents.map(async (event) => {
+    eventsToSync.map(async (event) => {
       if (!event.lumaEventApiId) {
         return { updated: false };
       }
@@ -133,6 +137,12 @@ async function syncLumaEvents() {
         hasChanges = true;
       }
 
+      // Check Luma URL changes
+      const hasUrlChange = lumaEvent.url !== event.lumaEventUrl;
+      if (hasUrlChange) {
+        hasChanges = true;
+      }
+
       if (!hasChanges) {
         return { updated: false };
       }
@@ -144,35 +154,42 @@ async function syncLumaEvents() {
           title: lumaEvent.name,
           startDate: lumaStartDate,
           endDate: lumaEndDate,
+          lumaEventUrl: lumaEvent.url,
           updatedAt: new Date(),
         })
         .where(eq(events.id, event.id));
 
       console.log(`🔄 Updated event "${event.title}" from Luma changes`);
 
-      // Send email notification to the event author
-      try {
-        await sendEmail({
-          template: LumaSyncUpdateEmail,
-          templateProps: {
-            authorName: event.authorName,
-            eventTitle: event.title,
-            changes,
-            eventId: event.id,
-            lumaEventUrl: event.lumaEventUrl || '',
-          },
-          to: event.authorEmail,
-          subject: `Event Updated: ${event.title}`,
-        });
+      // Only send email if there are visible changes (not just URL changes)
+      const hasVisibleChanges =
+        changes.title || changes.startDate || changes.endDate;
 
-        console.log(
-          `📧 Sent sync update email to ${event.authorEmail} for event "${event.title}"`,
-        );
-      } catch (emailError) {
-        console.error(
-          `📧 Failed to send sync email for event "${event.title}":`,
-          emailError,
-        );
+      if (hasVisibleChanges) {
+        // Send email notification to the event author
+        try {
+          await sendEmail({
+            template: LumaSyncUpdateEmail,
+            templateProps: {
+              authorName: event.authorName,
+              eventTitle: event.title,
+              changes,
+              eventId: event.id,
+              lumaEventUrl: lumaEvent.url,
+            },
+            to: event.authorEmail,
+            subject: `Event Updated: ${event.title}`,
+          });
+
+          console.log(
+            `📧 Sent sync update email to ${event.authorEmail} for event "${event.title}"`,
+          );
+        } catch (emailError) {
+          console.error(
+            `📧 Failed to send sync email for event "${event.title}":`,
+            emailError,
+          );
+        }
       }
 
       return { updated: true };
@@ -185,7 +202,7 @@ async function syncLumaEvents() {
   const failedCount = results.filter((r) => r.status === 'rejected').length;
 
   console.log(
-    `🔄 Finished syncing Luma events. Updated ${updatedCount} of ${publishedEvents.length} events${failedCount > 0 ? `, ${failedCount} failed` : ''}`,
+    `🔄 Finished syncing Luma events. Updated ${updatedCount} of ${eventsToSync.length} events${failedCount > 0 ? `, ${failedCount} failed` : ''}`,
   );
 }
 
