@@ -107,8 +107,12 @@ export default function PublishedEmail({
         </Text>
 
         <Text style={text}>
-          If you need to change any details about your event on the Tech Week
-          page, you can manage it here:
+          Any changes you make to your Luma event (title, date, time) will be
+          automatically synced to the Chile Tech Week website.
+        </Text>
+
+        <Text style={text}>
+          You can also manage your event details directly here:
         </Text>
 
         <Section style={buttonContainer}>

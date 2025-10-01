@@ -58,10 +58,16 @@ export default async function EventStatusPage({
                 </p>
               )}
               {currentStep === 4 && (
-                <p className="font-mono text-black text-sm">
-                  🌐 Congratulations! Your event is now live on the Chile Tech
-                  Week website.
-                </p>
+                <>
+                  <p className="font-mono text-black text-sm">
+                    🌐 Congratulations! Your event is now live on the Chile Tech
+                    Week website.
+                  </p>
+                  <p className="mt-4 font-mono text-black text-sm">
+                    🔄 Any changes you make to your Luma event (title, date,
+                    time) will be automatically synced to the Tech Week page.
+                  </p>
+                </>
               )}
             </div>
           </div>

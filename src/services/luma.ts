@@ -240,6 +240,13 @@ export class LumaService {
   }
 
   /**
+   * Get event details from Luma
+   */
+  async getEvent(eventApiId: string) {
+    return this.client.getEvent(eventApiId);
+  }
+
+  /**
    * Update event visibility to public
    */
   async updateEventVisibility(

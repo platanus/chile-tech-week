@@ -14,10 +14,11 @@ interface LumaEventRequest {
   capacity?: number; // Maximum number of attendees
 }
 
-interface LumaEventResponse {
+export interface LumaEventResponse {
   api_id: string;
   name: string;
   start_at: string;
+  end_at: string;
   duration_minutes: number;
   url: string;
   cover_url?: string;

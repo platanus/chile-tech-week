@@ -674,6 +674,7 @@ export const getPublishedEventLogos = async (): Promise<CompanyLogo[]> => {
     })),
     ...cohostLogos.map((logo) => ({
       companyName: logo.companyName,
+      // biome-ignore lint/style/noNonNullAssertion: filtered by isNotNull(companyLogoUrl) in query
       logoUrl: logo.logoUrl!,
       isCohost: true,
     })),
