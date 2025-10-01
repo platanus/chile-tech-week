@@ -1,16 +1,16 @@
 'use client';
 
 import { format } from 'date-fns';
-import { CalendarIcon, Clock } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import * as React from 'react';
 import { Button } from '@/src/components/ui/button';
 import { Calendar } from '@/src/components/ui/calendar';
-import { Input } from '@/src/components/ui/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/src/components/ui/popover';
+import { TimePicker } from '@/src/components/ui/time-picker';
 import { cn } from '@/src/lib/utils';
 
 interface DateTimePickerProps {
@@ -37,15 +37,9 @@ export function DateTimePicker({
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
     date,
   );
-  const [timeValue, setTimeValue] = React.useState<string>(
-    date ? format(date, 'HH:mm') : '09:00',
-  );
 
   React.useEffect(() => {
     setSelectedDate(date);
-    if (date) {
-      setTimeValue(format(date, 'HH:mm'));
-    }
   }, [date]);
 
   const handleDateSelect = (newDate: Date | undefined) => {
@@ -55,35 +49,39 @@ export function DateTimePicker({
       return;
     }
 
-    const [hours, minutes] = timeValue.split(':').map(Number);
-    const updatedDate = new Date(newDate);
-    updatedDate.setHours(hours, minutes, 0, 0);
-
-    setSelectedDate(updatedDate);
-    onDateChange?.(updatedDate);
+    // Preserve time if date already exists
+    if (selectedDate) {
+      const updatedDate = new Date(newDate);
+      updatedDate.setHours(
+        selectedDate.getHours(),
+        selectedDate.getMinutes(),
+        0,
+        0,
+      );
+      setSelectedDate(updatedDate);
+      onDateChange?.(updatedDate);
+    } else {
+      // Set default time to 09:00
+      const updatedDate = new Date(newDate);
+      updatedDate.setHours(9, 0, 0, 0);
+      setSelectedDate(updatedDate);
+      onDateChange?.(updatedDate);
+    }
   };
 
-  const handleTimeChange = (newTime: string) => {
-    setTimeValue(newTime);
-
-    if (!selectedDate) return;
-
-    const [hours, minutes] = newTime.split(':').map(Number);
-    const updatedDate = new Date(selectedDate);
-    updatedDate.setHours(hours, minutes, 0, 0);
-
-    setSelectedDate(updatedDate);
-    onDateChange?.(updatedDate);
+  const handleTimeChange = (newDate: Date | undefined) => {
+    setSelectedDate(newDate);
+    onDateChange?.(newDate);
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-2 w-full">
+    <div className="flex flex-col sm:flex-row gap-2 w-full items-center">
       <Popover>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             className={cn(
-              'w-full sm:flex-1 h-10 justify-start text-left font-normal border-4 border-black bg-white font-bold font-mono text-black text-xs uppercase tracking-wider focus:border-primary overflow-hidden',
+              'w-full sm:w-auto h-10 justify-start text-left font-normal border-4 border-black bg-white font-bold font-mono text-black text-xs uppercase tracking-wider focus:border-primary',
               !selectedDate && 'text-muted-foreground',
               className,
             )}
@@ -134,16 +132,12 @@ export function DateTimePicker({
         </PopoverContent>
       </Popover>
 
-      <div className="relative w-full sm:w-32">
-        <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black flex-shrink-0" />
-        <Input
-          type="time"
-          value={timeValue}
-          onChange={(e) => handleTimeChange(e.target.value)}
-          className="pl-10 w-full h-10 border-4 border-black bg-white font-bold font-mono text-black text-xs uppercase tracking-wider focus:border-primary"
-          disabled={disabled}
-        />
-      </div>
+      <TimePicker
+        date={selectedDate}
+        onTimeChange={handleTimeChange}
+        disabled={disabled}
+        className="w-full sm:w-auto"
+      />
     </div>
   );
 }

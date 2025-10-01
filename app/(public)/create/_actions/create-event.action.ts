@@ -56,6 +56,7 @@ export async function createEventAction(
         (cohost) => ({
           eventId: newEvent.id,
           companyName: cohost.companyName,
+          companyLogoUrl: cohost.companyLogoUrl,
           primaryContactName: cohost.primaryContactName,
           primaryContactEmail: cohost.primaryContactEmail,
           primaryContactPhoneNumber: cohost.primaryContactPhoneNumber || null,
@@ -92,7 +93,7 @@ export async function createEventAction(
         .map((theme) => theme.name)
         .join(', ');
 
-      const selectedAudiences = audiences
+      const _selectedAudiences = audiences
         .filter((audience) => validatedData.audienceIds?.includes(audience.id))
         .map((audience) => audience.name)
         .join(', ');
@@ -124,20 +125,21 @@ export async function createEventAction(
       );
 
       // Send Slack notification
-      const slackMessage = `🎉 *NEW EVENT SUBMISSION* 🎉
+      const cohostsList =
+        validatedData.cohosts && validatedData.cohosts.length > 0
+          ? validatedData.cohosts.map((c) => c.companyName).join(', ')
+          : 'None';
 
-📋 *Event:* ${validatedData.title}
-👤 *Organizer:* ${validatedData.authorName} from ${validatedData.companyName} (${validatedData.authorEmail})
-🏷️ *Format:* ${eventFormatLabels[validatedData.format]}
-🎯 *Themes:* ${selectedThemes || 'No themes selected'}
-👥 *Audiences:* ${selectedAudiences || 'No audiences selected'}
+      const domain = process.env.DOMAIN || 'localhost:3000';
+      const adminLink = `https://${domain}/admin/events/${newEvent.id}`;
 
-📅 *Start:* ${startDateFormatted}
-📅 *End:* ${endDateFormatted}
-📍 *Commune:* ${validatedData.commune}
-${validatedData.cohosts && validatedData.cohosts.length > 0 ? `🤝 *Co-hosts:* ${validatedData.cohosts.length} companies` : ''}
+      const slackMessage = `🎉 *NEW EVENT SUBMISSION*
 
-⚠️ *Requires approval before going live*`;
+*${validatedData.title}*
+Organizer: ${validatedData.authorName} (${validatedData.companyName})
+Co-hosts: ${cohostsList}
+
+${adminLink}`;
 
       slackService.sendMessage(slackMessage).catch(console.error);
 

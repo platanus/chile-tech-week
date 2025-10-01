@@ -20,6 +20,7 @@ import {
 } from '@/src/components/ui/card';
 import { Separator } from '@/src/components/ui/separator';
 import { getEventById } from '@/src/queries/events';
+import { LogoVisibilityToggle } from '../_components/logo-visibility-toggle';
 import { ModerationButtons } from '../_components/moderation-buttons';
 
 interface AdminEventDetailPageProps {
@@ -263,9 +264,18 @@ export default async function AdminEventDetailPage({
 
             {event.companyLogoUrl && (
               <div>
-                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                  Company Logo
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                    Company Logo
+                  </p>
+                  {event.state === 'published' && (
+                    <LogoVisibilityToggle
+                      id={event.id}
+                      isShown={!!event.logoShownAt}
+                      type="event"
+                    />
+                  )}
+                </div>
                 <div className="mt-2 flex h-16 w-32 items-center justify-center border-2 border-white bg-black">
                   <div
                     style={{
@@ -276,6 +286,9 @@ export default async function AdminEventDetailPage({
                 </div>
                 <p className="mt-1 font-mono text-white/40 text-xs">
                   Logo displayed against black background for contrast testing
+                  {event.state === 'published' &&
+                    event.logoShownAt &&
+                    ' • Visible on landing page'}
                 </p>
               </div>
             )}
@@ -345,10 +358,20 @@ export default async function AdminEventDetailPage({
                     )}
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                        <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                          Company
-                        </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between">
+                          <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                            Company
+                          </p>
+                          {event.state === 'published' &&
+                            cohost.companyLogoUrl && (
+                              <LogoVisibilityToggle
+                                id={cohost.id}
+                                isShown={!!cohost.logoShownAt}
+                                type="cohost"
+                              />
+                            )}
+                        </div>
+                        <div className="mt-1 flex items-center gap-2">
                           {cohost.companyLogoUrl ? (
                             <div className="flex h-8 w-8 items-center justify-center overflow-hidden border border-white bg-black">
                               <div

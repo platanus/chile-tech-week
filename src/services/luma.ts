@@ -149,6 +149,9 @@ export class LumaService {
     parts.push('- [ ] Verificar horario y fecha del evento');
     parts.push('- [ ] Agregar imágenes del evento');
     parts.push('- [ ] Verificar ubicación del evento');
+    parts.push(
+      '- [ ] [Editar perfil de Luma](https://luma.com/settings) con nombre y logo de empresa',
+    );
     parts.push('');
 
     // Add event descriptions with proper markdown formatting

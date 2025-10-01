@@ -168,6 +168,7 @@ export const events = pgTable('Events', {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
   approvedAt: timestamp('approved_at', { withTimezone: true }),
   rejectionReason: text('rejection_reason'),
+  logoShownAt: timestamp('logo_shown_at', { withTimezone: true }),
 
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true })
@@ -271,6 +272,9 @@ export const eventCohosts = pgTable('EventCohosts', {
   }),
   primaryContactWebsite: varchar('primary_contact_website', { length: 500 }),
   primaryContactLinkedin: varchar('primary_contact_linkedin', { length: 500 }),
+
+  // Logo visibility
+  logoShownAt: timestamp('logo_shown_at', { withTimezone: true }),
 
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true })

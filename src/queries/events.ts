@@ -6,6 +6,7 @@ import {
   gte,
   ilike,
   inArray,
+  isNotNull,
   lte,
   or,
   sql,
@@ -455,6 +456,7 @@ export type CreateEventData = {
 export type CreateCohostData = {
   eventId: string;
   companyName: string;
+  companyLogoUrl: string | null;
   primaryContactName: string;
   primaryContactEmail: string;
   primaryContactPhoneNumber: string | null;
@@ -580,34 +582,35 @@ export const getEventCountsByHour = async (
   const endDateStr = endDate.toISOString();
 
   // Use a more complex query that expands each event across all hours it occupies
+  // Convert all times to Santiago, Chile timezone (America/Santiago)
   const result = await db.execute(sql`
     WITH RECURSIVE event_hours AS (
-      -- Base case: get all events in range
-      SELECT 
+      -- Base case: get all events in range, converted to Santiago time
+      SELECT
         id,
-        start_date,
-        end_date,
-        DATE(start_date)::text as date,
-        EXTRACT(HOUR FROM start_date)::integer as hour
+        start_date AT TIME ZONE 'America/Santiago' as start_date_santiago,
+        end_date AT TIME ZONE 'America/Santiago' as end_date_santiago,
+        DATE(start_date AT TIME ZONE 'America/Santiago')::text as date,
+        EXTRACT(HOUR FROM (start_date AT TIME ZONE 'America/Santiago'))::integer as hour
       FROM "Events"
       WHERE state = 'published'
         AND start_date >= ${startDateStr}::timestamp
         AND start_date <= ${endDateStr}::timestamp
-      
+
       UNION ALL
-      
+
       -- Recursive case: generate next hour for each event
-      SELECT 
+      SELECT
         eh.id,
-        eh.start_date,
-        eh.end_date,
-        DATE(eh.start_date + ((eh.hour + 1 - EXTRACT(HOUR FROM eh.start_date)) * INTERVAL '1 hour'))::text as date,
+        eh.start_date_santiago,
+        eh.end_date_santiago,
+        DATE(eh.start_date_santiago + ((eh.hour + 1 - EXTRACT(HOUR FROM eh.start_date_santiago)) * INTERVAL '1 hour'))::text as date,
         (eh.hour + 1)::integer as hour
       FROM event_hours eh
-      WHERE eh.start_date + ((eh.hour + 1 - EXTRACT(HOUR FROM eh.start_date)) * INTERVAL '1 hour') < eh.end_date
+      WHERE eh.start_date_santiago + ((eh.hour + 1 - EXTRACT(HOUR FROM eh.start_date_santiago)) * INTERVAL '1 hour') < eh.end_date_santiago
         AND eh.hour < 23  -- Prevent infinite recursion beyond day boundary
     )
-    SELECT 
+    SELECT
       date,
       hour,
       COUNT(*)::integer as count
@@ -623,4 +626,62 @@ export const getEventCountsByHour = async (
     hour: Number(row.hour),
     count: Number(row.count),
   }));
+};
+
+export type CompanyLogo = {
+  companyName: string;
+  logoUrl: string;
+  isCohost: boolean;
+};
+
+export const getPublishedEventLogos = async (): Promise<CompanyLogo[]> => {
+  const [eventLogos, cohostLogos] = await Promise.all([
+    db
+      .select({
+        companyName: events.companyName,
+        logoUrl: events.companyLogoUrl,
+      })
+      .from(events)
+      .where(
+        and(
+          eq(events.state, 'published'),
+          isNotNull(events.logoShownAt),
+          isNotNull(events.companyLogoUrl),
+        ),
+      ),
+
+    db
+      .select({
+        companyName: eventCohosts.companyName,
+        logoUrl: eventCohosts.companyLogoUrl,
+      })
+      .from(eventCohosts)
+      .innerJoin(events, eq(eventCohosts.eventId, events.id))
+      .where(
+        and(
+          eq(events.state, 'published'),
+          isNotNull(eventCohosts.logoShownAt),
+          isNotNull(eventCohosts.companyLogoUrl),
+        ),
+      ),
+  ]);
+
+  const allLogos: CompanyLogo[] = [
+    ...eventLogos.map((logo) => ({
+      companyName: logo.companyName,
+      logoUrl: logo.logoUrl,
+      isCohost: false,
+    })),
+    ...cohostLogos.map((logo) => ({
+      companyName: logo.companyName,
+      logoUrl: logo.logoUrl!,
+      isCohost: true,
+    })),
+  ];
+
+  const uniqueLogos = Array.from(
+    new Map(allLogos.map((logo) => [logo.logoUrl, logo])).values(),
+  );
+
+  return uniqueLogos;
 };

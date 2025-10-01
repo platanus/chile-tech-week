@@ -136,6 +136,18 @@ export default function EditLumaEmail({
           <Text style={checklistItem}>□ Add event images</Text>
           <Text style={checklistItem}>□ Confirm event location details</Text>
           <Text style={checklistItem}>□ Update event descriptions</Text>
+          <Text style={checklistItem}>
+            □{' '}
+            <a
+              href="https://luma.com/settings"
+              style={link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Edit your Luma profile
+            </a>{' '}
+            with company name and logo
+          </Text>
         </div>
 
         <Text style={text}>

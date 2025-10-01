@@ -849,7 +849,7 @@ export function CreateEventForm({
                             }
                           }}
                           disabled={isPending}
-                          placeholder="SELECT START DATE & TIME"
+                          placeholder="PICK DATE"
                           minDate={new Date('2025-11-17')}
                           maxDate={new Date('2025-11-24')}
                           defaultMonth={new Date('2025-11-17')}
@@ -878,7 +878,7 @@ export function CreateEventForm({
                             checkEventDuration(startDate, date);
                           }}
                           disabled={isPending}
-                          placeholder="SELECT END DATE & TIME"
+                          placeholder="PICK DATE"
                           minDate={new Date('2025-11-17')}
                           maxDate={new Date('2025-11-24')}
                           defaultMonth={new Date('2025-11-17')}

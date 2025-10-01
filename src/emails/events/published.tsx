@@ -31,7 +31,7 @@ export default function PublishedEmail({
   const preview = `Event "${eventTitle}" is now published!`;
   const eventStatusUrl = `https://${process.env.DOMAIN}/events/${eventId}/status`;
   const websiteUrl = `https://${process.env.DOMAIN}/events`;
-  const lumaCalendarUrl = 'https://lu.ma/cltw-2025';
+  const lumaCalendarUrl = 'https://lu.ma/cltw';
 
   return (
     <EmailLayout preview={preview}>
@@ -80,6 +80,12 @@ export default function PublishedEmail({
         </Text>
 
         <div style={linkContainer}>
+          <Text style={eventDetail}>
+            🎫{' '}
+            <a href={lumaEventUrl} style={link}>
+              Your Luma Event
+            </a>
+          </Text>
           <Text style={eventDetail}>
             📅{' '}
             <a href={lumaCalendarUrl} style={link}>

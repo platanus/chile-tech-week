@@ -1,33 +1,10 @@
-'use client';
-
+import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { getPublishedEventLogos } from '@/src/queries/events';
+import { FaqSection } from './_components/faq-section';
 
-export default function WelcomePage() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  const faqs = [
-    {
-      question: 'WHAT IS CHILE TECH WEEK?',
-      answer:
-        "Chile Tech Week is a decentralized week where Chile's top tech companies host private tech events across Santiago. It's a showcase of innovation, networking, and collaboration in the Chilean tech ecosystem.",
-    },
-    {
-      question: 'WHO CAN ATTEND?',
-      answer:
-        "Events are hosted by individual companies and each has their own admission criteria. Some are invite-only, others are open to the public. Check each event's details for specific requirements.",
-    },
-    {
-      question: 'HOW DO I BECOME A HOST?',
-      answer:
-        "Any tech company, startup, or organization can host an event during Chile Tech Week. Simply submit your event through our platform and we'll help promote it to the community.",
-    },
-    {
-      question: 'IS THIS AN OFFICIAL CONFERENCE?',
-      answer:
-        'No, Chile Tech Week is a decentralized initiative. Each event is independently organized by different companies and organizations. We simply provide the platform to showcase all events happening during the week.',
-    },
-  ];
+export default async function WelcomePage() {
+  const logos = await getPublishedEventLogos();
 
   return (
     <div className="relative w-full bg-black">
@@ -92,42 +69,36 @@ export default function WelcomePage() {
         </div>
       </div>
 
-      {/* FAQ Section */}
-      <div className="min-h-screen bg-black p-8 md:p-16">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-16 text-center">
-            <h2 className="inline-block border-8 border-white bg-primary px-12 py-8 font-black font-mono text-3xl text-white uppercase tracking-widest shadow-[16px_16px_0px_0px_#ffffff] md:text-7xl">
-              FAQ
-            </h2>
-          </div>
+      {/* Company Logos Section */}
+      {logos.length > 0 && (
+        <div className="bg-black p-8 py-24 md:p-16">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-12 text-center">
+              <h2 className="inline-block border-4 border-white bg-black px-8 py-4 font-black font-mono text-2xl text-white uppercase tracking-wider shadow-[8px_8px_0px_0px_#ffffff] md:text-4xl">
+                Participating Companies
+              </h2>
+            </div>
 
-          <div className="space-y-6">
-            {faqs.map((faq, index) => (
-              <div key={faq.question} className="border-4 border-white">
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="flex w-full items-center justify-between bg-black p-8 text-left font-black font-mono text-lg text-white uppercase tracking-wide transition-all duration-200 hover:bg-white hover:text-black md:text-3xl"
+            <div className="flex flex-wrap justify-center gap-8">
+              {logos.map((logo) => (
+                <div
+                  key={logo.logoUrl}
+                  className="group relative h-48 w-48 p-8 transition-all duration-300 md:h-56 md:w-56"
                 >
-                  {faq.question}
-                  <span
-                    className={`transform text-2xl transition-transform duration-200 ${openFaq === index ? 'rotate-180' : ''}`}
-                  >
-                    ▼
-                  </span>
-                </button>
-                {openFaq === index && (
-                  <div className="border-black border-t-4 bg-white p-8">
-                    <p className="font-mono text-black text-lg leading-relaxed">
-                      {faq.answer}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
+                  <Image
+                    src={logo.logoUrl}
+                    alt={logo.companyName}
+                    fill
+                    className="object-contain grayscale transition-all duration-300 group-hover:grayscale-0"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      <FaqSection />
     </div>
   );
 }

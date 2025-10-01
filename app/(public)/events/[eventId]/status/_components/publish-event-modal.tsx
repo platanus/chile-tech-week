@@ -107,6 +107,23 @@ export function PublishEventModal({
                   details in both English and Spanish
                 </p>
               </div>
+
+              <div className="flex items-start gap-3">
+                <div className="h-6 w-6 shrink-0 rounded-sm border-2 border-black bg-white"></div>
+                <p className="font-mono text-black">
+                  <strong>
+                    <a
+                      href="https://luma.com/settings"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-primary"
+                    >
+                      Edit your Luma profile
+                    </a>
+                  </strong>{' '}
+                  - Update with company name and logo
+                </p>
+              </div>
             </div>
 
             <DialogFooter>
