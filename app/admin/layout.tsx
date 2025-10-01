@@ -8,12 +8,12 @@ interface AdminLayoutProps {
 }
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-  await onlyAdmin();
+  const user = await onlyAdmin();
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-black">
-        <AdminSidebar />
+        <AdminSidebar userEmail={user.email} />
         <SidebarInset className="flex-1 bg-black">
           <main className="h-screen overflow-hidden bg-black p-6">
             <div className="h-full w-full">{children}</div>

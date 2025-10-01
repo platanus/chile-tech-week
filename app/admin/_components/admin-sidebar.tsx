@@ -3,7 +3,7 @@
 import { Calendar, Clock, LogOut, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut, useSession } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import {
   Sidebar,
   SidebarContent,
@@ -34,9 +34,12 @@ const navigation = [
   },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  userEmail: string;
+}
+
+export function AdminSidebar({ userEmail }: AdminSidebarProps) {
   const pathname = usePathname();
-  const { data: session } = useSession();
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/login' });
@@ -75,9 +78,7 @@ export function AdminSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-2">
         <div className="space-y-2 border-2 border-white bg-black p-3">
-          <div className="font-mono text-sm text-white">
-            {session?.user?.email}
-          </div>
+          <div className="font-mono text-sm text-white">{userEmail}</div>
           <SidebarMenuButton
             onClick={handleSignOut}
             className="w-full border-2 border-white bg-black p-2 font-black font-mono text-white uppercase tracking-wide transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground hover:shadow-[2px_2px_0px_0px_#ffffff]"
