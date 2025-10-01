@@ -1,51 +1,39 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useActionState, useEffect, useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useState } from 'react';
 
 import { AuthForm } from '@/src/components/auth-form';
 import { SubmitButton } from '@/src/components/submit-button';
-import { toast } from '@/src/components/toast';
-import { type LoginActionState, login } from '../actions';
 
 export default function Page() {
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
 
-  const [email, setEmail] = useState('');
-  const [isSuccessful, setIsSuccessful] = useState(false);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsPending(true);
 
-  const [state, formAction] = useActionState<LoginActionState, FormData>(
-    login,
-    {
-      status: 'idle',
-    },
-  );
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
 
-  const { update: updateSession } = useSession();
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+      callbackUrl: '/admin',
+    });
 
-  useEffect(() => {
-    if (state.status === 'failed') {
-      toast({
-        type: 'error',
-        description: 'Invalid credentials!',
-      });
-    } else if (state.status === 'invalid_data') {
-      toast({
-        type: 'error',
-        description: 'Failed validating your submission!',
-      });
-    } else if (state.status === 'success') {
-      setIsSuccessful(true);
-      updateSession();
-      router.push('/admin');
+    setIsPending(false);
+
+    if (result?.error) {
+      setError('Invalid credentials!');
+    } else if (result?.ok) {
+      window.location.href = result.url || '/admin';
     }
-  }, [state.status, router, updateSession]);
-
-  const handleSubmit = (formData: FormData) => {
-    setEmail(formData.get('email') as string);
-    formAction(formData);
   };
 
   return (
@@ -73,8 +61,15 @@ export default function Page() {
               USE YOUR EMAIL AND PASSWORD TO SIGN IN
             </p>
 
-            <AuthForm action={handleSubmit} defaultEmail={email}>
-              <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
+            <AuthForm onSubmit={handleSubmit}>
+              {error && (
+                <p className="text-center font-mono text-red-600 text-sm">
+                  {error}
+                </p>
+              )}
+              <SubmitButton isSuccessful={isPending}>
+                {isPending ? 'Signing in...' : 'Sign in'}
+              </SubmitButton>
             </AuthForm>
           </div>
         </div>

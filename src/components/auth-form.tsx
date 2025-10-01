@@ -5,17 +5,19 @@ import { Label } from './ui/label';
 
 export function AuthForm({
   action,
+  onSubmit,
   children,
   defaultEmail = '',
 }: {
-  action: NonNullable<
+  action?: NonNullable<
     string | ((formData: FormData) => void | Promise<void>) | undefined
   >;
+  onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
   children: React.ReactNode;
   defaultEmail?: string;
 }) {
-  return (
-    <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
+  const formContent = (
+    <>
       <div className="flex flex-col gap-2">
         <Label
           htmlFor="email"
@@ -55,6 +57,24 @@ export function AuthForm({
       </div>
 
       {children}
+    </>
+  );
+
+  if (onSubmit) {
+    return (
+      <form onSubmit={onSubmit} className="flex flex-col gap-4 px-4 sm:px-16">
+        {formContent}
+      </form>
+    );
+  }
+
+  if (!action) {
+    throw new Error('AuthForm requires either action or onSubmit prop');
+  }
+
+  return (
+    <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
+      {formContent}
     </Form>
   );
 }

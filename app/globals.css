@@ -96,7 +96,7 @@
 }
 
 @layer base {
-  :root {
+  .light {
     --background: 0 0% 100%;
     --foreground: 0 0% 0%;
     --card: 0 0% 100%;
@@ -131,7 +131,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-  .dark {
+  :root {
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
     --card: 0 0% 9%;
@@ -356,5 +356,4 @@
   body {
     @apply bg-background text-foreground;
   }
-
 }
