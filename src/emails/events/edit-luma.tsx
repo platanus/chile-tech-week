@@ -163,8 +163,8 @@ export default function EditLumaEmail({
 
         <Text style={text}>
           If you have any questions, contact the Chile Tech Week team at{' '}
-          <a href="mailto:hello@techweek.cl" style={link}>
-            hello@techweek.cl
+          <a href={`mailto:hello@${process.env.DOMAIN}`} style={link}>
+            hello@{process.env.DOMAIN}
           </a>
           .
         </Text>

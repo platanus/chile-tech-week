@@ -49,8 +49,8 @@ export default function EventRejectedEmail({
 
         <Text style={text}>
           Questions? Contact us at{' '}
-          <a href="mailto:hello@techweek.cl" style={link}>
-            hello@techweek.cl
+          <a href={`mailto:hello@${process.env.DOMAIN}`} style={link}>
+            hello@{process.env.DOMAIN}
           </a>
           .
         </Text>

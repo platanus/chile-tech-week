@@ -165,7 +165,7 @@ export class LumaService {
     // Add event status link with markdown formatting
     if (eventId) {
       parts.push(
-        `🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/${eventId}/status)`,
+        `🚀 [Cuando completes los pasos, publica el evento aquí](https://${process.env.DOMAIN}/events/${eventId}/status)`,
       );
       parts.push('');
     }
