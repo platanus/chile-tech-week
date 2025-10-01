@@ -1,5 +1,7 @@
 import CronParser from 'cron-parser';
 
+const CHILE_TIMEZONE = 'America/Santiago';
+
 export function shouldExecute(
   cronExpression: string,
   lastExecutedAt: Date | null,
@@ -9,6 +11,7 @@ export function shouldExecute(
   try {
     const interval = CronParser.parse(cronExpression, {
       currentDate: lastExecutedAt,
+      tz: CHILE_TIMEZONE,
     });
     const nextExecution = interval.next().toDate();
     return new Date() >= nextExecution;
