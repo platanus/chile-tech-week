@@ -20,6 +20,7 @@ import {
 } from '@/src/components/ui/card';
 import { Separator } from '@/src/components/ui/separator';
 import { getEventById } from '@/src/queries/events';
+import { LogoEditButton } from '../_components/logo-edit-button';
 import { LogoVisibilityToggle } from '../_components/logo-visibility-toggle';
 import { ModerationButtons } from '../_components/moderation-buttons';
 
@@ -268,13 +269,16 @@ export default async function AdminEventDetailPage({
                   <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
                     Company Logo
                   </p>
-                  {event.state === 'published' && (
-                    <LogoVisibilityToggle
-                      id={event.id}
-                      isShown={!!event.logoShownAt}
-                      type="event"
-                    />
-                  )}
+                  <div className="flex items-center gap-2">
+                    <LogoEditButton id={event.id} type="event" />
+                    {event.state === 'published' && (
+                      <LogoVisibilityToggle
+                        id={event.id}
+                        isShown={!!event.logoShownAt}
+                        type="event"
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="mt-2 flex h-16 w-32 items-center justify-center border-2 border-white bg-black">
                   <div
@@ -362,14 +366,18 @@ export default async function AdminEventDetailPage({
                           <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
                             Company
                           </p>
-                          {event.state === 'published' &&
-                            cohost.companyLogoUrl && (
-                              <LogoVisibilityToggle
-                                id={cohost.id}
-                                isShown={!!cohost.logoShownAt}
-                                type="cohost"
-                              />
-                            )}
+                          {cohost.companyLogoUrl && (
+                            <div className="flex items-center gap-2">
+                              <LogoEditButton id={cohost.id} type="cohost" />
+                              {event.state === 'published' && (
+                                <LogoVisibilityToggle
+                                  id={cohost.id}
+                                  isShown={!!cohost.logoShownAt}
+                                  type="cohost"
+                                />
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div className="mt-1 flex items-center gap-2">
                           {cohost.companyLogoUrl ? (
