@@ -924,7 +924,7 @@ export function CreateEventForm({
                             aria-expanded={communeOpen}
                             disabled={isPending}
                             className={cn(
-                              'h-10 w-full justify-between border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider hover:bg-gray-50 focus:border-primary',
+                              'h-10 w-full justify-between border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider hover:bg-gray-50 hover:text-black focus:border-primary',
                               !field.value && 'text-gray-500',
                             )}
                           >
@@ -946,16 +946,16 @@ export function CreateEventForm({
                         avoidCollisions={true}
                         collisionPadding={16}
                       >
-                        <Command className="border-none">
+                        <Command className="border-none bg-white">
                           <CommandInput
                             placeholder="SEARCH COMMUNE..."
-                            className="h-9 font-bold font-mono text-black uppercase tracking-wider"
+                            className="h-9 border-0 bg-white font-bold font-mono text-black uppercase tracking-wider focus:ring-0"
                           />
-                          <CommandList className="max-h-[200px]">
-                            <CommandEmpty className="py-6 text-center font-bold font-mono text-black text-sm uppercase tracking-wider">
+                          <CommandList className="max-h-[200px] bg-white">
+                            <CommandEmpty className="bg-white py-6 text-center font-bold font-mono text-black text-sm uppercase tracking-wider">
                               NO COMMUNE FOUND.
                             </CommandEmpty>
-                            <CommandGroup>
+                            <CommandGroup className="bg-white">
                               {SANTIAGO_COMMUNES.map((commune) => (
                                 <CommandItem
                                   key={commune}
@@ -968,7 +968,7 @@ export function CreateEventForm({
                                     );
                                     setCommuneOpen(false);
                                   }}
-                                  className="py-2 font-bold font-mono text-black uppercase tracking-wider hover:bg-primary hover:text-black focus:bg-primary focus:text-black data-[selected=true]:bg-primary data-[selected=true]:text-black"
+                                  className="hover:!text-black focus:!text-black data-[selected=true]:!text-black bg-white py-2 font-bold font-mono text-black uppercase tracking-wider hover:bg-primary focus:bg-primary data-[selected=true]:bg-primary"
                                 >
                                   <Check
                                     className={cn(
