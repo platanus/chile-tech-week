@@ -3,6 +3,7 @@ export const SANTIAGO_COMMUNES = [
   'Providencia',
   'Las Condes',
   'Vitacura',
+  'Lo Barnechea',
   'Ñuñoa',
   'Santiago',
 
