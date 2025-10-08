@@ -20,6 +20,7 @@ import {
 } from '@/src/components/ui/card';
 import { Separator } from '@/src/components/ui/separator';
 import { getEventById } from '@/src/queries/events';
+import { EditEventButton } from '../_components/edit-event-button';
 import { LogoEditButton } from '../_components/logo-edit-button';
 import { LogoVisibilityToggle } from '../_components/logo-visibility-toggle';
 import { ModerationButtons } from '../_components/moderation-buttons';
@@ -121,7 +122,13 @@ export default async function AdminEventDetailPage({
           </div>
           <div className="flex flex-col items-end gap-4">
             {getStatusBadge()}
-            <ModerationButtons eventId={event.id} eventState={event.state} />
+            <div className="flex gap-2">
+              <EditEventButton
+                eventId={event.id}
+                currentCommune={event.commune}
+              />
+              <ModerationButtons eventId={event.id} eventState={event.state} />
+            </div>
           </div>
         </div>
 

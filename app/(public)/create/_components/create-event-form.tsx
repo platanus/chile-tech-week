@@ -1,9 +1,10 @@
 'use client';
 
-import { Check, ChevronsUpDown, Plus, Trash2, Upload, X } from 'lucide-react';
+import { Plus, Trash2, Upload, X } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { CommuneSelector } from '@/src/components/commune-selector';
 import { EventCalendar } from '@/src/components/event-calendar';
 import { Button } from '@/src/components/ui/button';
 import {
@@ -12,14 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/src/components/ui/card';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/src/components/ui/command';
 import { DateTimePicker } from '@/src/components/ui/datetime-picker';
 import {
   Dialog,
@@ -39,11 +32,6 @@ import {
 } from '@/src/components/ui/form';
 import { Input } from '@/src/components/ui/input';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/src/components/ui/popover';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -52,7 +40,6 @@ import {
 } from '@/src/components/ui/select';
 import { Textarea } from '@/src/components/ui/textarea';
 import { useFormAction } from '@/src/hooks/use-form-action';
-import { SANTIAGO_COMMUNES } from '@/src/lib/constants/communes';
 import type { EventAudience, EventTheme } from '@/src/lib/db/schema';
 import { eventFormats } from '@/src/lib/db/schema';
 import {
@@ -60,7 +47,6 @@ import {
   createEventFormSchema,
   eventFormatLabels,
 } from '@/src/lib/schemas/events.schema';
-import { cn } from '@/src/lib/utils';
 import { uploadImageFile } from '@/src/lib/utils/blob';
 import { checkImageContrast } from '@/src/lib/utils/contrast';
 import type { EventCountByHour } from '@/src/queries/events';
@@ -223,7 +209,6 @@ export function CreateEventForm({
     useState<string[]>(initialThemeIds);
   const [selectedAudiences, setSelectedAudiences] =
     useState<string[]>(initialAudienceIds);
-  const [communeOpen, setCommuneOpen] = useState(false);
   const [durationWarning, setDurationWarning] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -915,77 +900,13 @@ export function CreateEventForm({
                     <FormLabel className="font-bold font-mono text-black uppercase tracking-wider">
                       COMMUNE *
                     </FormLabel>
-                    <Popover open={communeOpen} onOpenChange={setCommuneOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={communeOpen}
-                            disabled={isPending}
-                            className={cn(
-                              'h-10 w-full justify-between border-4 border-black bg-white font-bold font-mono text-black uppercase tracking-wider hover:bg-gray-50 hover:text-black focus:border-primary',
-                              !field.value && 'text-gray-500',
-                            )}
-                          >
-                            {field.value
-                              ? SANTIAGO_COMMUNES.find(
-                                  (commune) => commune === field.value,
-                                )
-                              : 'SELECT COMMUNE'}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-[--radix-popover-trigger-width] border-4 border-black bg-white p-0 shadow-[8px_8px_0px_0px_theme(colors.black)]"
-                        align="start"
-                        side="bottom"
-                        sideOffset={12}
-                        alignOffset={0}
-                        avoidCollisions={true}
-                        collisionPadding={16}
-                      >
-                        <Command className="border-none bg-white">
-                          <CommandInput
-                            placeholder="SEARCH COMMUNE..."
-                            className="h-9 border-0 bg-white font-bold font-mono text-black uppercase tracking-wider focus:ring-0"
-                          />
-                          <CommandList className="max-h-[200px] bg-white">
-                            <CommandEmpty className="bg-white py-6 text-center font-bold font-mono text-black text-sm uppercase tracking-wider">
-                              NO COMMUNE FOUND.
-                            </CommandEmpty>
-                            <CommandGroup className="bg-white">
-                              {SANTIAGO_COMMUNES.map((commune) => (
-                                <CommandItem
-                                  key={commune}
-                                  value={commune}
-                                  onSelect={(currentValue) => {
-                                    field.onChange(
-                                      currentValue === field.value
-                                        ? ''
-                                        : currentValue,
-                                    );
-                                    setCommuneOpen(false);
-                                  }}
-                                  className="hover:!text-black focus:!text-black data-[selected=true]:!text-black bg-white py-2 font-bold font-mono text-black uppercase tracking-wider hover:bg-primary focus:bg-primary data-[selected=true]:bg-primary"
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      field.value === commune
-                                        ? 'opacity-100'
-                                        : 'opacity-0',
-                                    )}
-                                  />
-                                  {commune}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <CommuneSelector
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={isPending}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
