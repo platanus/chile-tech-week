@@ -1,6 +1,6 @@
 'use client';
 
-import { isSameDay, parseISO } from 'date-fns';
+import { endOfDay, isWithinInterval, parseISO, startOfDay } from 'date-fns';
 import Fuse from 'fuse.js';
 import { useMemo, useState } from 'react';
 import { Input } from '@/src/components/ui/input';
@@ -71,14 +71,29 @@ export function EventsClient({ events }: EventsClientProps) {
       filtered = searchResults.map((result) => result.item);
     }
 
-    // Filter by day
+    // Filter by day - show events that span or occur on the selected day
     if (selectedDay !== 'all') {
       const dayConfig = DAYS.find((d) => d.key === selectedDay);
       if (dayConfig?.date) {
-        const targetDate = parseISO(dayConfig.date);
-        filtered = filtered.filter((event) =>
-          isSameDay(new Date(event.startDate), targetDate),
-        );
+        const targetDayStart = startOfDay(parseISO(dayConfig.date));
+        const targetDayEnd = endOfDay(parseISO(dayConfig.date));
+
+        filtered = filtered.filter((event) => {
+          const eventStart = startOfDay(new Date(event.startDate));
+          const eventEnd = endOfDay(new Date(event.endDate));
+
+          // Event overlaps with target day if:
+          // - Target day falls within event range, OR
+          // - Event starts on target day, OR
+          // - Event ends on target day
+          return (
+            isWithinInterval(targetDayStart, {
+              start: eventStart,
+              end: eventEnd,
+            }) ||
+            isWithinInterval(targetDayEnd, { start: eventStart, end: eventEnd })
+          );
+        });
       }
     }
 

@@ -19,9 +19,17 @@ export function EventCard({ event }: EventCardProps) {
   const startDate = new Date(event.startDate);
   const endDate = new Date(event.endDate);
 
-  const dateStr = format(startDate, 'EEE MMM d');
   const startTimeStr = format(startDate, 'h:mm a');
   const endTimeStr = format(endDate, 'h:mm a');
+
+  // Check if event spans multiple calendar days
+  const isMultiDay =
+    format(startDate, 'yyyy-MM-dd') !== format(endDate, 'yyyy-MM-dd');
+
+  // Format date string based on whether it's multi-day
+  const dateStr = isMultiDay
+    ? `${format(startDate, 'EEE MMM d')} - ${format(endDate, 'EEE MMM d')}`
+    : format(startDate, 'EEE MMM d');
 
   // Get all organizers
   const allOrganizers =
