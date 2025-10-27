@@ -92,6 +92,9 @@ importers:
       geist:
         specifier: ^1.4.2
         version: 1.4.2(next@15.5.2(@babel/core@7.28.0)(@opentelemetry/api@1.9.0)(react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021))(react@19.0.0-rc-45804af1-20241021))
+      libphonenumber-js:
+        specifier: ^1.12.25
+        version: 1.12.25
       lucide-react:
         specifier: ^0.446.0
         version: 0.446.0(react@19.0.0-rc-45804af1-20241021)
@@ -4293,6 +4296,9 @@ packages:
   lefthook@1.12.2:
     resolution: {integrity: sha512-2CeTu5NcmoT9YnqsHTq/TF36MlqlzHzhivGx3DrXHwcff4TdvrkIwUTA56huM3Nlo5ODAF/0hlPzaKLmNHCBnQ==}
     hasBin: true
+
+  libphonenumber-js@1.12.25:
+    resolution: {integrity: sha512-u90tUu/SEF8b+RaDKCoW7ZNFDakyBtFlX1ex3J+VH+ElWes/UaitJLt/w4jGu8uAE41lltV/s+kMVtywcMEg7g==}
 
   lightningcss-darwin-arm64@1.30.1:
     resolution: {integrity: sha512-c8JK7hyE65X1MHMN+Viq9n11RRC7hgin3HhYKhrMyaXflk5GVplZ60IxyoVtzILeKr+xAJwg6zK6sjTBJ0FKYQ==}
@@ -9572,6 +9578,8 @@ snapshots:
       lefthook-openbsd-x64: 1.12.2
       lefthook-windows-arm64: 1.12.2
       lefthook-windows-x64: 1.12.2
+
+  libphonenumber-js@1.12.25: {}
 
   lightningcss-darwin-arm64@1.30.1:
     optional: true

@@ -1,4 +1,6 @@
+import { parsePhoneNumber } from 'libphonenumber-js';
 import { z } from 'zod';
+
 import { eventFormats } from '@/src/lib/db/schema';
 
 // Helper function to titleize names (e.g., "rodrigo peña" => "Rodrigo Peña")
@@ -13,6 +15,20 @@ function titleize(str: string): string {
 // Helper function to capitalize titles (same as titleize for now)
 function capitalize(str: string): string {
   return titleize(str);
+}
+
+// Helper function to validate international phone numbers
+function validateInternationalPhone(phone: string): boolean {
+  if (!phone || phone.trim() === '') {
+    return false;
+  }
+
+  try {
+    const parsed = parsePhoneNumber(phone);
+    return parsed ? parsed.isValid() : false;
+  } catch {
+    return false;
+  }
 }
 
 export const createEventFormSchema = z
@@ -55,24 +71,10 @@ export const createEventFormSchema = z
       .string()
       .min(1, 'Phone number is required')
       .max(50, 'Phone number is too long')
-      .refine(
-        (phone) => {
-          // Must start with +56
-          if (!phone.startsWith('+56')) {
-            return false;
-          }
-
-          // Remove +56 and any spaces/dashes to count only digits
-          const digitsOnly = phone.slice(3).replace(/[\s-]/g, '');
-
-          // Should have exactly 9 digits after +56 (Chilean mobile format)
-          return /^\d{9}$/.test(digitsOnly);
-        },
-        {
-          message:
-            'Phone number must be in format +56 9 XXXX XXXX (9 digits after +56)',
-        },
-      ),
+      .refine(validateInternationalPhone, {
+        message:
+          'Please enter a valid international phone number (e.g., +56 9 8765 4321 or +1 555 123 4567)',
+      }),
 
     // Event details
     title: z
@@ -213,21 +215,11 @@ export const createEventFormSchema = z
             .refine(
               (phone) => {
                 if (!phone || phone.trim() === '') return true; // Optional field
-
-                // Must start with +56
-                if (!phone.startsWith('+56')) {
-                  return false;
-                }
-
-                // Remove +56 and any spaces/dashes to count only digits
-                const digitsOnly = phone.slice(3).replace(/[\s-]/g, '');
-
-                // Should have exactly 9 digits after +56 (Chilean mobile format)
-                return /^\d{9}$/.test(digitsOnly);
+                return validateInternationalPhone(phone);
               },
               {
                 message:
-                  'Phone number must be in format +56 9 XXXX XXXX (9 digits after +56)',
+                  'Please enter a valid international phone number (e.g., +56 9 8765 4321 or +1 555 123 4567)',
               },
             )
             .optional(),
