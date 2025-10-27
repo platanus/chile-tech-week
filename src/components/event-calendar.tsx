@@ -83,12 +83,8 @@ function getIntensityColor(count: number): {
 }
 
 export function EventCalendar({ eventCounts }: EventCalendarProps) {
-  const maxCount = Math.max(...eventCounts.map((ec) => ec.count), 1);
-  const totalEvents = eventCounts.reduce((sum, ec) => sum + ec.count, 0);
-
-  // Debug: log the data to console
-  console.log('EventCalendar received eventCounts:', eventCounts);
-  console.log('Total events:', totalEvents, 'Max count:', maxCount);
+  const _maxCount = Math.max(...eventCounts.map((ec) => ec.count), 1);
+  const _totalEvents = eventCounts.reduce((sum, ec) => sum + ec.count, 0);
 
   return (
     <Card className="border-2 border-black bg-white">
@@ -131,16 +127,6 @@ export function EventCalendar({ eventCounts }: EventCalendarProps) {
               {DAYS.map((day) => {
                 const count = getCountForSlot(eventCounts, day.date, hour);
                 const colors = getIntensityColor(count);
-
-                // Debug log for first few cells
-                if (
-                  hour === 11 &&
-                  ['2025-11-17', '2025-11-18'].includes(day.date)
-                ) {
-                  console.log(
-                    `Cell ${day.date} ${hour}:00 - count: ${count}, opacity: ${count <= 8 ? count / 8 : 1}`,
-                  );
-                }
 
                 return (
                   <div

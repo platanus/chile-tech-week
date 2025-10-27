@@ -270,7 +270,10 @@ export function CreateEventForm({
     // Remove the cohost data from form
     const currentCohosts = form.getValues('cohosts') || [];
     currentCohosts.splice(index, 1);
-    form.setValue('cohosts', currentCohosts);
+    form.setValue('cohosts', currentCohosts, { shouldValidate: true });
+
+    // Clear validation errors for the removed cohost
+    form.clearErrors('cohosts');
 
     // Remove logo states for this cohost
     const newPreviews = cohostLogoPreviews.filter((_, i) => i !== index);
@@ -826,7 +829,9 @@ export function CreateEventForm({
                             if (date) {
                               const autoEndDate = new Date(date);
                               autoEndDate.setHours(autoEndDate.getHours() + 2);
-                              form.setValue('endDate', autoEndDate);
+                              form.setValue('endDate', autoEndDate, {
+                                shouldValidate: true,
+                              });
                               checkEventDuration(date, autoEndDate);
                             } else {
                               const endDate = form.getValues('endDate');

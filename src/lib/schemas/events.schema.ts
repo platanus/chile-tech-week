@@ -1,3 +1,4 @@
+import { fromZonedTime } from 'date-fns-tz';
 import { parsePhoneNumber } from 'libphonenumber-js';
 import { z } from 'zod';
 
@@ -29,6 +30,20 @@ function validateInternationalPhone(phone: string): boolean {
   } catch {
     return false;
   }
+}
+
+// Helper function to check if a date is within Chile Tech Week (Nov 17-24, 2025) in Santiago timezone
+function isWithinTechWeek(date: Date): boolean {
+  // Create boundaries in Santiago timezone and convert to UTC
+  // Nov 17, 2025 00:00:00 Santiago time
+  const techWeekStart = fromZonedTime(
+    '2025-11-17 00:00:00',
+    'America/Santiago',
+  );
+  // Nov 25, 2025 00:00:00 Santiago time (allows all of Nov 24)
+  const techWeekEnd = fromZonedTime('2025-11-25 00:00:00', 'America/Santiago');
+
+  return date >= techWeekStart && date < techWeekEnd;
 }
 
 export const createEventFormSchema = z
@@ -91,32 +106,18 @@ export const createEventFormSchema = z
         required_error: 'Start date is required',
         invalid_type_error: 'Please enter a valid start date',
       })
-      .refine(
-        (date) => {
-          const techWeekStart = new Date('2025-11-17');
-          const techWeekEnd = new Date('2025-11-24'); // End of Sunday
-          return date >= techWeekStart && date < techWeekEnd;
-        },
-        {
-          message:
-            'Event must be scheduled during Chile Tech Week (Nov 17-23, 2025)',
-        },
-      ),
+      .refine(isWithinTechWeek, {
+        message:
+          'Event must be scheduled during Chile Tech Week (Nov 17-24, 2025)',
+      }),
     endDate: z
       .date({
         required_error: 'End date is required',
         invalid_type_error: 'Please enter a valid end date',
       })
-      .refine(
-        (date) => {
-          const techWeekStart = new Date('2025-11-17');
-          const techWeekEnd = new Date('2025-11-24'); // End of Sunday
-          return date >= techWeekStart && date < techWeekEnd;
-        },
-        {
-          message: 'Event must end during Chile Tech Week (Nov 17-23, 2025)',
-        },
-      ),
+      .refine(isWithinTechWeek, {
+        message: 'Event must end during Chile Tech Week (Nov 17-24, 2025)',
+      }),
 
     // Location
     commune: z
