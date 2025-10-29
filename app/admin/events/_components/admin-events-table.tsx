@@ -243,27 +243,30 @@ export function AdminEventsTable({
           <div className="h-full space-y-2 overflow-y-auto pr-2">
             {events.map((event) => {
               return (
-                <Link key={event.id} href={`/admin/events/${event.id}`}>
+                <Link
+                  key={event.id}
+                  href={`/admin/events/${event.id}`}
+                  className="block"
+                >
                   <Card className="cursor-pointer border-2 border-white bg-black shadow-[2px_2px_0px_0px_#ffffff] transition-all duration-200 hover:shadow-[4px_4px_0px_0px_hsl(var(--primary))]">
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        {/* Event Title */}
-                        <div className="mr-4 min-w-0 flex-1">
-                          <h3 className="truncate font-black font-mono text-lg text-white uppercase tracking-wide">
-                            {event.title}
-                          </h3>
-                        </div>
+                      {/* Event Title */}
+                      <h3 className="mb-3 line-clamp-1 font-black font-mono text-lg text-white uppercase tracking-wide">
+                        {event.title}
+                      </h3>
 
+                      {/* Metadata row */}
+                      <div className="flex flex-wrap items-center gap-3">
                         {/* Company */}
-                        <div className="mr-4 flex min-w-0 items-center gap-2">
+                        <div className="flex items-center gap-2">
                           <Building2 className="h-4 w-4 flex-shrink-0 text-white/60" />
-                          <span className="truncate font-bold font-mono text-sm text-white uppercase tracking-wide">
+                          <span className="line-clamp-1 font-bold font-mono text-sm text-white uppercase tracking-wide">
                             {event.companyName}
                           </span>
                         </div>
 
                         {/* Submitted Date */}
-                        <div className="mr-4 flex min-w-0 items-center gap-2">
+                        <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 flex-shrink-0 text-white/60" />
                           <span className="font-mono text-sm text-white/80">
                             {formatDate(event.submittedAt)}
@@ -271,7 +274,7 @@ export function AdminEventsTable({
                         </div>
 
                         {/* Status Badge */}
-                        <div className="flex-shrink-0">
+                        <div className="ml-auto flex-shrink-0">
                           {getStatusBadge(event)}
                         </div>
                       </div>
