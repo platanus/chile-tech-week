@@ -39,7 +39,9 @@ export function EventCard({ event }: EventCardProps) {
 
   const organizersText = allOrganizers.join(' + ');
 
-  if (!event.lumaEventUrl) {
+  const eventUrl = event.customUrl || event.lumaEventUrl;
+
+  if (!eventUrl) {
     return (
       <div className="border-2 border-black bg-white p-3 shadow-[2px_2px_0px_0px_theme(colors.black)]">
         {/* Event title at top */}
@@ -78,7 +80,7 @@ export function EventCard({ event }: EventCardProps) {
 
   return (
     <Link
-      href={event.lumaEventUrl}
+      href={eventUrl}
       target="_blank"
       rel="noopener noreferrer"
       className="hover:-translate-x-1 hover:-translate-y-1 group block transform border-2 border-black bg-white p-3 shadow-[2px_2px_0px_0px_theme(colors.black)] transition-all duration-200 hover:shadow-[4px_4px_0px_0px_theme(colors.primary)]"

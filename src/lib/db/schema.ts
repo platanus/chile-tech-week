@@ -156,6 +156,7 @@ export const events = pgTable('Events', {
   lumaEventCreatedAt: timestamp('luma_event_created_at', {
     withTimezone: true,
   }),
+  customUrl: varchar('custom_url', { length: 500 }),
 
   // Status
   state: eventStateEnum('state').notNull().default('submitted'),

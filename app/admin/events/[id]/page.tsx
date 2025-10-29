@@ -20,6 +20,7 @@ import {
 } from '@/src/components/ui/card';
 import { Separator } from '@/src/components/ui/separator';
 import { getEventById } from '@/src/queries/events';
+import { CustomUrlEdit } from '../_components/custom-url-edit';
 import { EditEventButton } from '../_components/edit-event-button';
 import { LogoEditButton } from '../_components/logo-edit-button';
 import { LogoVisibilityToggle } from '../_components/logo-visibility-toggle';
@@ -478,52 +479,54 @@ export default async function AdminEventDetailPage({
           </Card>
         )}
 
-        {/* Luma Integration */}
-        {(event.lumaEventApiId || event.lumaEventUrl) && (
-          <Card className="border-2 border-white bg-black shadow-[4px_4px_0px_0px_#ffffff]">
-            <CardHeader>
-              <CardTitle className="font-bold font-mono text-white uppercase tracking-wide">
-                Luma Integration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {event.lumaEventApiId && (
-                <div>
-                  <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                    Luma Event API ID
-                  </p>
-                  <p className="font-mono text-white">{event.lumaEventApiId}</p>
-                </div>
-              )}
-              {event.lumaEventUrl && (
-                <div>
-                  <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                    Luma Event URL
-                  </p>
-                  <a
-                    href={event.lumaEventUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 font-bold font-mono text-primary hover:text-primary/80"
-                  >
-                    {event.lumaEventUrl}
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </div>
-              )}
-              {event.lumaEventCreatedAt && (
-                <div>
-                  <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                    Luma Event Created
-                  </p>
-                  <p className="font-mono text-white">
-                    {formatDate(event.lumaEventCreatedAt)}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        {/* Event URLs */}
+        <Card className="border-2 border-white bg-black shadow-[4px_4px_0px_0px_#ffffff]">
+          <CardHeader>
+            <CardTitle className="font-bold font-mono text-white uppercase tracking-wide">
+              Event URLs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <CustomUrlEdit
+              eventId={event.id}
+              currentCustomUrl={event.customUrl}
+            />
+            {event.lumaEventApiId && (
+              <div>
+                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                  Luma Event API ID
+                </p>
+                <p className="font-mono text-white">{event.lumaEventApiId}</p>
+              </div>
+            )}
+            {event.lumaEventUrl && (
+              <div>
+                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                  Luma Event URL
+                </p>
+                <a
+                  href={event.lumaEventUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 font-bold font-mono text-primary hover:text-primary/80"
+                >
+                  {event.lumaEventUrl}
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            )}
+            {event.lumaEventCreatedAt && (
+              <div>
+                <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
+                  Luma Event Created
+                </p>
+                <p className="font-mono text-white">
+                  {formatDate(event.lumaEventCreatedAt)}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Status Information */}
         <Card className="border-2 border-white bg-black shadow-[4px_4px_0px_0px_#ffffff]">

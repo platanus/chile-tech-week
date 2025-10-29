@@ -155,6 +155,13 @@
       "when": 1759277318193,
       "tag": "0021_great_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1761742425817,
+      "tag": "0022_exotic_medusa",
+      "breakpoints": true
     }
   ]
 }

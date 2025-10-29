@@ -1,0 +1,1 @@
+ALTER TABLE "Events" ADD COLUMN "custom_url" varchar(500);
