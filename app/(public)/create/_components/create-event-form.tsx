@@ -253,14 +253,12 @@ export function CreateEventForm({
   }, []);
 
   const addCohost = () => {
-    if (cohosts.length < 3) {
-      setCohosts([...cohosts, cohosts.length]);
-      // Initialize logo states for new cohost
-      setCohostLogoPreviews([...cohostLogoPreviews, null]);
-      setCohostLogoUploading([...cohostLogoUploading, false]);
-      setCohostLogoUploadProgress([...cohostLogoUploadProgress, 0]);
-      setCohostLogoUploadErrors([...cohostLogoUploadErrors, null]);
-    }
+    setCohosts([...cohosts, cohosts.length]);
+    // Initialize logo states for new cohost
+    setCohostLogoPreviews([...cohostLogoPreviews, null]);
+    setCohostLogoUploading([...cohostLogoUploading, false]);
+    setCohostLogoUploadProgress([...cohostLogoUploadProgress, 0]);
+    setCohostLogoUploadErrors([...cohostLogoUploadErrors, null]);
   };
 
   const removeCohost = (index: number) => {
@@ -1233,11 +1231,11 @@ export function CreateEventForm({
                 <Button
                   type="button"
                   onClick={addCohost}
-                  disabled={cohosts.length >= 3 || isPending}
+                  disabled={isPending}
                   className="hover:-translate-y-1 transform border-4 border-black bg-white px-4 py-2 font-bold font-mono text-black text-sm uppercase tracking-wider transition-all duration-200 hover:shadow-[4px_4px_0px_0px_theme(colors.primary)] disabled:opacity-50"
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  ADD CO-HOST ({cohosts.length}/3)
+                  ADD CO-HOST
                 </Button>
               </div>
 
