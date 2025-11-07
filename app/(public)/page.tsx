@@ -85,12 +85,29 @@ export default async function WelcomePage() {
                   key={logo.logoUrl}
                   className="group relative h-48 w-48 p-8 transition-all duration-300 md:h-56 md:w-56"
                 >
-                  <Image
-                    src={logo.logoUrl}
-                    alt={logo.companyName}
-                    fill
-                    className="object-contain grayscale transition-all duration-300 group-hover:grayscale-0"
-                  />
+                  <div className="relative h-full w-full">
+                    {/* White masked version (default state) */}
+                    <div
+                      className="absolute inset-0 bg-white transition-opacity duration-300 group-hover:opacity-0"
+                      style={{
+                        maskImage: `url(${logo.logoUrl})`,
+                        maskSize: 'contain',
+                        maskRepeat: 'no-repeat',
+                        maskPosition: 'center',
+                        WebkitMaskImage: `url(${logo.logoUrl})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center',
+                      }}
+                    />
+                    {/* Original colored version (hover state) */}
+                    <Image
+                      src={logo.logoUrl}
+                      alt={logo.companyName}
+                      fill
+                      className="object-contain opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
