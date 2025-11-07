@@ -27,7 +27,7 @@ import {
 } from '@/src/components/ui/form';
 import { Input } from '@/src/components/ui/input';
 import { useFormAction } from '@/src/hooks/use-form-action';
-import type { EventCohost } from '@/src/lib/db/schema';
+import type { Event, EventCohost } from '@/src/lib/db/schema';
 import {
   type AddCohostFormData,
   addCohostFormSchema,
@@ -38,13 +38,20 @@ import {
   addCohostAction,
   removeCohostAction,
 } from '../_actions/manage-cohosts.action';
+import { LogoEditButton } from './logo-edit-button';
+import { LogoVisibilityToggle } from './logo-visibility-toggle';
 
 interface CohostManagerProps {
   eventId: string;
+  eventState: Event['state'];
   cohosts: EventCohost[];
 }
 
-export function CohostManager({ eventId, cohosts }: CohostManagerProps) {
+export function CohostManager({
+  eventId,
+  eventState,
+  cohosts,
+}: CohostManagerProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -218,7 +225,7 @@ export function CohostManager({ eventId, cohosts }: CohostManagerProps) {
                 key={cohost.id}
                 className="relative border-2 border-white/20 bg-white/5 p-4"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
                     {cohost.companyLogoUrl && (
                       <div className="flex h-12 w-12 items-center justify-center overflow-hidden border-2 border-white bg-black">
@@ -242,13 +249,27 @@ export function CohostManager({ eventId, cohosts }: CohostManagerProps) {
                       </p>
                     </div>
                   </div>
-                  <Button
-                    onClick={() => handleRemoveCohost(cohost.id)}
-                    disabled={isPending || removingCohostId === cohost.id}
-                    className="hover:-translate-y-1 transform border-2 border-red-500 bg-red-500 px-2 py-1 font-bold font-mono text-white text-xs uppercase tracking-wide transition-all duration-200 hover:shadow-[2px_2px_0px_0px_theme(colors.red.600)]"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {cohost.companyLogoUrl && (
+                      <>
+                        <LogoEditButton id={cohost.id} type="cohost" />
+                        {eventState === 'published' && (
+                          <LogoVisibilityToggle
+                            id={cohost.id}
+                            isShown={!!cohost.logoShownAt}
+                            type="cohost"
+                          />
+                        )}
+                      </>
+                    )}
+                    <Button
+                      onClick={() => handleRemoveCohost(cohost.id)}
+                      disabled={isPending || removingCohostId === cohost.id}
+                      className="hover:-translate-y-1 transform border-2 border-red-500 bg-red-500 px-2 py-1 font-bold font-mono text-white text-xs uppercase tracking-wide transition-all duration-200 hover:shadow-[2px_2px_0px_0px_theme(colors.red.600)]"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

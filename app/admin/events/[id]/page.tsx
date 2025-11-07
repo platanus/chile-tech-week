@@ -354,7 +354,11 @@ export default async function AdminEventDetailPage({
         )}
 
         {/* Co-hosts */}
-        <CohostManager eventId={event.id} cohosts={event.cohosts} />
+        <CohostManager
+          eventId={event.id}
+          eventState={event.state}
+          cohosts={event.cohosts}
+        />
 
         {/* Event URLs */}
         <Card className="border-2 border-white bg-black shadow-[4px_4px_0px_0px_#ffffff]">
