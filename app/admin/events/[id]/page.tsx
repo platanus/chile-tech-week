@@ -18,8 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/src/components/ui/card';
-import { Separator } from '@/src/components/ui/separator';
 import { getEventById } from '@/src/queries/events';
+import { CohostManager } from '../_components/cohost-manager';
 import { CustomUrlEdit } from '../_components/custom-url-edit';
 import { EditEventButton } from '../_components/edit-event-button';
 import { LogoEditButton } from '../_components/logo-edit-button';
@@ -354,130 +354,7 @@ export default async function AdminEventDetailPage({
         )}
 
         {/* Co-hosts */}
-        {event.cohosts.length > 0 && (
-          <Card className="border-2 border-white bg-black shadow-[4px_4px_0px_0px_#ffffff]">
-            <CardHeader>
-              <CardTitle className="font-bold font-mono text-white uppercase tracking-wide">
-                Co-hosts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {event.cohosts.map((cohost, index) => (
-                  <div key={cohost.id}>
-                    {index > 0 && (
-                      <Separator className="my-4 border-white/20" />
-                    )}
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                            Company
-                          </p>
-                          {cohost.companyLogoUrl && (
-                            <div className="flex items-center gap-2">
-                              <LogoEditButton id={cohost.id} type="cohost" />
-                              {event.state === 'published' && (
-                                <LogoVisibilityToggle
-                                  id={cohost.id}
-                                  isShown={!!cohost.logoShownAt}
-                                  type="cohost"
-                                />
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <div className="mt-1 flex items-center gap-2">
-                          {cohost.companyLogoUrl ? (
-                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden border border-white bg-black">
-                              <div
-                                style={{
-                                  backgroundImage: `url(${cohost.companyLogoUrl})`,
-                                }}
-                                className="h-full w-full bg-center bg-contain bg-no-repeat"
-                              />
-                            </div>
-                          ) : (
-                            <Building className="h-4 w-4 text-white/60" />
-                          )}
-                          <span className="font-mono text-white">
-                            {cohost.companyName}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                          Contact Name
-                        </p>
-                        <p className="font-mono text-white">
-                          {cohost.primaryContactName}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                          Contact Email
-                        </p>
-                        <a
-                          href={`mailto:${cohost.primaryContactEmail}`}
-                          className="flex items-center gap-1 font-bold font-mono text-primary hover:text-primary/80"
-                        >
-                          <Mail className="h-4 w-4" />
-                          {cohost.primaryContactEmail}
-                        </a>
-                      </div>
-                      {cohost.primaryContactPhoneNumber && (
-                        <div>
-                          <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                            Contact Phone
-                          </p>
-                          <a
-                            href={`tel:${cohost.primaryContactPhoneNumber}`}
-                            className="flex items-center gap-1 font-bold font-mono text-primary hover:text-primary/80"
-                          >
-                            <Phone className="h-4 w-4" />
-                            {cohost.primaryContactPhoneNumber}
-                          </a>
-                        </div>
-                      )}
-                      {cohost.primaryContactWebsite && (
-                        <div>
-                          <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                            Website
-                          </p>
-                          <a
-                            href={cohost.primaryContactWebsite}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 font-bold font-mono text-primary hover:text-primary/80"
-                          >
-                            <Globe className="h-4 w-4" />
-                            {cohost.primaryContactWebsite}
-                          </a>
-                        </div>
-                      )}
-                      {cohost.primaryContactLinkedin && (
-                        <div>
-                          <p className="font-bold font-medium font-mono text-sm text-white/60 uppercase tracking-wide">
-                            LinkedIn
-                          </p>
-                          <a
-                            href={cohost.primaryContactLinkedin}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 font-bold font-mono text-primary hover:text-primary/80"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            LinkedIn Profile
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <CohostManager eventId={event.id} cohosts={event.cohosts} />
 
         {/* Event URLs */}
         <Card className="border-2 border-white bg-black shadow-[4px_4px_0px_0px_#ffffff]">

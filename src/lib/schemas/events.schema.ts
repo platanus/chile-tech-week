@@ -287,3 +287,92 @@ export const eventFormatLabels: Record<(typeof eventFormats)[number], string> =
     pitch_event_demo_day: 'Pitch Event / Demo Day',
     roundtable_workshop: 'Roundtable / Workshop',
   };
+
+export const addCohostFormSchema = z.object({
+  eventId: z.string().uuid('Invalid event ID'),
+  companyName: z
+    .string()
+    .min(1, 'Company name is required')
+    .max(255, 'Company name is too long'),
+  companyLogoUrl: z
+    .string()
+    .min(1, 'Company logo is required')
+    .url('Please enter a valid URL')
+    .max(500, 'Company logo URL is too long'),
+  logoFile: z
+    .instanceof(File)
+    .refine((file) => file.size > 0, {
+      message: 'Please select a logo file',
+    })
+    .refine((file) => file.size >= 1024, {
+      message: 'Logo file is too small (minimum 1KB)',
+    })
+    .refine((file) => file.size <= 2 * 1024 * 1024, {
+      message: 'Logo must be less than 2MB',
+    })
+    .refine((file) => file.type.startsWith('image/'), {
+      message: 'Logo must be an image file',
+    })
+    .refine(
+      (file) =>
+        ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(
+          file.type,
+        ),
+      {
+        message: 'Logo must be JPEG, PNG, or WebP format',
+      },
+    ),
+  primaryContactName: z
+    .string()
+    .min(1, 'Primary contact name is required')
+    .max(255, 'Primary contact name is too long')
+    .transform(titleize),
+  primaryContactEmail: z
+    .string()
+    .email('Please enter a valid email address')
+    .max(255, 'Email is too long'),
+  primaryContactPhoneNumber: z
+    .string()
+    .max(50, 'Phone number is too long')
+    .refine(
+      (phone) => {
+        if (!phone || phone.trim() === '') return true;
+        return validateInternationalPhone(phone);
+      },
+      {
+        message:
+          'Please enter a valid international phone number (e.g., +56 9 8765 4321 or +1 555 123 4567)',
+      },
+    )
+    .optional(),
+  primaryContactWebsite: z
+    .string()
+    .max(500, 'Website URL is too long')
+    .refine((url) => !url || url.startsWith('https://'), {
+      message: 'URL is missing https://',
+    })
+    .refine(
+      (url) => {
+        if (!url) return true;
+        try {
+          new URL(url);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      {
+        message: 'Please enter a valid URL',
+      },
+    )
+    .optional()
+    .or(z.literal('')),
+  primaryContactLinkedin: z
+    .string()
+    .url('Please enter a valid LinkedIn URL')
+    .max(500, 'LinkedIn URL is too long')
+    .optional()
+    .or(z.literal('')),
+});
+
+export type AddCohostFormData = z.infer<typeof addCohostFormSchema>;

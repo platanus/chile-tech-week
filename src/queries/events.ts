@@ -686,3 +686,18 @@ export const getPublishedEventLogos = async (): Promise<CompanyLogo[]> => {
 
   return uniqueLogos;
 };
+
+export const deleteEventCohost = async (cohostId: string): Promise<void> => {
+  await db.delete(eventCohosts).where(eq(eventCohosts.id, cohostId));
+};
+
+export const createEventCohost = async (
+  cohostData: CreateCohostData,
+): Promise<EventCohost> => {
+  const [newCohost] = await db
+    .insert(eventCohosts)
+    .values(cohostData)
+    .returning();
+
+  return newCohost;
+};
