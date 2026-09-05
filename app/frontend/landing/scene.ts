@@ -17,6 +17,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import GUI from 'lil-gui';
 import { ChileTerrain } from '@/terrain/chile';
 import { fold, fuzzySearch } from '@/landing/fuzzy';
+import { scatterSpawn } from '@/landing/spawn';
 
 export async function startScene() {
 
@@ -44,6 +45,10 @@ const DEFAULTS = {
   laneKm: 10,              // ambient lane: over the valley with the Andes wall on the right
   startKm: 12,             // game start: km east of the centreline
   startHeading: 50,        // degrees from north, clockwise: at the Gran Torre with El Plomo behind it
+  startAimKm: 12,          // the Gran Torre is this far ahead of the start: every scattered spawn aims at it
+  spawnSide: 80,           // spawns scatter this far (units) across the heading …
+  spawnAlong: 50,          // … and along it, so arriving condors see each other without stacking
+  spawnAltitude: 15,       // … and in altitude
   respawnClearance: 40,    // a (re)spawn sits at least this far above the ground along its first stretch
   ambientClearance: 50,    // the autopilot climbs to keep this much above the terrain ahead
   prefetchKm: 80,          // tiles are fetched this far ahead along the heading
@@ -1076,7 +1081,7 @@ function adaptQuality(dt, rendered) {
 
 // ---------------------------------------------------------------- condor (low-poly, built from triangles)
 const condor = {
-  group: new THREE.Group(), pos: new THREE.Vector3(), yaw: 0, pitch: 0, roll: 0,
+  group: new THREE.Group(), pos: new THREE.Vector3(), yaw: 0, pitch: 0, roll: 0, speed: 0,
   wingL: null, wingR: null, mats: [], edges: [],
 };
 condor.group.rotation.order = 'YXZ';
@@ -1088,9 +1093,18 @@ function buildCondor() {
   for (const c of [...g.children]) { c.traverse((o) => o.geometry?.dispose()); g.remove(c); }
   condor.mats.forEach((m) => m.dispose()); condor.edges.forEach((m) => m.dispose());
   condor.mats = []; condor.edges = [];
-
+  const built = makeCondorMesh(condor.mats, condor.edges);
+  condor.wingR = built.wingR; condor.wingL = built.wingL;
+  g.add(...built.parts);
+  g.scale.setScalar(P.condorScale);
+  g.visible = P.showCondor;
+}
+// The condor's parts (body, right wing, left wing) from the current P colours; materials are
+// pushed onto `mats` and `edges` so the caller owns their disposal. Shared with the flock
+// (app/frontend/flock/render.ts), which builds one per remote pilot.
+function makeCondorMesh(mats, edges) {
   const edgeMat = new THREE.LineBasicMaterial({ color: new THREE.Color(P.condorEdge), transparent: true, opacity: P.condorEdgeOpacity });
-  condor.edges.push(edgeMat);
+  edges.push(edgeMat);
   const col = { body: P.condorBody, ruff: P.condorRuff, head: P.condorHead, patch: P.condorPatch, beak: '#8a8a8a' };
 
   // triangle-soup builder: one mesh per color so each part can glow a little (self-lit),
@@ -1107,7 +1121,7 @@ function buildCondor() {
         geo.computeVertexNormals();
         const c = new THREE.Color(k);
         const m = new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: P.condorGlow, flatShading: true, roughness: 0.9, side: THREE.DoubleSide });
-        condor.mats.push(m);
+        mats.push(m);
         const mesh = new THREE.Mesh(geo, m);
         mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), edgeMat));
         root.add(mesh);
@@ -1137,7 +1151,7 @@ function buildCondor() {
   B.tri([0.5, 0, 2.5], tips[1], tips[2], col.body);
   B.tri([0.5, 0, 2.5], tips[2], tips[3], col.body);
   B.tri(tc, [-0.5, 0, 2.5], [0.5, 0, 2.5], col.body);
-  g.add(B.mesh());
+  const body = B.mesh();
 
   // wing (right side; the left is the same geometry mirrored). Ribs: [lead, trail] points.
   const W = builder();
@@ -1156,14 +1170,12 @@ function buildCondor() {
     const t0 = i * 0.2, t1 = t0 + 0.17;
     W.tri(last.p(t0), tip, last.p(t1), col.body);
   });
-  condor.wingR = W.mesh();
-  condor.wingR.position.x = 0.75;
-  condor.wingL = W.mesh();
-  condor.wingL.position.x = -0.75;
-  condor.wingL.scale.x = -1;
-  g.add(condor.wingR, condor.wingL);
-  g.scale.setScalar(P.condorScale);
-  g.visible = P.showCondor;
+  const wingR = W.mesh();
+  wingR.position.x = 0.75;
+  const wingL = W.mesh();
+  wingL.position.x = -0.75;
+  wingL.scale.x = -1;
+  return { parts: [body, wingR, wingL], wingR, wingL };
 }
 
 // ---------------------------------------------------------------- camera / controls
@@ -1171,10 +1183,16 @@ const cam = { yaw: 0, pitch: -0.06 };        // free camera
 const orbit = { yaw: 0, pitch: 0 };           // chase-camera drag offset
 function resetCamera(z = homeZ()) {
   // z is the infinite (along-coast) axis: a respawn keeps it, a manual reset goes back to 0
-  const x = H?.real ? (mode === 'game' ? P.startKm : P.laneKm) * H.upk
-                    : (H ? H.coastX(z) : P.coastOffset) + (mode === 'game' ? P.startOffset : P.ambientOffset);
+  let x = H?.real ? (mode === 'game' ? P.startKm : P.laneKm) * H.upk
+                  : (H ? H.coastX(z) : P.coastOffset) + (mode === 'game' ? P.startOffset : P.ambientOffset);
   condor.yaw = H?.real && mode === 'game' ? -P.startHeading * Math.PI / 180 : 0;
-  placeAt(x, z, mode === 'game' ? P.startAltitude : P.ambientAltitude);
+  let altitude = mode === 'game' ? P.startAltitude : P.ambientAltitude;
+  // game starts scatter around the tuned one (landing/spawn.ts), each still aimed at the city
+  if (H?.real && mode === 'game') {
+    const s = scatterSpawn({ x, y: altitude, z, yaw: condor.yaw }, { side: P.spawnSide, along: P.spawnAlong, altitude: P.spawnAltitude, aimKm: P.startAimKm, upk: H.upk });
+    x = s.x; z = s.z; altitude = s.y; condor.yaw = s.yaw;
+  }
+  placeAt(x, z, altitude);
   cam.yaw = -0.45; cam.pitch = -0.12;
 }
 // the bird at (x, z), level, on its current heading, never inside the relief or a building: clear
@@ -1260,17 +1278,36 @@ function updateCrash(dt) {
   if (crash.state === 'none') return false;
   crash.t += dt;
   if (crash.state === 'out' && crash.t > 1.0) {
-    if (crash.to) placeAt(crash.to.x, crash.to.z, P.startAltitude); else resetCamera(crash.z);
+    if (crash.to?.at) {
+      if (!landBeside()) resetCamera(crash.z);
+    } else if (crash.to) placeAt(crash.to.x, crash.to.z, P.startAltitude); else resetCamera(crash.z);
     crash = { state: 'load', t: 0, z: crash.z, to: crash.to };
   } else if (crash.state === 'load') {
+    // a visit keeps following its condor while the screen is black: they fly on meanwhile, and
+    // their precise pose (with a heading to fly alongside) only arrives once the flock has seen
+    // the visitor move here, so the black holds up to 3 s for it
+    let settled = true;
+    if (crash.to?.at) { const p = landBeside(); settled = !p || p.precise || crash.t > 3; }
     // stay black until the relief under the bird is in and built (a teleport lands on tiles that
     // are still streaming; a respawn is on loaded ones and passes at once), 5 s at most
-    const ready = !H?.real || crash.t > 5 || (crash.t > 0.15 && lastPending === 0 && real.loaded(condor.pos.x / H.upk, H.zKm(condor.pos.z), (P.viewDistance + 1.5 * grid.D) / H.upk));
+    const ready = !H?.real || crash.t > 5 || (settled && crash.t > 0.15 && lastPending === 0 && real.loaded(condor.pos.x / H.upk, H.zKm(condor.pos.z), (P.viewDistance + 1.5 * grid.D) / H.upk));
     if (ready) { crash = { state: 'in', t: 0, z: 0, to: null }; fadeEl.style.opacity = 0; }
   } else if (crash.state === 'in' && crash.t > 0.9) {
     crash = { state: 'none', t: 0, z: 0, to: null };
   }
   return crash.state === 'out' || crash.state === 'load';
+}
+// beside another condor, wherever they are right now (the screen is black), kept inside the
+// flyable box: a bird at the edge would land its visitor in a crash. False once they are gone
+function landBeside() {
+  const p = crash.to.at();
+  if (!p) return null;
+  const halfW = grid.width / 2 - P.boundsMargin - 2 * H.upk;
+  condor.yaw = p.yaw;
+  placeAt(clamp(p.x, -halfW, halfW), p.z, Math.min(p.y, P.maxAltitude - 10));
+  crash.z = p.z;
+  crash.to.kmX = condor.pos.x / H.upk; crash.to.kmZ = H.zKm(condor.pos.z); // the tiles stream toward the landing
+  return p;
 }
 // fly the bird to a point of the country (km east of the centreline, km south of the north edge):
 // the crash fade, then it lands there level on its current heading, and the fade lifts once the
@@ -1289,6 +1326,16 @@ function teleport(kmX, kmZ) {
   const { lat, lon } = real.toLatLon(kmX, kmZ);
   toast(near ? `→ ${near.name}` : `→ ${Math.abs(lat).toFixed(2)}° S · ${Math.abs(lon).toFixed(2)}° O`);
 }
+// the same fade toward another condor (the flock, app/frontend/flock/visit.ts): `at()` gives the
+// landing (world units, local copy, with a heading) once the screen is black, since the target
+// keeps flying; the tiles stream toward (kmX, kmZ) meanwhile. Returns whether the flight started
+function teleportBeside(kmX, kmZ, at, label) {
+  if (!H?.real || mode !== 'game' || crash.state !== 'none') return false;
+  crash = { state: 'out', t: 0, z: condor.pos.z, to: { kmX, kmZ, at } };
+  fadeEl.style.opacity = 1;
+  toast(label);
+  return true;
+}
 
 // ---------------------------------------------------------------- landing-page modes
 // 'ambient': autopilot behind the hero, no input, cheap rendering.  'game': the flight sim.
@@ -1305,18 +1352,35 @@ function setMode(m) {
     for (const k in keys) keys[k] = false;
     crash = { state: 'none', t: 0, z: 0 };
     fadeEl.style.opacity = 0;
-    if (H) { const ground = Math.max(groundAt(condor.pos.x, condor.pos.z), 0); if (condor.pos.y < ground + P.crashMargin + 6) condor.pos.y = ground + P.crashMargin + 12; }
+    // every flight starts over Santiago (resetCamera scatters the spawns and clears the ground),
+    // not wherever the ambient lane had drifted to, so arriving pilots find each other
+    if (H) resetCamera(homeZ());
     document.getElementById('exit').focus?.({ preventScroll: true });
   } else {
     gui.hide();
     closeSearch(false);
     for (const k in keys) keys[k] = false;
   }
+  window.condorFlock?.setMode(m);
 }
 document.getElementById('play').addEventListener('click', () => setMode('game'));
 document.getElementById('exit').addEventListener('click', () => setMode('ambient'));
 new IntersectionObserver(([en]) => { heroVisible = en.isIntersecting; }, { threshold: 0.05 }).observe(document.getElementById('hero'));
-window.condorScene = { setMode, teleport, get mode() { return mode; }, bird() { return { x: condor.pos.x, y: condor.pos.y, z: condor.pos.z, yaw: condor.yaw, crash: crash.state, to: crash.to }; }, probe(x, z) { return { terrain: H.height(x, z), obstacle: H.obstacle ? H.obstacle(x, z) : null }; }, cityCands() { return lastCityCands; }, quality() { return { tier: quality.tier, target: quality.target, locked: quality.locked, verdict: quality.verdict, dprLimit: quality.dprLimit, pendingFog: quality.pendingFog, pending: lastPending, fadingChunks: fading.length, name: QUALITY[quality.tier].name, gpu: quality.gpu, displayMs: quality.displayMs, viewDistance: P.viewDistance, fog: P.fogDensity, dprCap: quality.dprCap, bloom: P.bloom, frames: quality.frames.length }; }, stats() { const byLod = {}; for (const c of chunks.values()) byLod[c.lod] = (byLod[c.lod] || 0) + 1; return { chunks: chunks.size, byLod, tiles: real.tiles.size, tileBytes: real.bytes, peaks: real.peaks.length, slowestBuilds: [...buildTimes].sort((a, b) => b[1] - a[1]).slice(0, 6), buildTotalMs: buildTimes.reduce((a, b) => a + b[1], 0) }; } }; // tiny API for the host page (and tests)
+// The flock's view of the scene (app/frontend/flock/hooks.ts): the pieces the other condors are drawn into.
+const flockHooks = {
+  scene, camera, condor, keys, P,
+  terrain() { return H?.real ? { L: H.L, upk: H.upk, vs: H.vs, height: H.height, zKm: H.zKm } : null; },
+  cities() { return real.cities; },
+  teleportBeside,
+  mapOverlay: null, // set by the flock: the other condors on the map
+  makeCondor() {
+    const mats = [], edges = [];
+    const built = makeCondorMesh(mats, edges);
+    return { ...built, dispose() { built.parts.forEach((o) => o.traverse((c) => c.geometry?.dispose())); mats.forEach((m) => m.dispose()); edges.forEach((m) => m.dispose()); } };
+  },
+  mode() { return mode; },
+};
+window.condorScene = { setMode, teleport, get mode() { return mode; }, flock: flockHooks, bird() { return { x: condor.pos.x, y: condor.pos.y, z: condor.pos.z, yaw: condor.yaw, crash: crash.state, to: crash.to }; }, probe(x, z) { return { terrain: H.height(x, z), obstacle: H.obstacle ? H.obstacle(x, z) : null }; }, cityCands() { return lastCityCands; }, quality() { return { tier: quality.tier, target: quality.target, locked: quality.locked, verdict: quality.verdict, dprLimit: quality.dprLimit, pendingFog: quality.pendingFog, pending: lastPending, fadingChunks: fading.length, name: QUALITY[quality.tier].name, gpu: quality.gpu, displayMs: quality.displayMs, viewDistance: P.viewDistance, fog: P.fogDensity, dprCap: quality.dprCap, bloom: P.bloom, frames: quality.frames.length }; }, stats() { const byLod = {}; for (const c of chunks.values()) byLod[c.lod] = (byLod[c.lod] || 0) + 1; return { chunks: chunks.size, byLod, tiles: real.tiles.size, tileBytes: real.bytes, peaks: real.peaks.length, slowestBuilds: [...buildTimes].sort((a, b) => b[1] - a[1]).slice(0, 6), buildTotalMs: buildTimes.reduce((a, b) => a + b[1], 0) }; } }; // tiny API for the host page (and tests)
 
 function ambientInputs(dt) {
   // autopilot: hold a lane beside the coast, cruise altitude, and a slow lazy sway
@@ -1358,6 +1422,7 @@ function updateCondor(dt) {
   const cp = Math.cos(condor.pitch);
   _fwd.set(-Math.sin(condor.yaw) * cp, Math.sin(condor.pitch), -Math.cos(condor.yaw) * cp);
   condor.pos.addScaledVector(_fwd, speed * boost * dt);
+  condor.speed = speed * boost; // what the flock reports (units/s)
 
   // collisions: terrain or sea surface, leaving the terrain width, or climbing out of the world
   if (!ambient && P.collisions && H && crash.state === 'none') {
@@ -1568,6 +1633,10 @@ fCam.add(P, 'flySpeed', 2, 600, 1).name('free-cam speed');
 fCam.add(P, 'startLat', -56, -17.5, 0.01).name('start latitude');
 fCam.add(P, 'startKm', -250, 250, 1).name('start km east of centre');
 fCam.add(P, 'startHeading', -180, 180, 1).name('start heading (°)');
+fCam.add(P, 'startAimKm', 1, 60, 1).name('start aim (km ahead)');
+fCam.add(P, 'spawnSide', 0, 400, 5).name('spawn scatter across');
+fCam.add(P, 'spawnAlong', 0, 400, 5).name('spawn scatter along');
+fCam.add(P, 'spawnAltitude', 0, 60, 1).name('spawn scatter altitude');
 fCam.add({ reset: () => resetCamera(homeZ()) }, 'reset').name('reset flight (R)');
 fCam.close();
 
@@ -1917,6 +1986,7 @@ function drawMinimap() {
   c.clearRect(0, 0, el.width, el.height); // the base is transparent: without this every arrow stays
   c.drawImage(minimap.base, 0, 0);
   c.scale(el.width / minimap.w, el.width / minimap.w);
+  flockHooks.mapOverlay?.(c, mapPx, minimap.w, minimap.h); // the other condors, under ours
   const [px, py] = mapPx(condor.pos.x / H.upk, H.zKm(condor.pos.z));
   // the heading: -z is north in the strip, south in its mirrored copies
   const t = (((condor.pos.z / H.L) % 2) + 2) % 2, south = t <= 1 ? 1 : -1;
@@ -2037,6 +2107,7 @@ function frame() {
   seaUniforms.uTime.value += dt * P.waveSpeed;
   adaptQuality(dt, revealed);
   updateCamera(dt);
+  window.condorFlock?.frame(dt);
   streamTiles();
   lastPending = updateChunks(ambient ? 3 : 6, P.viewDistance);
   updateFades(dt);

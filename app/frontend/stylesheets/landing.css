@@ -110,6 +110,73 @@ body.game #search:not([hidden]) { pointer-events: auto; }
 #search li.active, #search li:hover { background: rgba(238,43,43,.12); }
 #search li span { color: #777; white-space: nowrap; font-size: 11px; }
 #search li.empty { color: #666; cursor: default; }
+/* the pilot (multiplayer): top right under the exit button. The name and dot take the pilot's
+   colour (--pilot); the swatch row is hidden behind the dot; under them the nearest condors, one
+   line each (name · heading arrow · km · climb arrow · m), and the button that counts the flock
+   and opens the roster */
+#pilot { position: absolute; right: 18px; top: 62px; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  font: 12px/1.55 var(--mono); color: var(--gray); text-align: right; opacity: 0; transition: opacity .3s ease; }
+#pilot.ready { opacity: 1; }
+#pilot .row { display: flex; align-items: center; gap: 9px; }
+#pilot-color { width: 10px; height: 10px; padding: 0; border: 0; border-radius: 50%; cursor: pointer; background: var(--pilot, var(--ink));
+  box-shadow: 0 0 10px var(--pilot, transparent); transition: transform .15s; }
+#pilot-color:hover { transform: scale(1.3); }
+#pilot-name { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; letter-spacing: .06em; color: var(--pilot, var(--ink)); cursor: text; }
+#pilot-name:hover { text-decoration: underline dotted; text-underline-offset: 3px; }
+#pilot input { width: 20ch; padding: 2px 6px; border: 1px solid var(--line); border-radius: 2px; background: rgba(0,0,0,.6); color: var(--ink);
+  font: inherit; font-weight: 700; letter-spacing: .06em; text-align: right; outline: none; }
+#pilot input:focus { border-color: var(--pilot, var(--ink)); }
+#pilot-swatches { display: flex; gap: 7px; padding: 4px 0; }
+#pilot-swatches[hidden] { display: none; } /* no preflight: display:flex would beat the attribute */
+#pilot-swatches button { width: 12px; height: 12px; padding: 0; border: 1px solid transparent; border-radius: 50%; cursor: pointer; transition: transform .15s; }
+#pilot-swatches button:hover { transform: scale(1.3); }
+#pilot-swatches button[aria-pressed="true"] { border-color: var(--ink); }
+#pilot-msg { color: var(--red); }
+#pilot-msg:empty { display: none; }
+#pilot-msg.ok { color: var(--gray); }
+#pilot[data-status="connecting"] #pilot-count::after { content: 'conectando…'; }
+#pilot-color:focus-visible, #pilot-name:focus-visible, #pilot-swatches button:focus-visible, #pilot-all:focus-visible, #pilot-near .name:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+/* the nearest condors: a grid so the columns line up; each row takes its condor's colour (--c) */
+#pilot-near { list-style: none; margin: 2px 0 0; padding: 0; display: grid; grid-template-columns: auto auto auto auto auto; column-gap: 8px; row-gap: 2px; align-items: center; }
+#pilot-near li { display: contents; animation: rowIn .35s ease; }
+#pilot-near .name { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; letter-spacing: .04em; color: var(--c, var(--ink)); cursor: pointer; text-align: right; }
+#pilot-near .name:hover { text-decoration: underline dotted; text-underline-offset: 3px; }
+#pilot-near .dir, #pilot-near .climb { display: inline-flex; width: 11px; height: 11px; color: var(--ink); transition: transform .12s linear; }
+#pilot-near .climb { color: var(--gray); }
+#pilot-near .climb.level { opacity: .3; }
+#pilot-near .km { color: var(--ink); min-width: 5.5ch; text-align: right; }
+#pilot-near .m { min-width: 6ch; text-align: right; }
+#pilot-near li.coarse .km, #pilot-near li.coarse .m { color: var(--gray); } /* a roster sighting: 100 m steps, 2 s old */
+@keyframes rowIn { from { opacity: 0; } to { opacity: 1; } }
+/* the count, with a magnifying glass: the button that opens the roster */
+#pilot-all { display: inline-flex; align-items: center; gap: 7px; margin-top: 4px; padding: 5px 9px; border-radius: 2px; border: 1px solid var(--line);
+  background: rgba(0,0,0,.5); color: var(--gray); font: inherit; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
+#pilot-all:hover:not(:disabled), #pilot-all.open { border-color: var(--red); color: var(--ink); background: rgba(238,43,43,.12); }
+#pilot-all:disabled { cursor: default; border-color: transparent; background: none; padding-right: 0; }
+#pilot-all:disabled svg { display: none; }
+/* the roster: every condor by distance, filtered as you type, with the nearest town; under the pilot */
+#roster { margin-top: 6px; width: min(360px, calc(100vw - 36px)); max-height: min(56vh, 520px); text-align: left;
+  display: flex; flex-direction: column; background: rgba(0,0,0,.78); border: 1px solid var(--line); border-radius: 2px;
+  backdrop-filter: blur(8px); font: 12px var(--mono); }
+#roster[hidden] { display: none; }
+#roster input { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 0; border-bottom: 1px solid var(--line);
+  background: transparent; color: var(--ink); font: 13px var(--mono); outline: none; border-radius: 0; -webkit-appearance: none; appearance: none; }
+#roster input::placeholder { color: #666; }
+#roster input::-webkit-search-cancel-button { display: none; }
+#roster ul { list-style: none; margin: 0; padding: 4px 0; flex: 1; min-height: 0; overflow-y: auto; }
+#roster li { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; align-items: baseline; padding: 7px 12px; cursor: pointer; color: var(--ink); }
+#roster li b { color: var(--c, var(--ink)); letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#roster li mark { background: none; color: var(--red); }
+#roster li .km { white-space: nowrap; }
+#roster li .place { grid-column: 1 / -1; color: #777; font-size: 11px; }
+#roster li .place:empty { display: none; }
+#roster li.coarse .km { color: var(--gray); }
+#roster li:hover { background: rgba(238,43,43,.12); }
+#roster-foot { padding: 8px 12px; color: #666; font-size: 11px; border-top: 1px solid var(--line); }
+#roster-foot:empty { display: none; }
+/* how many are flying, under the play button while the page is in ambient mode */
+#flockcount { position: absolute; right: 8vw; bottom: 14px; font-size: 10px; color: var(--gray); }
+
 /* peak names: a mono label above a 1px red tick that ends on the summit vertex */
 #peaks { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .4s ease; }
 body.game #peaks { opacity: 1; }
@@ -124,6 +191,10 @@ body.game #peaks { opacity: 1; }
 /* cities: like peaks, pinned to the place itself, but a dotted white tick and a hollow marker */
 .peak.city > div { border-left: 1px dotted var(--ink); }
 .peak.city > div::after { background: none; border: 1px solid var(--ink); width: 5px; height: 5px; left: -3.5px; bottom: -3.5px; }
+/* other pilots: the same label in the pilot's colour, a round dot on the bird */
+.peak.pilot > div { border-left-color: var(--c, var(--ink)); }
+.peak.pilot > div::after { background: var(--c, var(--ink)); border-radius: 50%; width: 5px; height: 5px; left: -3px; bottom: -2.5px; }
+.peak.pilot span:first-child { color: var(--c, var(--ink)); font-weight: 700; }
 @keyframes labelIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 @keyframes labelOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-4px); } }
 #scan {

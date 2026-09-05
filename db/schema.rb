@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_05_120300) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_05_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -94,6 +94,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_120300) do
     t.index ["edition", "starts_at"], name: "index_events_on_edition_and_starts_at"
     t.index ["edition", "state"], name: "index_events_on_edition_and_state"
     t.index ["public_id"], name: "index_events_on_public_id", unique: true
+  end
+
+  create_table "players", force: :cascade do |t|
+    t.string "codename", null: false
+    t.string "color", null: false
+    t.datetime "created_at", null: false
+    t.datetime "last_seen_at"
+    t.datetime "updated_at", null: false
+    t.index ["codename"], name: "index_players_on_codename"
   end
 
   create_table "themes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

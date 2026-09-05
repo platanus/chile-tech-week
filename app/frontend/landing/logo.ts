@@ -5,7 +5,6 @@
 declare global {
   interface Window {
     logoDone?: Promise<unknown>;
-    condorScene?: unknown;
   }
 }
 

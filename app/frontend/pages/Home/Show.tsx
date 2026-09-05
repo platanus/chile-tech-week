@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { type CSSProperties, useEffect } from 'react';
+import { startFlock } from '@/flock';
 import { startLogo } from '@/landing/logo';
 import { startScene } from '@/landing/scene';
 import type { HomeShow } from '@/types';
@@ -25,6 +26,7 @@ export default function Show({ title, description }: HomeShow) {
     started = true;
     startLogo();
     void startScene();
+    startFlock(); // the scene installs its hooks synchronously, before its first await
   }, []);
 
   return (
@@ -84,6 +86,7 @@ export default function Show({ title, description }: HomeShow) {
         <button id="play" type="button">
           ▶ Vuela el cóndor <kbd>F</kbd>
         </button>
+        <div id="flockcount" className="label" hidden />
       </section>
 
       <main id="more">
@@ -132,6 +135,30 @@ export default function Show({ title, description }: HomeShow) {
         <div id="search" hidden>
           <input id="search-input" type="search" placeholder="Ciudad o cumbre…" autoComplete="off" spellCheck={false} aria-label="Buscar ciudad o cumbre" />
           <ul id="search-results" role="listbox" />
+        </div>
+        {/* the pilot, top right: name and colour (click either to change), the nearest condors
+            with the way to each (click a name to fly to their side), and everyone flying (the
+            button opens the roster) */}
+        <div id="pilot">
+          <div className="row">
+            <button id="pilot-color" type="button" aria-label="Cambiar color" title="Cambiar color" />
+            <button id="pilot-name" type="button" title="Clic para cambiar tu nombre" />
+          </div>
+          <div id="pilot-swatches" hidden />
+          <div id="pilot-msg" />
+          <ul id="pilot-near" aria-label="Cóndores más cercanos" />
+          <button id="pilot-all" type="button" aria-expanded="false" title="Ver a todos los cóndores">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="m20 20-4.8-4.8" />
+            </svg>
+            <span id="pilot-count" />
+          </button>
+          <div id="roster" hidden>
+            <input id="roster-input" type="search" placeholder="Buscar cóndor…" autoComplete="off" spellCheck={false} aria-label="Buscar cóndor" />
+            <ul id="roster-list" role="listbox" />
+            <div id="roster-foot" />
+          </div>
         </div>
       </div>
       <div id="peaks" aria-hidden="true" />
