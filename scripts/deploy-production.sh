@@ -184,28 +184,10 @@ dc build app
 step_end
 
 # All four databases (primary + Solid Cache/Queue/Cable, config/database.yml) are under
-# normal Rails migration control as of Phase 6 of docs/db-migration/plan.md. Load-bearing
-# ordering, learned the hard way on 2026-09-01 (see the plan's incident notes):
-#
-# `db:baseline` and `db:baseline:solid` MUST run before `db:prepare` ever touches any of
-# these databases. This is a multi-database app, and both `db:migrate` and `db:prepare`
-# funnel through ActiveRecord::Tasks::DatabaseTasks, which unconditionally calls
-# `initialize_database` on *every* configured database before migrating anything — and
-# for any database whose own `schema_migrations` table doesn't exist yet, that loads its
-# schema.rb-format dump straight over the live database. For `primary` that meant loading
-# db/structure.sql over the already-populated tech_week_prod and aborting on the first
-# "already exists" conflict (harmless that time — two cosmetic COMMENT statements — but
-# not something to rely on twice). For cache/queue/cable it would be worse: their
-# db/{cache,queue,cable}_schema.rb dumps all declare `force: :cascade`, so the first
-# unguarded db:prepare would silently drop every Solid Queue table and every job in it.
-# Both baseline tasks are idempotent — safe to run every deploy even once neither is
-# doing anything anymore.
-#
-# db:prepare (not db:setup_solid, not a scoped db:migrate:primary) is what actually
-# applies pending migrations now, because it's the one task that correctly handles all
-# four databases together once each is baselined.
+# normal Rails migration control from day one: db:prepare creates any that is missing (loading
+# its schema) and migrates the rest, and it is the one task that handles all four together.
 step_begin "database-setup"
-dc run --rm app bin/rails db:baseline db:baseline:solid db:prepare
+dc run --rm app bin/rails db:prepare
 step_end
 
 # --remove-orphans clears out the previous stack's `migrator` and `cron-ticker`
