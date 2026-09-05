@@ -1,0 +1,132 @@
+import { Head } from '@inertiajs/react';
+import { type CSSProperties, useEffect } from 'react';
+import { startLogo } from '@/landing/logo';
+import { startScene } from '@/landing/scene';
+import type { HomeShow } from '@/types';
+
+// The landing: the outline logo over the condor flying the real Chile relief, the page below
+// it, and the game-mode UI the scene drives. Markup verbatim from the original index.html
+// <body>; styles in stylesheets/landing.css; behaviour in landing/{logo,scene}.ts, which
+// take over the DOM once this has mounted. The scene attaches its <canvas> to <body>
+// itself, so nothing here re-renders while it runs.
+const line = (i: number) => ({ '--i': i }) as CSSProperties;
+// `&nbsp;` in the original markup.
+const nb = '\u00A0';
+// The original <svg title="…"> attribute; React's SVG prop types don't list `title`, so it is
+// spread in rather than dropped.
+const svgTitle = { title: 'Clic para repetir' };
+
+// Vite's dev server re-mounts on HMR; the scene must never start twice in one document.
+let started = false;
+
+export default function Show({ title, description }: HomeShow) {
+  useEffect(() => {
+    if (started) return;
+    started = true;
+    startLogo();
+    void startScene();
+  }, []);
+
+  return (
+    <>
+      <Head>
+        <title>{title}</title>
+        <meta name="description" content={description} />
+      </Head>
+
+      <div id="veil" />
+
+      <section id="hero">
+        <a className="brand" href="/">
+          CLTW<b>26</b>
+        </a>
+        <div className="label eyebrow">Santiago · 16 al 22 de noviembre</div>
+        <svg
+          className="logo"
+          id="logo"
+          viewBox="0 0 374 370"
+          role="img"
+          aria-label="Chile Tech Week 2026"
+          {...svgTitle}
+        >
+          <defs>
+            <mask id="hollow20" maskUnits="userSpaceOnUse" x="-40" y="-40" width="600" height="460">
+              <rect x="-40" y="-40" width="600" height="460" fill="#fff" />
+              <text x="0" y="360" fontSize="100">
+                <tspan fill="#000">20</tspan>
+                <tspan fill="#fff">26</tspan>
+              </text>
+            </mask>
+          </defs>
+          <text x="0" y="90" fontSize="100" style={line(0)}>
+            CHILE
+          </text>
+          <text x="0" y="180" fontSize="100" style={line(1)}>
+            TECH
+          </text>
+          <text x="0" y="270" fontSize="100" style={line(2)}>
+            WEEK
+          </text>
+          <text x="0" y="360" fontSize="100" style={line(3)} mask="url(#hollow20)">
+            <tspan className="y20">20</tspan>
+            <tspan className="y26">26</tspan>
+          </text>
+        </svg>
+        <p className="lede">Una semana. Cientos de eventos. Toda la comunidad tech de Chile.</p>
+        <div className="cta">
+          <a className="btn primary" href="#more">
+            Inscríbete
+          </a>
+          <a className="btn" href="#more">
+            Organiza un evento
+          </a>
+        </div>
+        <button id="play" type="button">
+          ▶ Vuela el cóndor <kbd>F</kbd>
+        </button>
+      </section>
+
+      <main id="more">
+        <div className="label">16 al 22 de noviembre · Santiago</div>
+        <h2>Una semana. Toda la ciudad.</h2>
+        <p>
+          Meetups, charlas, demos y fiestas organizados por la comunidad, en toda la ciudad.
+          Cualquiera puede organizar un evento.
+        </p>
+        <div className="cta">
+          <a className="btn" href="#">
+            Organiza un evento
+          </a>
+        </div>
+      </main>
+      <footer className="label">
+        <span>Chile Tech Week 2026</span>
+        <span>#CTW2026</span>
+        <a href="/brand/">Marca</a>
+      </footer>
+
+      <div id="gameui">
+        <button id="exit" type="button">
+          ✕ salir {nb}
+          <span style={{ opacity: 0.6 }}>Esc</span>
+        </button>
+        <div id="help">
+          <b>A / D</b> girar {nb} <b>W / S</b> subir / bajar {nb} <b>Shift</b> turbo
+          <br />
+          <b>Arrastrar</b> orbitar cámara {nb} <b>Rueda</b> velocidad {nb} <b>V</b>{' '}
+          cámara libre {nb} <b>H</b> panel {nb} <b>R</b> reiniciar {nb}{' '}
+          <b>Esc</b> salir
+          <div className="hud" id="hud" />
+          <div className="credit">
+            Relieve: SRTM (AWS Terrain Tiles) · Cumbres: © OpenStreetMap contributors · Edificios:
+            Overture Maps
+          </div>
+        </div>
+      </div>
+      <div id="peaks" aria-hidden="true" />
+      <div id="scan" />
+      <div id="toast" />
+      <div id="fade" />
+    </>
+  );
+}

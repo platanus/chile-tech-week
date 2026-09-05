@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Restore a production dump into the LOCAL dev database, then run migrations so
+# the snapshot catches up with local code. Usage:
+#   bin/db-restore             # latest dumps/*.dump
+#   bin/db-restore path.dump   # a specific file
+#
+# Safety: only ever talks to whatever host:port/database POSTGRES_URL names
+# (.env.local), so it cannot touch production.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+DUMP_FILE="${1:-$(ls -t dumps/*.dump 2>/dev/null | head -1 || true)}"
+if [ -z "${DUMP_FILE:-}" ] || [ ! -s "$DUMP_FILE" ]; then
+  echo "No dump found. Run bin/db-dump-production first." >&2
+  exit 1
+fi
+
+set -a
+[ -f .env.local ] && . ./.env.local
+set +a
+
+: "${POSTGRES_URL:?POSTGRES_URL not set — check .env.local}"
+
+# Target the database POSTGRES_URL actually points at, not a hardcoded name — otherwise
+# this restores into a database the app and test suite never read from. Connects with
+# plain psql/pg_restore straight to POSTGRES_URL's host:port instead of going through
+# `docker compose exec` against docker-compose.dev.yml: that only reaches the right
+# database when POSTGRES_URL happens to point at that specific container, which isn't a
+# safe assumption — a locally-installed Postgres, or a container started some other way,
+# is just as valid a target as long as it's reachable at that host:port. (Found the hard
+# way: docker-compose.dev.yml's own container sat untouched by every "restore" while a
+# separate, unrelated `tech-week-postgres` container silently accumulated migrations across
+# runs — DB_NAME was right, the connection target wasn't.)
+DB_NAME="$(printf '%s' "$POSTGRES_URL" | sed -E 's#^[a-z]+://[^/]+/([^?]+).*#\1#')"
+MAINTENANCE_URL="$(printf '%s' "$POSTGRES_URL" | sed -E "s#/${DB_NAME}(\\?|\$)#/postgres\\1#")"
+
+echo "Recreating ${DB_NAME} ..."
+psql "$MAINTENANCE_URL" -q -c "DROP DATABASE IF EXISTS ${DB_NAME} WITH (FORCE);"
+psql "$MAINTENANCE_URL" -q -c "CREATE DATABASE ${DB_NAME};"
+
+echo "Restoring ${DUMP_FILE} ..."
+# pg_restore exits non-zero on harmless ownership/version warnings; tolerate them
+# (the migrate step below will fail loudly if the restore was actually broken).
+pg_restore --no-owner --no-acl -d "$POSTGRES_URL" "$DUMP_FILE" \
+  || echo "pg_restore reported warnings (usually harmless)."
+
+echo "Running local migrations on top of the snapshot ..."
+bin/rails db:migrate
+
+echo "Done: ${DB_NAME} now mirrors production (plus local migrations)."

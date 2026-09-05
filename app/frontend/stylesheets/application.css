@@ -1,0 +1,10 @@
+/* Tailwind v4 for the pages to come — WITHOUT preflight. The landing (landing.css) was written
+ * against a browser's default stylesheet, and preflight's resets (line-height 1.5 on <html>,
+ * zeroed heading/paragraph margins, `border: 0 solid` everywhere) would shift it. Only the
+ * theme and the utilities are loaded, so `flex`, `gap-*`, `text-*` etc. work in new components
+ * and nothing global changes. If a future area wants the reset, scope it or add it then. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tw-animate-css";
+@import "./landing.css";

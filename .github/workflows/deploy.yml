@@ -1,0 +1,126 @@
+name: CI & Deploy
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  # One run per branch; a superseded push on a feature branch is cancelled. The deploy
+  # job below opts out of cancellation with its own group.
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  # Runs `bin/ci-checks`: standardrb, zeitwerk:check, typelizer:generate, tsc and a real
+  # vite build. It deliberately does NOT run RSpec or Vitest — see the note in bin/ci-checks
+  # and "Quality gate" in AGENTS.md. Those suites run locally via `bin/ci` and on lefthook's
+  # pre-push hook.
+  #
+  # Postgres is still needed: `zeitwerk:check` eager-loads the app and `typelizer:generate`
+  # reads column types off the models to emit the TypeScript prop shapes, so both want a
+  # database with the schema in it — in *development*, see the RAILS_ENV note below.
+  ci:
+    runs-on: ubuntu-22.04
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # development, not test: `typelizer:generate` emits degraded (`unknown`) prop types
+      # under RAILS_ENV=test, which then fails tsc across the whole app. bin/ci-checks pins
+      # it too; this keeps the database it prepares below in the same environment.
+      RAILS_ENV: development
+      POSTGRES_URL: postgres://postgres:postgres@localhost:5432/tech_week_dev
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Caches the bundle, keyed on Gemfile.lock + .ruby-version. Nothing else in the job
+      # touches the gem set, so this stays warm until a dependency actually moves.
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      # Caches ~/.npm (the registry tarball cache), keyed on package-lock.json.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # tsc is incremental: tsconfig.{app,node}.json write their .tsbuildinfo under
+      # node_modules/.tmp, so carrying that between runs lets an unchanged file be skipped.
+      # It has to come *after* `npm ci`, which deletes node_modules wholesale.
+      - name: Restore the incremental TypeScript build info
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.tmp
+          key: tsbuildinfo-${{ runner.os }}-${{ hashFiles('tsconfig*.json', 'package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            tsbuildinfo-${{ runner.os }}-${{ hashFiles('tsconfig*.json', 'package-lock.json') }}-
+            tsbuildinfo-${{ runner.os }}-
+
+      - name: Prepare the database
+        run: bin/rails db:create db:schema:load
+
+      - name: bin/ci-checks
+        run: bin/ci-checks
+
+  deploy:
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-22.04
+    concurrency:
+      # A live deploy is never yanked mid-way.
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get commit info
+        id: commit-info
+        run: |
+          commit_message="$(git log -1 --pretty=%s)"
+          echo "short_sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+          echo "commit_message=$commit_message" >> $GITHUB_OUTPUT
+          echo "commit_message_b64=$(printf '%s' "$commit_message" | base64 | tr -d '\n')" >> $GITHUB_OUTPUT
+
+      - name: Dispatch deploy to Hetzner
+        env:
+          HETZNER_SSH_USER: ${{ secrets.HETZNER_SSH_USER }}
+          HETZNER_SSH_PORT: ${{ secrets.HETZNER_SSH_PORT }}
+          HETZNER_REPO_DIR: ${{ vars.HETZNER_REPO_DIR }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          SSH_USER=${HETZNER_SSH_USER:-deploy}
+          SSH_PORT=${HETZNER_SSH_PORT:-22}
+          REPO_DIR=${HETZNER_REPO_DIR:-/home/debian/swiss-composes/tech-week}
+          ARCHIVE_PATH=/tmp/tech-week-deploy-${GITHUB_SHA:0:7}.tgz
+          echo "${{ secrets.HETZNER_SSH_KEY_B64 }}" | base64 -d > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          tar --exclude-vcs --exclude=node_modules -czf "$ARCHIVE_PATH" .
+          scp -o StrictHostKeyChecking=no -P "$SSH_PORT" -i /tmp/deploy_key "$ARCHIVE_PATH" "$SSH_USER"@${{ secrets.HETZNER_HOST }}:/tmp/tech-week-deploy.tgz
+          ssh -o StrictHostKeyChecking=no -p "$SSH_PORT" -i /tmp/deploy_key "$SSH_USER"@${{ secrets.HETZNER_HOST }} "REPO_DIR='$REPO_DIR' DEPLOY_SHA='$GITHUB_SHA' DEPLOY_REPO='${{ github.repository }}' DEPLOY_ACTOR='${{ github.actor }}' DEPLOY_COMMIT_MESSAGE_B64='${{ steps.commit-info.outputs.commit_message_b64 }}' SLACK_BOT_TOKEN='$SLACK_BOT_TOKEN' SLACK_CHANNEL='$SLACK_CHANNEL' CLOUDFLARE_ZONE_ID='$CLOUDFLARE_ZONE_ID' CLOUDFLARE_API_TOKEN='$CLOUDFLARE_API_TOKEN' bash -s" << 'DEPLOY'
+            set -euo pipefail
+            mkdir -p "$REPO_DIR"
+            find "$REPO_DIR" -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +
+            tar -xzf /tmp/tech-week-deploy.tgz -C "$REPO_DIR"
+            rm -f /tmp/tech-week-deploy.tgz
+            setsid nohup env REPO_DIR="$REPO_DIR" ENV_FILE="$REPO_DIR/.env" SKIP_GIT_SYNC=1 DEPLOY_SHA="$DEPLOY_SHA" DEPLOY_REPO="$DEPLOY_REPO" DEPLOY_ACTOR="$DEPLOY_ACTOR" DEPLOY_COMMIT_MESSAGE_B64="$DEPLOY_COMMIT_MESSAGE_B64" SLACK_BOT_TOKEN="$SLACK_BOT_TOKEN" SLACK_CHANNEL="$SLACK_CHANNEL" CLOUDFLARE_ZONE_ID="$CLOUDFLARE_ZONE_ID" CLOUDFLARE_API_TOKEN="$CLOUDFLARE_API_TOKEN" bash "$REPO_DIR/scripts/deploy-production.sh" > "$REPO_DIR/.deploy.log" 2>&1 < /dev/null &
+            disown || true
+            echo "Started deploy in background with PID $!"
+          DEPLOY
+          rm -f /tmp/deploy_key
+          rm -f "$ARCHIVE_PATH"

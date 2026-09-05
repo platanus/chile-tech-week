@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# Spin up a linked worktree ready to work in, with its own dev stack and its own
+# databases (see AGENTS.md "Dev flow — one feature, one worktree"):
+#   1. git worktree add .claude/worktrees/<name> (new branch worktree-<name>, off the
+#      freshly-fetched origin/main so it is never born behind) — the same location the
+#      Claude Code harness uses for its own worktrees.
+#   2. Copy the gitignored boot files listed in .worktreeinclude (.env.local, …), then
+#      point the copy's POSTGRES_URL at this worktree's own database and add its own
+#      TEST_DATABASE_PREFIX (both derived by bin/dev-env), so everything run inside the
+#      worktree — bin/rails, parallel_rspec, lefthook — hits the right databases with
+#      nothing to source.
+#   3. Install deps so the tree boots immediately: `npm ci` (never `npm install`, which
+#      may rewrite package-lock.json) + `bundle check || bundle install`.
+#   4. Create the worktree's development database as a copy of the main checkout's
+#      (pg_dump | pg_restore on the same server, ~10s for the usual prod mirror), then
+#      `db:migrate` so the branch's own migrations apply on top. `--empty` gives a blank
+#      schema-loaded database instead.
+#   5. Create + schema-load the worktree's parallel_tests databases.
+#
+#   bin/start-worktree <name> [--empty] [--base <ref>]     # --base defaults to origin/main
+#
+# The result is fully ready — no mid-work rebase/bundle/migrate. Afterwards: cd into it
+# and `bin/dev`. When pushed + deployed: bin/teardown-worktree from inside the worktree.
+set -euo pipefail
+
+usage() { echo "usage: bin/start-worktree <name> [--empty] [--base <ref>]" >&2; exit 1; }
+
+name="${1:-}"
+[ -n "$name" ] || usage
+shift
+empty=false
+base_override=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --empty) empty=true ;;
+    --base) [ -n "${2:-}" ] || usage; base_override="$2"; shift ;;
+    *) usage ;;
+  esac
+  shift
+done
+
+# Always operate on the MAIN checkout, even when invoked from a worktree.
+main_dir=$(dirname -- "$(git rev-parse --path-format=absolute --git-common-dir)")
+cd "$main_dir"
+
+slug=$(printf %s "$name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]+/-/g')
+path=".claude/worktrees/$slug"
+branch="worktree-$slug"
+
+[ ! -e "$path" ] || { echo "bin/start-worktree: $path already exists" >&2; exit 1; }
+[ -f .env.local ] || { echo "bin/start-worktree: no .env.local in $main_dir — nothing to seed the worktree from" >&2; exit 1; }
+
+# The worktree's POSTGRES_URL is the main checkout's with the database name swapped —
+# same server, same URL-surgery as bin/db-restore.
+main_url=$(grep -E '^POSTGRES_URL=' .env.local | head -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/')
+[ -n "$main_url" ] || { echo "bin/start-worktree: POSTGRES_URL not set in .env.local" >&2; exit 1; }
+main_db=$(printf '%s' "$main_url" | sed -E 's#^[a-z]+://[^/]+/([^?]+).*#\1#')
+
+# Seed data: the latest local production dump (dumps/ is gitignored and lives only in the
+# main checkout). Checked before anything is created so a missing dump costs nothing.
+dump=""
+if ! $empty; then
+  dump=$(ls -t dumps/*.dump 2>/dev/null | head -1 || true)
+  if [ -z "$dump" ] || [ ! -s "$dump" ]; then
+    echo "bin/start-worktree: no local dump in dumps/ to seed the worktree's database from" >&2
+    echo "  run bin/db-dump-production first, or pass --empty for a blank schema-loaded database" >&2
+    exit 1
+  fi
+fi
+
+# Base the worktree on the freshest origin/main, not local main — a checkout sitting
+# behind origin would birth every worktree stale and force a mid-work rebase. Fetch is
+# best-effort: offline falls back to local main.
+if [ -n "$base_override" ]; then
+  base="$base_override"
+  git rev-parse --verify --quiet "$base^{commit}" >/dev/null || { echo "bin/start-worktree: unknown ref $base" >&2; exit 1; }
+else
+  git fetch --quiet origin main 2>/dev/null || echo "bin/start-worktree: could not fetch origin; basing on local main" >&2
+  base=main
+  if git rev-parse --verify --quiet origin/main >/dev/null; then base=origin/main; fi
+fi
+
+# The worktree runs ITS checkout's bin/dev and config/database.yml, so the base must
+# already carry the per-worktree tooling — otherwise its parallel_rspec would load the
+# branch's schema into the MAIN checkout's test databases.
+for f in bin/dev-env bin/teardown-worktree .worktreeinclude; do
+  git cat-file -e "$base:$f" 2>/dev/null || {
+    echo "bin/start-worktree: $base has no $f — it predates the worktree tooling; push that to main first" >&2
+    exit 1
+  }
+done
+git show "$base:config/database.yml" | grep -q TEST_DATABASE_PREFIX || {
+  echo "bin/start-worktree: $base's config/database.yml predates TEST_DATABASE_PREFIX; push the worktree tooling to main first" >&2
+  exit 1
+}
+
+git worktree add -b "$branch" "$path" "$base"
+
+# The harness copies .worktreeinclude files only into worktrees IT creates — replicate
+# that for ours.
+while IFS= read -r f; do
+  case "$f" in ''|'#'*) continue ;; esac
+  [ -e "$f" ] || continue
+  mkdir -p "$path/$(dirname -- "$f")"
+  cp "$f" "$path/$f"
+done < .worktreeinclude
+
+# Derive this worktree's identity from ITS path (bin/dev-env reads git context from the
+# cwd). Use the main checkout's copy of dev-env: the branch just created may predate the
+# file, and the derivation is the same either way.
+wt_dir="$main_dir/$path"
+eval "$(cd "$wt_dir" && . "$main_dir/bin/dev-env" && printf 'wt_db=%q; wt_test_prefix=%q; wt_port=%q; wt_vite_port=%q\n' "$TW_DEV_DB" "$TEST_DATABASE_PREFIX" "$PORT" "$VITE_RUBY_PORT")"
+wt_url=$(printf '%s' "$main_url" | sed -E "s#/${main_db}(\\?|\$)#/${wt_db}\\1#")
+
+# Rewrite the worktree's .env.local: POSTGRES_URL → its own database, plus its own
+# TEST_DATABASE_PREFIX (config/database.yml reads it; config/application.rb carries it
+# into the test env). Everything else is inherited verbatim.
+tmp=$(mktemp)
+awk -v url="POSTGRES_URL=$wt_url" '
+  /^POSTGRES_URL=/ { print url; next }
+  /^TEST_DATABASE_PREFIX=/ { next }
+  { print }
+' "$wt_dir/.env.local" > "$tmp"
+printf '\n# Written by bin/start-worktree — this worktree'"'"'s own parallel_tests databases.\nTEST_DATABASE_PREFIX=%s\n' "$wt_test_prefix" >> "$tmp"
+mv "$tmp" "$wt_dir/.env.local"
+
+# Frontend deps up front so the tree typechecks / serves Vite without waiting on a
+# first-run bootstrap. `npm ci`, NOT `npm install`: reproduce the committed dependency
+# state rather than resolve a fresh one (npm install may rewrite package-lock.json).
+echo "bin/start-worktree: installing npm deps…"
+(cd "$wt_dir" && npm ci --no-audit --no-fund)
+
+# Backend gems: a branch that added or bumped a gem otherwise 500s every request until
+# something bundles. `bundle check` keeps this instant when the lockfile is satisfied.
+echo "bin/start-worktree: checking gems…"
+(cd "$wt_dir" && { bundle check >/dev/null 2>&1 || bundle install; })
+
+# Development database. Seeded from the latest local PRODUCTION dump, never from the
+# main checkout's dev database: that one carries whatever in-flight migrations are
+# sitting in the main checkout, so a copy of it made `db:migrate` here re-dump
+# db/schema.rb with columns this branch doesn't have. The prod dump mirrors what is
+# deployed, i.e. origin/main's schema. bin/db-restore (run from inside the worktree, so
+# it targets the worktree's POSTGRES_URL) recreates the database, restores, then
+# migrates — a leftover database from a same-named worktree is simply replaced.
+if $empty; then
+  echo "bin/start-worktree: creating empty ${wt_db} from db/schema.rb…"
+  (cd "$wt_dir" && bin/rails db:drop db:create db:schema:load 2>/dev/null)
+else
+  echo "bin/start-worktree: restoring ${dump} into ${wt_db}…"
+  (cd "$wt_dir" && bin/db-restore "$main_dir/$dump")
+fi
+
+# parallel_tests databases: one per worker, same count parallel_rspec will pick.
+workers="${PARALLEL_TEST_PROCESSORS:-$(sysctl -n hw.ncpu 2>/dev/null || nproc)}"
+echo "bin/start-worktree: creating ${workers} test databases (${wt_test_prefix}*)…"
+(cd "$wt_dir" && bundle exec rake "parallel:create[$workers]" "parallel:load_schema[$workers]" >/dev/null)
+
+echo
+echo "bin/start-worktree: $path ready (branch $branch)"
+echo "  db ${wt_db} · tests ${wt_test_prefix}* · rails :${wt_port} · vite :${wt_vite_port}"
+echo "  next:  cd $path && bin/dev"

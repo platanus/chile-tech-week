@@ -1,0 +1,69 @@
+# See https://docs.docker.com/engine/reference/builder/#dockerignore-file
+
+# Ignore git directory.
+/.git/
+/.gitignore
+
+# Ignore bundler config.
+/.bundle
+
+# Ignore all environment files.
+/.env*
+
+# Ignore all default key files.
+/config/master.key
+/config/credentials/*.key
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/.keep
+
+# Ignore storage (uploaded files in development and any SQLite databases).
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/.keep
+
+# Ignore assets.
+/node_modules/
+/app/assets/builds/*
+!/app/assets/builds/.keep
+# NOT /public/assets — the Rails generator ignores it as Propshaft build output, but in
+# this app it is 486 static source files (images/, logos/, email/, globe/, models/,
+# misc/, videos/) that the public file server hands out at /assets/**. Excluding it made
+# every one of those URLs 404 in the built image while working fine in development,
+# where public/ is read straight off disk. Propshaft's own digested output is written
+# into the same directory by assets:precompile during the build and does not collide.
+
+# Ignore CI/dev files.
+/.devcontainer
+/.github
+
+# Nothing outside the app itself belongs in the build context: agent tooling, the
+# archived migration harness (which carries its own node_modules), the audit docs, and
+# the deploy scripts that run on the host rather than in the image.
+/.claude
+/.claude-plans
+/.codegraph
+/.cursor
+/.vscode
+/docs
+/dumps
+/migration-archive
+/scripts
+
+# Ignore Docker-related files.
+/.dockerignore
+/Dockerfile*
+/docker-compose*
+
+# Vite build output (rebuilt in the image).
+/public/vite
+/public/vite-dev
+/public/vite-test

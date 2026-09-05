@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Run the dev stack from Procfile.dev (Rails + Vite) under Overmind, falling back to
+# Hivemind or Foreman. Foreground; Ctrl-C stops everything.
+#
+# Per-checkout ports come from bin/dev-env: the main checkout keeps :3000/:3036, a linked
+# worktree gets its own deterministic block so several checkouts run side by side (see
+# AGENTS.md "Dev flow — one feature, one worktree").
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+. bin/dev-env
+
+if [ -n "$TW_WORKTREE_SLUG" ]; then
+  # A worktree only works in isolation if its .env.local was rewritten by
+  # bin/start-worktree. One created by hand (`git worktree add`, or the harness's own
+  # worktree support) still points at the main checkout's database — refuse rather than
+  # let two branches migrate the same database.
+  db=$(grep -E '^POSTGRES_URL=' .env.local 2>/dev/null | head -1 | sed -E 's#^[^/]*//[^/]+/([^?]+).*#\1#')
+  if [ "$db" != "$TW_DEV_DB" ]; then
+    echo "bin/dev: this worktree's .env.local points at database '${db:-<none>}', expected '${TW_DEV_DB}'." >&2
+    echo "  Worktrees must be created with bin/start-worktree <name> (it provisions the database)." >&2
+    exit 1
+  fi
+  echo "bin/dev: worktree ${TW_WORKTREE_SLUG} → http://localhost:${PORT} (vite :${VITE_RUBY_PORT}, db ${TW_DEV_DB})" >&2
+fi
+
+if command -v overmind >/dev/null 2>&1; then
+  exec overmind start -f Procfile.dev "$@"
+fi
+
+if command -v hivemind >/dev/null 2>&1; then
+  echo "Hivemind is installed. Running the application with Hivemind..."
+  exec hivemind Procfile.dev "$@"
+fi
+
+if gem list --no-installed --exact --silent foreman; then
+  echo "Installing foreman..."
+  gem install foreman
+fi
+
+exec foreman start -f Procfile.dev "$@"

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <% ssr_head = inertia_ssr_head %>
+    <meta charset="utf-8">
+    <%# SEO + OpenGraph meta, server-rendered (meta-tags gem). When SSR produced the page's
+        own <Head>, its title wins and the defaults stay out of the way. %>
+    <%= display_meta_tags(default_meta_tags) unless ssr_head.present? %>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%# The landing's type: Unbounded 800 uppercase for display, Syne for body, Space Mono for labels. %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Syne:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <%# The real Chile relief (app/frontend/terrain): index + overview fetched here so they
+        download alongside the JS. The hrefs follow app/frontend/terrain/terrain-url.ts. %>
+    <% Array(@terrain_preloads).each do |path| %>
+      <link rel="preload" as="fetch" crossorigin href="<%= path %>">
+    <% end %>
+
+    <%= vite_react_refresh_tag %>
+    <%= vite_client_tag %>
+    <%= vite_typescript_tag "inertia" %>
+    <%= ssr_head %>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
+</html>

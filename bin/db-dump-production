@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Dump the production database into dumps/production-<timestamp>.dump.
+# pg_dump runs INSIDE the production Postgres container over SSH (read-only; nothing
+# extra installed on the server), streamed to a local custom-format dump. Restore it
+# with bin/db-restore.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+SSH_HOST="${AIN_SSH_HOST:-swiss}"
+CONTAINER="tech-week-postgres"   # docker-compose.production.yml -> services.postgres.container_name
+DB_NAME="tech_week_prod"         # config/database.yml -> production.primary
+DB_USER="postgres"
+
+mkdir -p dumps
+DUMP_FILE="dumps/production-$(date +%Y%m%d%H%M%S).dump"
+
+echo "Dumping ${DB_NAME} from ${SSH_HOST} (container ${CONTAINER}) ..."
+ssh "$SSH_HOST" \
+  "docker exec -i ${CONTAINER} pg_dump --format=custom --compress=9 --no-owner --no-acl -U ${DB_USER} ${DB_NAME}" \
+  > "$DUMP_FILE"
+
+if [ ! -s "$DUMP_FILE" ]; then
+  rm -f "$DUMP_FILE"
+  echo "Dump came back empty; aborting." >&2
+  exit 1
+fi
+
+echo "Wrote ${DUMP_FILE} ($(du -h "$DUMP_FILE" | cut -f1 | tr -d ' '))"

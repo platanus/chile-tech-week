@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Fast inner-loop check (~5s): what a typechecker would tell you, nothing that needs a full test run.
+#   bin/check            # ruby lint + autoload/constant check + fresh Typelizer types + tsc
+#   bin/check rb         # ruby only
+#   bin/check ts         # typescript only (regenerates Typelizer types first)
+# Run bin/ci before calling a unit done.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+what="${1:-all}"
+
+if [[ $what == all || $what == rb ]]; then
+  bundle exec standardrb --no-parallel --fail-level error
+  bin/rails zeitwerk:check typelizer:generate
+fi
+if [[ $what == ts ]]; then
+  bin/rails typelizer:generate
+fi
+if [[ $what == all || $what == ts ]]; then
+  npx tsc -p tsconfig.app.json
+fi
+echo "check: ok ($what)"

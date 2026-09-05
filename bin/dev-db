@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+if ! command -v docker &> /dev/null; then
+  # Write to stderr so `$(bin/dev-db port)` captures nothing (callers fall back to 5432).
+  echo "docker not found — skipping dev database (using whatever POSTGRES_URL points at)" >&2
+  exit
+fi
+
+export COMPOSE_PROJECT_NAME="tech_week_dev"
+
+arg="$1"
+base_cmd="docker compose -f docker-compose.dev.yml"
+
+if [ "$arg" = "port" ]; then
+  $base_cmd port database 5432 | cut -d ":" -f 2
+  exit
+fi
+
+[ -z "$arg" ] && cmd="up -d --wait" || cmd="$arg"
+
+$base_cmd $cmd

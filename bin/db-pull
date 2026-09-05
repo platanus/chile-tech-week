@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# One-shot: dump production and restore it into the local dev database.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+bin/db-dump-production
+bin/db-restore

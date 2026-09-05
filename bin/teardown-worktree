@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# Tear down the linked worktree you are standing in, leaving nothing behind: stop its
+# dev stack, drop its development + test databases, remove the worktree itself, and
+# delete its branch once every commit is on main or a remote.
+#
+# Run it AFTER commit + push + deploy verification (see AGENTS.md "Dev flow").
+# Refuses on uncommitted or unpushed work unless --force.
+#
+#   bin/teardown-worktree [--force]
+set -euo pipefail
+
+force=false
+[ "${1:-}" = "--force" ] && force=true
+
+git_dir=$(git rev-parse --path-format=absolute --git-dir)
+common_dir=$(git rev-parse --path-format=absolute --git-common-dir)
+if [ "$git_dir" = "$common_dir" ]; then
+  echo "bin/teardown-worktree: this is the main checkout — run it from inside a linked worktree" >&2
+  exit 1
+fi
+
+top=$(git rev-parse --show-toplevel)
+main_dir=$(dirname -- "$common_dir")
+branch=$(git branch --show-current)
+
+if ! $force; then
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "bin/teardown-worktree: uncommitted changes — commit them (or --force to discard)" >&2
+    exit 1
+  fi
+  # Commits merely inherited from (possibly unpushed) local main aren't this worktree's
+  # work — only refuse on commits neither main nor a remote has.
+  if [ "$(git rev-list --count HEAD --not main --remotes)" != 0 ]; then
+    echo "bin/teardown-worktree: commits not on main or any remote — push them (or --force to discard)" >&2
+    exit 1
+  fi
+fi
+
+cd "$top"
+. bin/dev-env
+
+# Stop the stack if it is running (Overmind's socket is per-directory) and wait for it to
+# actually die before dropping its database out from under it.
+if overmind status >/dev/null 2>&1; then
+  overmind quit
+  for _ in $(seq 1 15); do
+    overmind status >/dev/null 2>&1 || break
+    sleep 1
+  done
+fi
+
+# Databases: whatever this worktree's .env.local actually points at, guarded so this can
+# never drop the main checkout's database (or anything not shaped like a worktree's).
+if [ -f .env.local ]; then
+  url=$(grep -E '^POSTGRES_URL=' .env.local | head -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/')
+  db=$(printf '%s' "$url" | sed -E 's#^[a-z]+://[^/]+/([^?]+).*#\1#')
+  maintenance_url=$(printf '%s' "$url" | sed -E "s#/${db}(\\?|\$)#/postgres\\1#")
+  prefix=$(grep -E '^TEST_DATABASE_PREFIX=' .env.local | head -1 | cut -d= -f2-)
+
+  case "$db" in
+    tech_week_dev_?*)
+      echo "bin/teardown-worktree: dropping ${db}"
+      psql "$maintenance_url" -q -c "DROP DATABASE IF EXISTS ${db} WITH (FORCE);" ;;
+    *)
+      echo "bin/teardown-worktree: refusing to drop '${db}' — not a worktree database (tech_week_dev_<slug>)" >&2 ;;
+  esac
+
+  case "$prefix" in
+    tech_week_test_?*)
+      psql "$maintenance_url" -Atc "select datname from pg_database where datname like '${prefix}%'" \
+        | while IFS= read -r t; do
+            [ -n "$t" ] || continue
+            echo "bin/teardown-worktree: dropping ${t}"
+            psql "$maintenance_url" -q -c "DROP DATABASE IF EXISTS ${t} WITH (FORCE);"
+          done ;;
+    "") ;;
+    *)
+      echo "bin/teardown-worktree: refusing to drop test databases '${prefix}*' — not a worktree prefix (tech_week_test_<slug>)" >&2 ;;
+  esac
+fi
+
+cd "$main_dir"
+# --force: ignored/untracked files (.env.local, node_modules, …) always make the worktree
+# "unclean" to git; real work was already checked above.
+git worktree remove --force "$top"
+
+if [ -n "$branch" ]; then
+  if [ "$(git rev-list --count "$branch" --not main --remotes)" = 0 ]; then
+    git branch -D "$branch"
+  else
+    echo "bin/teardown-worktree: keeping branch $branch (has commits not on main or any remote)" >&2
+  fi
+fi
+
+echo "bin/teardown-worktree: removed $top"

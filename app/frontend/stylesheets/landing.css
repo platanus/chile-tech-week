@@ -1,0 +1,118 @@
+/* The landing, verbatim from the original single-page index.html (chile-tech-week-25 repo, the
+   low-poly-montains prototype). It styles the hero, the page below it and the game-mode UI; the
+   3D scene itself is app/frontend/landing/scene.ts. Tailwind preflight is deliberately NOT loaded
+   (see application.css) so these rules render exactly as they did without a framework reset. */
+/* Brand: the 2025 palette (black, white, one red, grays), Volumen type on Terminal shape.
+   Unbounded 800 uppercase for display, Syne for body, Space Mono for labels; 1px rules, 2px radii. */
+:root { --red: #EE2B2B; --ink: #fff; --gray: #a3a3a3; --line: #262626;
+  --display: Unbounded, Inter, -apple-system, sans-serif; --body: Syne, Inter, -apple-system, sans-serif; --mono: 'Space Mono', ui-monospace, Menlo, monospace; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; background: #000; font-family: var(--body); color: var(--ink); }
+body.game { overflow: hidden; }
+canvas.scene { display: block; position: fixed; inset: 0; z-index: 0; opacity: 0; transition: opacity .9s ease; }
+canvas.scene.ready { opacity: 1; } /* the scene fades in once the relief has arrived */
+/* dark veil that keeps the hero copy readable; fades out in game mode */
+#veil { position: fixed; inset: 0; z-index: 1; pointer-events: none; transition: opacity .6s ease;
+  background: linear-gradient(90deg, rgba(0,0,0,.82) 0%, rgba(0,0,0,.5) 45%, rgba(0,0,0,.1) 100%),
+              linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,.4) 100%); }
+body.game #veil { opacity: 0; }
+
+/* ---- hero: the outline logo on the left, the condor and the cordillera on the right */
+#hero { position: relative; z-index: 2; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+  padding: 0 8vw; box-sizing: border-box; pointer-events: none; transition: opacity .5s ease, transform .5s ease; }
+#hero > * { pointer-events: auto; }
+body.game #hero { opacity: 0; transform: translateY(-16px); pointer-events: none; }
+body.game #hero > * { pointer-events: none; }
+#hero .brand { position: absolute; top: 26px; left: 8vw; font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: -.02em; text-decoration: none; color: var(--ink); }
+#hero .brand b { color: var(--red); font-weight: 800; }
+.label { font-family: var(--mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; }
+#hero .eyebrow { color: var(--red); margin-bottom: 28px; }
+#hero .lede { font-size: clamp(16px, 1.35vw, 20px); line-height: 1.45; max-width: 34ch; color: var(--gray); margin: 28px 0 30px; }
+#hero .cta { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 20px; border-radius: 2px; border: 1px solid var(--ink);
+  text-decoration: none; font-family: var(--display); font-weight: 800; font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink); background: transparent; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+.btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+.btn.primary:hover { background: #ff3d3d; border-color: #ff3d3d; }
+.btn:not(.primary):hover { background: rgba(255,255,255,.08); }
+.btn:focus-visible, #play:focus-visible, #exit:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+/* the logo: CHILE / TECH / WEEK / 2026, strokes draw in and the fill lands (same motion as /logo, 03 Outline) */
+.logo { width: min(38vw, 540px); height: auto; overflow: visible; display: block; cursor: pointer; }
+.logo text { font-family: var(--display); font-weight: 800; letter-spacing: -0.03em; }
+.logo > text { fill: var(--ink); stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 480; stroke-dashoffset: 480; fill-opacity: 0; }
+.logo.go > text { animation: draw 1.6s ease-out forwards, land .5s ease-out forwards;
+  animation-delay: calc(var(--i) * .2s), calc(1.4s + var(--i) * .2s); }
+.logo.still > text { stroke-dashoffset: 0; fill-opacity: 1; stroke-width: 0; }
+.logo .y26 { fill: var(--red); stroke: var(--red); }
+/* the hollow 20: a stroke with its inside masked away, so the scene shows through the digits */
+.logo .y20 { fill: none; stroke: var(--ink); stroke-width: 3; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes land { to { fill-opacity: 1; stroke-width: 0; } }
+
+#play { position: absolute; right: 8vw; bottom: 34px; display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-radius: 2px; border: 1px solid var(--line); background: rgba(0,0,0,.5); color: var(--ink); font: 12px var(--mono);
+  cursor: pointer; backdrop-filter: blur(6px); transition: background .2s, border-color .2s; }
+#play:hover { border-color: var(--red); background: rgba(238,43,43,.15); }
+#play kbd { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border-radius: 2px; border: 1px solid rgba(255,255,255,.25); }
+
+/* ---- page below the hero, covers the scene when scrolled */
+main { position: relative; z-index: 2; background: #000; color: var(--gray); padding: 14vh 8vw 14vh; border-top: 1px solid var(--line); }
+main .label { color: var(--red); }
+main h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: -.03em; line-height: .95;
+  color: var(--ink); font-size: clamp(30px, 4.6vw, 64px); margin: 18px 0 20px; max-width: 16ch; }
+main p { max-width: 44ch; line-height: 1.55; font-size: clamp(16px, 1.3vw, 19px); margin: 0 0 30px; }
+footer { position: relative; z-index: 2; background: #000; border-top: 1px solid var(--line); padding: 26px 8vw; display: flex; flex-wrap: wrap; gap: 10px 28px;
+  justify-content: space-between; color: var(--gray); }
+footer a { color: var(--gray); text-decoration: none; }
+footer a:hover { color: var(--ink); }
+
+/* ---- game-mode UI */
+#gameui { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
+body.game #gameui { opacity: 1; }
+#exit { position: absolute; top: 18px; right: 18px; pointer-events: auto; cursor: pointer; padding: 8px 14px; border-radius: 2px;
+  border: 1px solid var(--line); background: rgba(0,0,0,.6); color: var(--ink); font: 12px var(--mono); }
+body.game #exit { pointer-events: auto; }
+#exit:focus:not(:focus-visible) { outline: none; }
+#help { position: absolute; left: 14px; bottom: 14px; font: 12px/1.55 var(--mono); color: var(--gray);
+  background: rgba(0,0,0,.6); border: 1px solid var(--line); padding: 10px 12px; border-radius: 2px; backdrop-filter: blur(4px); pointer-events: none; user-select: none; }
+#help b { color: var(--ink); }
+#help .hud { margin-top: 6px; color: var(--red); }
+#help .credit { margin-top: 4px; font-size: 10px; letter-spacing: .04em; color: #525252; }
+/* peak names: a mono label above a 1px red tick that ends on the summit vertex */
+#peaks { position: fixed; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .4s ease; }
+body.game #peaks { opacity: 1; }
+.peak { position: absolute; left: 0; top: 0; will-change: transform; }
+.peak > div { position: relative; padding: 0 0 22px 7px; border-left: 1px solid var(--red);
+  font: 11px/1.35 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink); white-space: nowrap;
+  animation: labelIn .16s ease-out both; }
+.peak.out > div { animation: labelOut .14s ease-in both; }
+.peak > div::after { content: ''; position: absolute; left: -2.5px; bottom: -2px; width: 4px; height: 4px; background: var(--red); }
+.peak span { display: block; }
+.peak span + span { color: var(--gray); letter-spacing: .06em; text-transform: none; }
+/* cities: like peaks, pinned to the place itself, but a dotted white tick and a hollow marker */
+.peak.city > div { border-left: 1px dotted var(--ink); }
+.peak.city > div::after { background: none; border: 1px solid var(--ink); width: 5px; height: 5px; left: -3.5px; bottom: -3.5px; }
+@keyframes labelIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+@keyframes labelOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-4px); } }
+#scan {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none; mix-blend-mode: multiply;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0,0,0,.22) 3px 4px);
+}
+#scan.hidden { display: none; }
+#toast {
+  position: fixed; left: 50%; top: 18px; transform: translateX(-50%); padding: 8px 14px; border-radius: 2px;
+  background: var(--red); color: #fff; font: 12px var(--mono); opacity: 0; transition: opacity .25s; pointer-events: none;
+}
+#fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .9s ease; z-index: 4; }
+.lil-gui.root { z-index: 6; }
+.lil-gui { --width: 310px; --font-size: 11px; --input-font-size: 11px; }
+.lil-gui.root { max-height: 100vh; overflow-y: auto; }
+
+@media (max-width: 720px) {
+  #hero { padding-top: 90px; padding-bottom: 90px; justify-content: flex-end; }
+  .logo { width: 78vw; }
+  #hero .lede { max-width: 30ch; }
+  #play { position: static; margin-top: 26px; align-self: flex-start; }
+  #veil { background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.15) 35%, rgba(0,0,0,.85) 70%, rgba(0,0,0,.92) 100%); }
+}

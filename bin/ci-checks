@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# The static half of bin/ci: lint, autoload + constant check, freshly generated Typelizer
+# types, tsc, and a real asset build. Everything here fails on a mistake a reader could
+# have made; nothing here executes a test suite.
+#
+# This is what .github/workflows/deploy.yml runs. RSpec and Vitest deliberately do NOT run
+# in GitHub Actions (owner decision, 2026-08-31) — they stay in `bin/ci` and in lefthook's
+# pre-push hook, which is now the only automated gate the test suites have.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+step() { printf '\n\033[1m== %s\033[0m\n' "$1"; }
+
+step "standardrb";           bundle exec standardrb
+
+# Pinned to development on purpose, whatever the caller's RAILS_ENV is. Typelizer reads
+# column types off the models to emit the TypeScript prop shapes, and its output is
+# environment-sensitive: generating under RAILS_ENV=test emits `unknown` for ~1300
+# properties that resolve correctly under development (e.g. AdminAuthorResource's
+# `full_name`, a plain `text` column, becomes `unknown` instead of `string`), which then
+# fails tsc with ~1900 errors in files nobody touched. Development is the correct output,
+# and it is the environment `bin/check` and `bin/ci` have always generated in.
+step "zeitwerk + typelizer"; RAILS_ENV=development bin/rails zeitwerk:check typelizer:generate
+
+# Development's `dump_schema_after_migration` (unset here, defaults to true — only
+# production turns it off) makes `db:migrate` re-run `db:schema:dump` as a side effect, so
+# a pending migration whose author forgot to commit the regenerated db/schema.rb shows up
+# as a diff here. This is what replaces the inert `maintain_test_schema!` in
+# spec/rails_helper.rb — see docs/db-migration/plan.md, Phase 1.
+step "schema not stale";     RAILS_ENV=development bin/rails db:migrate && git diff --exit-code db/schema.rb
+
+step "tsc";                  npm run --silent check
+step "vite build";           bin/vite build --clear
+
+printf '\n\033[32mci-checks: green\033[0m\n'

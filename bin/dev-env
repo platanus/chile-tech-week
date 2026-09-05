@@ -1,0 +1,46 @@
+# Per-checkout identity for the dev stack, so git worktrees run fully independent apps
+# in parallel (see AGENTS.md "Dev flow — one feature, one worktree"). Sourced by
+# bin/dev, bin/start-worktree and bin/teardown-worktree — not an executable.
+#
+# The main checkout keeps the historical values (Rails :3000, Vite :3036, whatever
+# database POSTGRES_URL in .env.local already names). A linked worktree gets:
+#
+#   TW_WORKTREE_SLUG    the worktree's directory name (.claude/worktrees/<slug>),
+#                         lowercased and reduced to [a-z0-9_] so it is a valid Postgres
+#                         identifier fragment
+#   TW_DEV_DB           tech_week_dev_<slug>          — its own development database
+#   TEST_DATABASE_PREFIX  tech_week_test_<slug>   — its own parallel_tests databases
+#                         (config/database.yml appends TEST_ENV_NUMBER)
+#   PORT                  20xxx                    — Rails, from a hash of the path
+#   VITE_RUBY_PORT        21xxx                    — Vite dev server, same hash
+#
+# Both database names are also WRITTEN into the worktree's .env.local by
+# bin/start-worktree, so every `bin/rails`, `parallel_rspec` and lefthook run inside the
+# worktree hits the worktree's own databases without sourcing anything. The ports are
+# not: they only apply through bin/dev, and a bare `bin/rails s` in a worktree still
+# defaults to :3000 (it will collide with the main checkout's server if that is up).
+#
+# Same worktree → same values across restarts; different worktrees → different values.
+# 1000 port slots — a collision between two live worktrees is possible but unlikely;
+# bin/dev prints the URLs it chose.
+
+_git_dir=$(git rev-parse --git-dir 2>/dev/null || echo .git)
+_common_dir=$(git rev-parse --git-common-dir 2>/dev/null || echo .git)
+
+if [ "$_git_dir" != "$_common_dir" ]; then
+  _top=$(git rev-parse --show-toplevel)
+  _slug=$(basename "$_top" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_]+/_/g' | cut -c1-24)
+  _hash=$(printf %s "$_top" | cksum | cut -d ' ' -f 1)
+  export TW_WORKTREE_SLUG="$_slug"
+  export TW_DEV_DB="tech_week_dev_${_slug}"
+  export TEST_DATABASE_PREFIX="tech_week_test_${_slug}"
+  export PORT="${PORT:-$((20000 + _hash % 1000))}"
+  export VITE_RUBY_PORT="${VITE_RUBY_PORT:-$((21000 + _hash % 1000))}"
+else
+  export TW_WORKTREE_SLUG=""
+  export TW_DEV_DB=""
+  export PORT="${PORT:-3000}"
+  export VITE_RUBY_PORT="${VITE_RUBY_PORT:-3036}"
+fi
+
+unset _git_dir _common_dir _top _slug _hash

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Full quality gate for the Rails app. Fails fast. Must be green before any commit.
+#
+#   bin/check       fast inner loop (~5s): no rspec, no vitest, no vite build
+#   bin/ci-checks   what GitHub Actions runs: the above plus tsc and a real vite build
+#   bin/ci          ci-checks plus vitest — RSpec does NOT run here. It's slow enough
+#                   (even parallelized) that it only runs in lefthook's pre-push hook,
+#                   the one place it's still mandatory before code reaches origin/main.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+step() { printf '\n\033[1m== %s\033[0m\n' "$1"; }
+
+# Lint, zeitwerk + typelizer, tsc, vite build. Cheapest first, so a typo fails in seconds.
+bin/ci-checks
+
+step "vitest"; npm run --silent test
+
+printf '\n\033[32mci: all green\033[0m\n'

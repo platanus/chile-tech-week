@@ -1,0 +1,42 @@
+# POSTGRES_URL comes from .env.local in development and test (loaded in
+# config/application.rb), and from the server's .env in production.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  primary:
+    <<: *default
+    url: <%= ENV["POSTGRES_URL"] %>
+
+test:
+  primary:
+    <<: *default
+    # Same server as development, separate database. TEST_ENV_NUMBER is parallel_tests'
+    # own convention — "" for the first worker, "2", "3", ... for the rest — so each
+    # parallel process gets its own database instead of contending over one.
+    # TEST_DATABASE_PREFIX (default tech_week_test) lets a linked worktree keep its own
+    # set: bin/start-worktree writes tech_week_test_<slug> into the worktree's .env.local
+    # so two checkouts never load different schemas into the same test databases.
+    url: <%= ENV["POSTGRES_URL"].to_s.sub(%r{/[^/?]+(\?|$)}, "/#{ENV.fetch("TEST_DATABASE_PREFIX", "tech_week_test")}#{ENV["TEST_ENV_NUMBER"]}\\1") %>
+
+production:
+  primary: &primary_production
+    <<: *default
+    url: <%= ENV["POSTGRES_URL"] %>
+  # A sibling `database:` key alongside `url:` is silently ignored by Rails' config
+  # resolver (the URL's embedded database name always wins), so the database name is
+  # substituted into the URL itself, same as the `test:` env above.
+  cache:
+    <<: *default
+    url: <%= ENV["POSTGRES_URL"].to_s.sub(%r{/[^/?]+(\?|$)}, "/tech_week_production_cache\\1") %>
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    url: <%= ENV["POSTGRES_URL"].to_s.sub(%r{/[^/?]+(\?|$)}, "/tech_week_production_queue\\1") %>
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    url: <%= ENV["POSTGRES_URL"].to_s.sub(%r{/[^/?]+(\?|$)}, "/tech_week_production_cable\\1") %>
+    migrations_paths: db/cable_migrate

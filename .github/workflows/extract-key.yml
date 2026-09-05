@@ -1,0 +1,25 @@
+name: Recover SSH Key
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Decode and upload SSH key
+        env:
+          KEY_B64: ${{ secrets.HETZNER_SSH_KEY_B64 }}
+        run: |
+          echo "$KEY_B64" | base64 -d > /tmp/hetzner_ssh_key
+          chmod 600 /tmp/hetzner_ssh_key
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hetzner-ssh-key
+          path: /tmp/hetzner_ssh_key
+          if-no-files-found: error
+          retention-days: 1

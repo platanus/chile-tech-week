@@ -1,0 +1,28 @@
+# Local quality gates. Since 2026-08-31 these are not a rehearsal of CI but the *only*
+# automated place the test suites run: .github/workflows/deploy.yml runs `bin/ci-checks`
+# (lint, zeitwerk, typelizer, tsc, vite build) and deliberately skips RSpec and Vitest.
+# Do not skip this hook with --no-verify.
+# Install once: `bundle exec lefthook install`.
+pre-commit:
+  parallel: true
+  commands:
+    standardrb:
+      glob: "*.rb"
+      run: bundle exec standardrb {staged_files}
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: npm run check
+
+pre-push:
+  parallel: false
+  commands:
+    rspec:
+      # The explicit test-mode build first is deliberate: every parallel_rspec worker
+      # shares one public/vite-test build, so if none exists yet each worker's own
+      # ViteRuby autoBuild check races to rebuild it concurrently (bin/ci has the same
+      # step, with the reasoning behind it).
+      run: RAILS_ENV=test bin/vite build && bundle exec parallel_rspec spec
+    # Added when the suites came out of GitHub Actions — vitest is ~200ms, and without it
+    # nothing automated would run the frontend unit tests at all.
+    vitest:
+      run: npm run --silent test

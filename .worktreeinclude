@@ -1,0 +1,5 @@
+# Gitignored files copied into each new worktree so a fresh checkout can boot the dev
+# stack. Read by bin/start-worktree (and by Claude Code's own worktree support).
+# bin/start-worktree then rewrites the copy's POSTGRES_URL to the worktree's own database.
+# node_modules is NOT copied — bin/start-worktree runs `npm ci` instead.
+.env.local

@@ -1,0 +1,106 @@
+# Production stack on the `swiss` Hetzner host, driven by scripts/deploy-production.sh.
+#
+# The `postgres` service keeps a stable container, volume and database name —
+# renaming any of the three would orphan the data volume on the next deploy.
+#
+# Nginx Proxy Manager terminates TLS and routes techweek.cl to tech-week-app:3000 over the
+# shared `npm` network; Cloudflare sits in front of NPM.
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+# The app image serves both the web process and the worker. Anything that must match
+# between them lives here.
+x-app-base: &app-base
+  image: tech-week-app:latest
+  restart: unless-stopped
+  env_file:
+    - path: ./.env
+      required: false
+    - path: /home/debian/swiss-composes/tech-week/.env
+      required: false
+  environment:
+    - POSTGRES_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/tech_week_prod
+  volumes:
+    - storage-volume:/app/storage
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tech-week-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tech_week_prod
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    # Loopback-only, for SSH-tunnelled admin access (bin/db-dump-production).
+    ports:
+      - 127.0.0.1:${POSTGRES_BUILD_PORT:-15432}:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    <<: *logging
+    networks:
+      - internal
+
+  app:
+    <<: [*app-base, *logging]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+      # The daemon's own layer cache does the real work between deploys; this is the
+      # fallback for when that cache is cold (a daemon restart, a pruned builder) and the
+      # previous image is still on the box. The Dockerfile is ordered so a code-only
+      # deploy reuses every dependency layer: Gemfile* -> bundle install, package*.json ->
+      # npm ci, and only then COPY . ., so `bundle install` and `npm ci` re-run when a
+      # manifest moves and not before.
+      cache_from:
+        - tech-week-app:latest
+    container_name: tech-week-app
+    # Clear a pidfile left behind by an unclean stop; the writable layer survives a restart.
+    command: bash -c "rm -f /app/tmp/pids/server.pid && bin/rails server -b 0.0.0.0"
+    healthcheck:
+      # Plain HTTP is fine despite force_ssl: config.assume_ssl marks every request as
+      # already-terminated TLS, so /up answers 200 rather than redirecting.
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/up"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      start_interval: 2s
+    networks:
+      - internal
+      - npm
+
+  # Solid Queue, including the recurring schedule in config/recurring.yml — which is what
+  # replaced the old `cron-ticker` sidecar polling /api/cron/tick. Same image as `app`,
+  # so a deploy builds once.
+  jobs:
+    <<: [*app-base, *logging]
+    container_name: tech-week-jobs
+    command: bin/jobs
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+  storage-volume:
+
+networks:
+  internal:
+  npm:
+    external: true
+    name: npm

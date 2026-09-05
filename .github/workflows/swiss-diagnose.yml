@@ -1,0 +1,107 @@
+name: Swiss Diagnose
+
+# Read-only-by-default diagnostics against the `swiss` Hetzner host, for the times when
+# something needs looking at and you are not at a machine with SSH access to it. Nothing
+# here deploys; it reuses the same secrets the deploy workflow already uses.
+#
+# Every input is passed to the shell through `env:` rather than `${{ }}` interpolation.
+# That matters: GitHub expands `${{ inputs.custom_command }}` into the script *before*
+# bash parses it, so interpolating it inline lets a crafted value close the quote and run
+# on the runner. Through `env:` it is only ever a shell variable.
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: Command to run on swiss
+        required: true
+        default: deploy-log
+        type: choice
+        options:
+          - deploy-log
+          - ps
+          - compose-ps
+          - image
+          - compose-logs
+          - all
+      custom_command:
+        description: Free-form SSH command (overrides 'command' if set; keep it safe)
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-22.04
+    env:
+      REPO_DIR: ${{ vars.HETZNER_REPO_DIR || '/home/debian/swiss-composes/tech-week' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run diagnostic on swiss
+        env:
+          HETZNER_SSH_USER: ${{ secrets.HETZNER_SSH_USER }}
+          HETZNER_SSH_PORT: ${{ secrets.HETZNER_SSH_PORT }}
+          HETZNER_HOST: ${{ secrets.HETZNER_HOST }}
+          HETZNER_SSH_KEY_B64: ${{ secrets.HETZNER_SSH_KEY_B64 }}
+          CUSTOM_COMMAND: ${{ inputs.custom_command }}
+          CMD_INPUT: ${{ inputs.command }}
+        run: |
+          set -euo pipefail
+
+          SSH_USER=${HETZNER_SSH_USER:-deploy}
+          SSH_PORT=${HETZNER_SSH_PORT:-22}
+
+          # Written with a restrictive umask and removed on every exit path, including a
+          # failing ssh — `rm` as the last line of the script would be skipped by `set -e`.
+          KEY_FILE="$(mktemp -u /tmp/diag_key.XXXXXX)"
+          trap 'rm -f "$KEY_FILE"' EXIT
+          (umask 077; printf '%s' "$HETZNER_SSH_KEY_B64" | base64 -d > "$KEY_FILE")
+
+          ssh_run() {
+            ssh -o StrictHostKeyChecking=no -o BatchMode=yes \
+                -p "$SSH_PORT" -i "$KEY_FILE" "$SSH_USER"@"$HETZNER_HOST" "$1"
+          }
+
+          if [ -n "$CUSTOM_COMMAND" ]; then
+            echo "=== CUSTOM COMMAND ==="
+            ssh_run "$CUSTOM_COMMAND"
+            exit 0
+          fi
+
+          # `$REPO_DIR` is expanded here, on the runner, so the remote shell receives a
+          # literal path. Single-quoted inside so the remote never re-splits it.
+          SSH_CMD="set -uo pipefail; "
+
+          case "$CMD_INPUT" in
+            deploy-log|all)
+              SSH_CMD="${SSH_CMD} echo '=== DEPLOY LOG (last 200 lines) ==='; tail -200 '$REPO_DIR/.deploy.log' 2>/dev/null || echo '(no .deploy.log)'; echo;"
+              ;;
+          esac
+          case "$CMD_INPUT" in
+            ps|all)
+              SSH_CMD="${SSH_CMD} echo '=== PROCESSES ==='; ps aux --sort=-%mem | head -20; echo;"
+              ;;
+          esac
+          case "$CMD_INPUT" in
+            compose-ps|all)
+              SSH_CMD="${SSH_CMD} echo '=== DOCKER COMPOSE PS ==='; (cd '$REPO_DIR' && docker compose ps) 2>&1 || echo '(no compose file found)'; echo;"
+              ;;
+          esac
+          case "$CMD_INPUT" in
+            image|all)
+              SSH_CMD="${SSH_CMD} echo '=== tech-week-app:latest ==='; docker image inspect tech-week-app:latest --format 'Created: {{.Created}}' 2>/dev/null || echo '(no tech-week-app:latest)'; echo;"
+              ;;
+          esac
+          case "$CMD_INPUT" in
+            compose-logs|all)
+              SSH_CMD="${SSH_CMD} echo '=== tech-week-app LOGS (last 60) ==='; (cd '$REPO_DIR' && docker compose logs app --tail 60) 2>&1 || docker logs --tail 60 tech-week-app 2>&1; echo;"
+              ;;
+          esac
+
+          SSH_CMD="${SSH_CMD} echo '=== NETWORKS ==='; docker network ls 2>/dev/null | grep -E 'npm|internal' || echo '(not found)'"
+
+          ssh_run "$SSH_CMD"
