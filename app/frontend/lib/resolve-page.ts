@@ -1,4 +1,5 @@
-import type { ComponentType, ReactNode } from 'react';
+import { type ComponentType, createElement, type ReactNode } from 'react';
+import { Edition2025Layout } from '@/components/edition2025/layout';
 
 export type PageComponent = ComponentType & {
   layout?: (page: ReactNode) => ReactNode;
@@ -8,11 +9,14 @@ export type ResolvedComponent = {
   default: PageComponent;
 };
 
-// Assigns each page its shell by name prefix (none yet — the landing is its own full-bleed
-// page). Shared by the CSR (eager) and SSR (lazy) resolvers below so they can't drift on
-// which pages get which shell. When an area grows a persistent layout, key on its prefix
-// here: `if (name.startsWith('Admin/') && !page.default.layout) page.default.layout = …`.
-function attachLayout(_name: string, page: ResolvedComponent): ResolvedComponent {
+// Assigns each page its shell by name prefix: the 2025 archive shares one, the landing is
+// its own full-bleed page. Shared by the CSR (eager) and SSR (lazy) resolvers below so they
+// can't drift on which pages get which shell. When another area grows a persistent layout,
+// key on its prefix here the same way.
+function attachLayout(name: string, page: ResolvedComponent): ResolvedComponent {
+  if (name.startsWith('Edition2025/') && !page.default.layout) {
+    page.default.layout = (content) => createElement(Edition2025Layout, null, content);
+  }
   return page;
 }
 

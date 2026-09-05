@@ -1,0 +1,27 @@
+/* The 2025 edition (pages/Edition2025/*, the archive of the site that ran techweek.cl in
+   2025): its neo-brutalist look — JetBrains Mono, black, white and the red, hard 4px borders
+   and offset shadows — is all Tailwind utilities on the components. The old site had Tailwind's
+   preflight underneath; this app loads Tailwind without it (application.css), so the reset
+   those utilities assume is reproduced here, scoped to the .ed25 wrapper the pages render in.
+   application.css imports this file into the `edition2025` layer: above the landing's element
+   rules, below the utilities. */
+@layer edition2025 {
+  .ed25 {
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    min-height: 100vh;
+    background: #000;
+    color: #fff;
+    font-family: var(--font-mono);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .ed25 *, .ed25 *::before, .ed25 *::after { box-sizing: border-box; border: 0 solid; margin: 0; padding: 0; }
+  .ed25 h1, .ed25 h2, .ed25 h3, .ed25 p { font-size: inherit; font-weight: inherit; }
+  .ed25 a { color: inherit; text-decoration: inherit; }
+  .ed25 button, .ed25 input { font: inherit; color: inherit; background: transparent; border-radius: 0; letter-spacing: inherit; }
+  .ed25 button { cursor: pointer; text-align: inherit; }
+  .ed25 input:focus { outline: none; }
+  .ed25 input::placeholder { color: inherit; opacity: 1; }
+  .ed25 img, .ed25 svg { display: block; max-width: 100%; }
+  .ed25 ::selection { background: var(--color-primary); color: #000; }
+}

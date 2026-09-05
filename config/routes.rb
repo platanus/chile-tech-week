@@ -5,6 +5,14 @@ Rails.application.routes.draw do
 
   root "home#show"
 
+  # The 2025 edition, kept as it ran on the old site: its landing, its programme and its
+  # brand kit (Edition2025::*Controller, pages/Edition2025/*).
+  namespace :edition2025, path: "25" do
+    root "home#show"
+    resources :events, only: :index
+    get "brand", to: "brand#show"
+  end
+
   # Solid Queue dashboard, only when its basic-auth credentials are configured.
   mount MissionControl::Jobs::Engine, at: "/admin/jobs" if AppConfig.instance.mission_control?
 end
