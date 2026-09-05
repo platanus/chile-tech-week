@@ -132,8 +132,10 @@ gh run watch                                                     # the dispatch
 ssh swiss "docker image inspect -f '{{.Created}}' tech-week-app:latest; tail -n 3 /home/debian/swiss-composes/tech-week/.deploy.log"
 ```
 
-and look for `Deploy complete` — or wait for the Slack notification. Then check the
-behaviour actually changed on the site before tearing the worktree down.
+and look for `Deploy complete` — or wait for the Slack notification: the deploy script posts
+the outcome (or the failing step with the log tail) to `#tech-week-notifications` as the hack
+bot, with the `SLACK_BOT_TOKEN` and `SLACK_CHANNEL` GitHub secrets the workflow hands it. Then
+check the behaviour actually changed on the site before tearing the worktree down.
 
 Nginx Proxy Manager on the host terminates TLS and routes techweek.cl to
 `tech-week-app:3000` over the shared `npm` docker network; Cloudflare sits in front.
