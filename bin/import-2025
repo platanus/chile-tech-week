@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Load the 2025 edition into this checkout's database from the old site's production dump
+# (a pg_dump custom-format file of the Next.js/Drizzle app that ran techweek.cl in 2025):
+#   1. restore the dump into a scratch database (tech_week_legacy_2025) on the same server
+#      POSTGRES_URL points at,
+#   2. rake legacy_2025:import — copy events, themes, audiences, links and co-hosts into
+#      this app's tables (idempotent, ids preserved),
+#   3. rake legacy_2025:mirror_logos — bring the logos into public/25/logos and repoint
+#      the rows at them,
+#   4. drop the scratch database.
+#
+#   bin/import-2025 <dump>
+#
+# The dump holds the submitters' contact details, so it stays out of git (dumps/ is
+# ignored); keep it under dumps/legacy-2025/ so bin/start-worktree never mistakes it for
+# one of this app's own production dumps.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+DUMP="${1:-}"
+[ -n "$DUMP" ] && [ -s "$DUMP" ] || { echo "usage: bin/import-2025 <2025 site pg_dump>" >&2; exit 1; }
+
+set -a
+[ -f .env.local ] && . ./.env.local
+set +a
+: "${POSTGRES_URL:?POSTGRES_URL not set — check .env.local}"
+
+DB_NAME="$(printf '%s' "$POSTGRES_URL" | sed -E 's#^[a-z]+://[^/]+/([^?]+).*#\1#')"
+LEGACY_DB=tech_week_legacy_2025
+MAINTENANCE_URL="$(printf '%s' "$POSTGRES_URL" | sed -E "s#/${DB_NAME}(\\?|\$)#/postgres\\1#")"
+LEGACY_URL="$(printf '%s' "$POSTGRES_URL" | sed -E "s#/${DB_NAME}(\\?|\$)#/${LEGACY_DB}\\1#")"
+
+echo "Restoring ${DUMP} into ${LEGACY_DB} ..."
+psql "$MAINTENANCE_URL" -q -c "DROP DATABASE IF EXISTS ${LEGACY_DB} WITH (FORCE);"
+psql "$MAINTENANCE_URL" -q -c "CREATE DATABASE ${LEGACY_DB};"
+# The dump comes from a newer Postgres; `SET transaction_timeout` is the one statement an
+# older server rejects, and pg_restore exits 1 for it after restoring everything else.
+pg_restore --no-owner --no-acl --dbname="$LEGACY_URL" "$DUMP" || echo "pg_restore reported warnings (see above)"
+
+LEGACY_2025_DATABASE_URL="$LEGACY_URL" bin/rails legacy_2025:import legacy_2025:mirror_logos
+
+psql "$MAINTENANCE_URL" -q -c "DROP DATABASE IF EXISTS ${LEGACY_DB} WITH (FORCE);"
+echo "Done: the 2025 edition is in ${DB_NAME}."
