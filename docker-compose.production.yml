@@ -24,7 +24,12 @@ x-app-base: &app-base
     - path: /home/debian/swiss-composes/tech-week/.env
       required: false
   environment:
-    - POSTGRES_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/tech_week_prod
+    # The container name, not the service name: `app` also sits on the shared `npm` network,
+    # where another stack's database answers to the alias `postgres` (Metabase's, at the time
+    # of writing) and Docker's DNS picked it over ours — the first deploy failed to
+    # authenticate against a database that wasn't this one. The container name only resolves
+    # on `internal`, so it is unambiguous.
+    - POSTGRES_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@tech-week-postgres:5432/tech_week_prod
   volumes:
     - storage-volume:/app/storage
   depends_on:
