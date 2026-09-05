@@ -8,6 +8,11 @@ pre-commit:
   commands:
     standardrb:
       glob: "*.rb"
+      # Passing files explicitly bypasses .standard.yml's ignore list, so the generated
+      # schema files are excluded here too.
+      exclude:
+        - "db/schema.rb"
+        - "db/*_schema.rb"
       run: bundle exec standardrb {staged_files}
     typecheck:
       glob: "*.{ts,tsx}"

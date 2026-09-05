@@ -1,0 +1,5 @@
+# Generated files are not ours to style: Rails re-dumps db/schema.rb after every migration
+# (and bin/ci-checks fails on any diff), so its formatting has to be whatever Rails emits.
+ignore:
+  - "db/schema.rb"
+  - "db/*_schema.rb"
