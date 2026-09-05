@@ -119,8 +119,19 @@ export default function Show({ title, description }: HomeShow) {
           <div className="hud" id="hud" />
           <div className="credit">
             Relieve: SRTM (AWS Terrain Tiles) · Cumbres: © OpenStreetMap contributors · Edificios:
-            Overture Maps
+            Overture Maps · Mapa: Natural Earth
           </div>
+        </div>
+        <canvas id="minimap" aria-label="Mapa de Chile: clic para volar allí" title="Clic para volar allí" />
+        <button id="search-btn" type="button" aria-label="Buscar ciudad o cumbre" title="Buscar ciudad o cumbre">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <path d="m20 20-4.8-4.8" />
+          </svg>
+        </button>
+        <div id="search" hidden>
+          <input id="search-input" type="search" placeholder="Ciudad o cumbre…" autoComplete="off" spellCheck={false} aria-label="Buscar ciudad o cumbre" />
+          <ul id="search-results" role="listbox" />
         </div>
       </div>
       <div id="peaks" aria-hidden="true" />

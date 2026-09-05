@@ -16,6 +16,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import GUI from 'lil-gui';
 import { ChileTerrain } from '@/terrain/chile';
+import { fold, fuzzySearch } from '@/landing/fuzzy';
 
 export async function startScene() {
 
@@ -357,8 +358,10 @@ function staleTile(tx, ty) {
 function streamTiles() {
   if (!H?.real) return;
   // chunks are wanted a little past the view distance and need every tile under them, so the tile
-  // radius reaches one and a half chunks further than the chunks do
-  real.update(focus.x / H.upk, H.zKm(focus.z), -Math.sin(condor.yaw), -Math.cos(condor.yaw), (P.viewDistance + 1.5 * grid.D) / H.upk, P.prefetchKm);
+  // radius reaches one and a half chunks further than the chunks do. While the screen is black on
+  // the way to a teleport, the destination's tiles stream instead of the ones here
+  const to = crash.to;
+  real.update(to ? to.kmX : focus.x / H.upk, to ? to.kmZ : H.zKm(focus.z), -Math.sin(condor.yaw), -Math.cos(condor.yaw), (P.viewDistance + 1.5 * grid.D) / H.upk, P.prefetchKm);
 }
 // the wire vertex a named summit is pinned to (used by the chunk builder and the labels alike)
 function peakVertex(p, z) {
@@ -604,7 +607,7 @@ const chunkGroup = new THREE.Group();
 terrainGroup.add(chunkGroup);
 // cell: fine vertex spacing; S: cells per chunk side; D: chunk side in units; G: half the width in cells
 let grid = { cell: 1, S: 4, D: 4, G: 1, width: 1, cMin: 0, cMax: 1 };
-let seaMesh = null, seaLines = null, seaCell = 1;
+let seaMesh = null, seaLines = null, seaCell = 1, seaLen = 0;
 
 function disposeObject(o) {
   o.traverse((c) => { if (c.geometry) c.geometry.dispose(); });
@@ -667,12 +670,15 @@ function buildChunk(i, k, lod) {
     }
   }
   const idx = (ii, j) => j * w + ii;
+  // the sea floor is never seen: whatever lies entirely below the deepest wave trough is left out
+  // (faces and wire), so there is no mesh under the water for it to show through
+  const sunk = (v) => pos[v * 3 + 1] <= -P.waveAmp;
 
   // wire grid (rows + columns, optional diagonals)
   const lp = [], lc = [];
   const range = Math.max(grid.cMax - grid.cMin, 1e-6);
   const tint = (v) => { const c = wireColorAt(clamp((pos[v * 3 + 1] - grid.cMin) / range, 0, 1)); lc.push(c.r, c.g, c.b); };
-  const push = (a, b) => { lp.push(pos[a * 3], pos[a * 3 + 1], pos[a * 3 + 2], pos[b * 3], pos[b * 3 + 1], pos[b * 3 + 2]); tint(a); tint(b); };
+  const push = (a, b) => { if (sunk(a) && sunk(b)) return; lp.push(pos[a * 3], pos[a * 3 + 1], pos[a * 3 + 2], pos[b * 3], pos[b * 3 + 1], pos[b * 3 + 2]); tint(a); tint(b); };
   for (let j = 0; j < rows; j++) for (let ii = 0; ii < w; ii++) {
     const a = idx(ii, j);
     if (ii < nx) push(a, idx(ii + 1, j));
@@ -694,7 +700,8 @@ function buildChunk(i, k, lod) {
   const tri = [];
   for (let j = 0; j < segsZ; j++) for (let ii = 0; ii < nx; ii++) {
     const a = idx(ii, j), b = idx(ii + 1, j), c = idx(ii, j + 1), d = idx(ii + 1, j + 1);
-    tri.push(a, c, b, b, c, d);
+    if (!(sunk(a) && sunk(c) && sunk(b))) tri.push(a, c, b);
+    if (!(sunk(b) && sunk(c) && sunk(d))) tri.push(b, c, d);
   }
   const indexed = new THREE.BufferGeometry();
   indexed.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -890,8 +897,9 @@ function buildSea() {
   // the wire grid never slides); waves are computed in world space so motion stays continuous
   const sn = Math.round(P.seaResolution);
   seaCell = grid.width / sn;
-  const len = (Math.ceil((P.viewDistance * 2 + grid.D * 2) / seaCell)) * seaCell;
+  const len = (Math.ceil(seaLenFor(P.viewDistance) / seaCell)) * seaCell;
   const sz = Math.round(len / seaCell), sw = sn + 1;
+  seaLen = len;
   const sg = new THREE.PlaneGeometry(grid.width, len, sn, sz);
   sg.rotateX(-Math.PI / 2);
   seaMesh = new THREE.Mesh(sg, seaMat);
@@ -909,8 +917,14 @@ function buildSea() {
   terrainGroup.add(seaMesh, seaLines);
   updateSea();
 }
+// the plane must reach past every chunk kept around the camera (updateChunks keeps them to
+// viewDistance + 0.7 D), so the water never ends inside the built terrain
+function seaLenFor(viewDistance) { return viewDistance * 2 + grid.D * 2; }
 function updateSea() {
   if (!seaMesh) return;
+  // a higher quality tier (or the slider) grows the view distance after the plane was built:
+  // without this the far chunks reached past the water's end and showed bare sea bed
+  if (seaLenFor(P.viewDistance) > seaLen) return buildSea();
   const z = Math.round(focus.z / seaCell) * seaCell;
   seaMesh.position.z = z;
   seaLines.position.z = z;
@@ -1159,10 +1173,16 @@ function resetCamera(z = homeZ()) {
   // z is the infinite (along-coast) axis: a respawn keeps it, a manual reset goes back to 0
   const x = H?.real ? (mode === 'game' ? P.startKm : P.laneKm) * H.upk
                     : (H ? H.coastX(z) : P.coastOffset) + (mode === 'game' ? P.startOffset : P.ambientOffset);
-  condor.yaw = H?.real && mode === 'game' ? -P.startHeading * Math.PI / 180 : 0; condor.pitch = 0; condor.roll = 0;
-  // never inside the relief or a building: clear the ground under the bird and along its first
-  // stretch (a respawn after a crash keeps the crash's z, which may be a mountainside)
-  let y = mode === 'game' ? P.startAltitude : P.ambientAltitude;
+  condor.yaw = H?.real && mode === 'game' ? -P.startHeading * Math.PI / 180 : 0;
+  placeAt(x, z, mode === 'game' ? P.startAltitude : P.ambientAltitude);
+  cam.yaw = -0.45; cam.pitch = -0.12;
+}
+// the bird at (x, z), level, on its current heading, never inside the relief or a building: clear
+// the ground under it and along its first stretch (a respawn after a crash keeps the crash's z,
+// which may be a mountainside; a teleport lands on whatever the overview says is there)
+function placeAt(x, z, altitude) {
+  condor.pitch = 0; condor.roll = 0;
+  let y = altitude;
   if (H) {
     let floor = -Infinity;
     for (let k = 0; k <= 12; k++) { const d = k * 30; floor = Math.max(floor, groundAt(x - Math.sin(condor.yaw) * d, z - Math.cos(condor.yaw) * d)); }
@@ -1171,7 +1191,6 @@ function resetCamera(z = homeZ()) {
   condor.pos.set(x, y, z);
   orbit.yaw = 0; orbit.pitch = 0;
   camera.position.set(x + Math.sin(condor.yaw) * P.camDistance, y + P.camHeight, z + Math.cos(condor.yaw) * P.camDistance);
-  cam.yaw = -0.45; cam.pitch = -0.12;
 }
 const keys = {};
 addEventListener('keydown', (e) => {
@@ -1228,25 +1247,47 @@ cv.addEventListener('wheel', (e) => {
 const _fwd = new THREE.Vector3(), _right = new THREE.Vector3(), _tmp = new THREE.Vector3(), _look = new THREE.Vector3();
 let flightTime = 0;
 
-// crash / respawn: fade to black, reset to the starting point, fade back in
+// crash / respawn: fade to black, reset to the starting point, fade back in. A teleport (the map)
+// rides the same fade: `to` is where the bird lands instead of the starting point
 const fadeEl = document.getElementById('fade');
-let crash = { state: 'none', t: 0, z: 0 };
+let crash = { state: 'none', t: 0, z: 0, to: null };
 function triggerCrash() {
   if (crash.state !== 'none') return;
-  crash = { state: 'out', t: 0, z: condor.pos.z };
+  crash = { state: 'out', t: 0, z: condor.pos.z, to: null };
   fadeEl.style.opacity = 1;
 }
 function updateCrash(dt) {
   if (crash.state === 'none') return false;
   crash.t += dt;
   if (crash.state === 'out' && crash.t > 1.0) {
-    resetCamera(crash.z);
-    crash = { state: 'in', t: 0 };
-    fadeEl.style.opacity = 0;
+    if (crash.to) placeAt(crash.to.x, crash.to.z, P.startAltitude); else resetCamera(crash.z);
+    crash = { state: 'load', t: 0, z: crash.z, to: crash.to };
+  } else if (crash.state === 'load') {
+    // stay black until the relief under the bird is in and built (a teleport lands on tiles that
+    // are still streaming; a respawn is on loaded ones and passes at once), 5 s at most
+    const ready = !H?.real || crash.t > 5 || (crash.t > 0.15 && lastPending === 0 && real.loaded(condor.pos.x / H.upk, H.zKm(condor.pos.z), (P.viewDistance + 1.5 * grid.D) / H.upk));
+    if (ready) { crash = { state: 'in', t: 0, z: 0, to: null }; fadeEl.style.opacity = 0; }
   } else if (crash.state === 'in' && crash.t > 0.9) {
-    crash = { state: 'none', t: 0 };
+    crash = { state: 'none', t: 0, z: 0, to: null };
   }
-  return crash.state === 'out';
+  return crash.state === 'out' || crash.state === 'load';
+}
+// fly the bird to a point of the country (km east of the centreline, km south of the north edge):
+// the crash fade, then it lands there level on its current heading, and the fade lifts once the
+// relief has streamed. It stays in the same mirrored copy of the strip, so north keeps its
+// direction on screen
+function teleport(kmX, kmZ) {
+  if (!H?.real || mode !== 'game' || crash.state !== 'none') return;
+  const halfKm = (grid.width / 2 - P.boundsMargin) / H.upk - 2;
+  kmX = clamp(kmX, -halfKm, halfKm);
+  kmZ = clamp(kmZ, 1, real.lengthKm - 1);
+  const L = H.L, n = Math.floor(condor.pos.z / (2 * L)), t = condor.pos.z - 2 * L * n;
+  const z = 2 * L * n + (t <= L ? kmZ * H.upk : 2 * L - kmZ * H.upk);
+  crash = { state: 'out', t: 0, z, to: { x: kmX * H.upk, z, kmX, kmZ } };
+  fadeEl.style.opacity = 1;
+  const near = real.cities.filter((c) => Math.hypot(c.kmX - kmX, c.kmZ - kmZ) < 40).sort((a, b) => b.pop - a.pop)[0];
+  const { lat, lon } = real.toLatLon(kmX, kmZ);
+  toast(near ? `→ ${near.name}` : `→ ${Math.abs(lat).toFixed(2)}° S · ${Math.abs(lon).toFixed(2)}° O`);
 }
 
 // ---------------------------------------------------------------- landing-page modes
@@ -1268,13 +1309,14 @@ function setMode(m) {
     document.getElementById('exit').focus?.({ preventScroll: true });
   } else {
     gui.hide();
+    closeSearch(false);
     for (const k in keys) keys[k] = false;
   }
 }
 document.getElementById('play').addEventListener('click', () => setMode('game'));
 document.getElementById('exit').addEventListener('click', () => setMode('ambient'));
 new IntersectionObserver(([en]) => { heroVisible = en.isIntersecting; }, { threshold: 0.05 }).observe(document.getElementById('hero'));
-window.condorScene = { setMode, get mode() { return mode; }, probe(x, z) { return { terrain: H.height(x, z), obstacle: H.obstacle ? H.obstacle(x, z) : null }; }, cityCands() { return lastCityCands; }, quality() { return { tier: quality.tier, target: quality.target, locked: quality.locked, verdict: quality.verdict, dprLimit: quality.dprLimit, pendingFog: quality.pendingFog, pending: lastPending, fadingChunks: fading.length, name: QUALITY[quality.tier].name, gpu: quality.gpu, displayMs: quality.displayMs, viewDistance: P.viewDistance, fog: P.fogDensity, dprCap: quality.dprCap, bloom: P.bloom, frames: quality.frames.length }; }, stats() { const byLod = {}; for (const c of chunks.values()) byLod[c.lod] = (byLod[c.lod] || 0) + 1; return { chunks: chunks.size, byLod, tiles: real.tiles.size, tileBytes: real.bytes, peaks: real.peaks.length, slowestBuilds: [...buildTimes].sort((a, b) => b[1] - a[1]).slice(0, 6), buildTotalMs: buildTimes.reduce((a, b) => a + b[1], 0) }; } }; // tiny API for the host page (and tests)
+window.condorScene = { setMode, teleport, get mode() { return mode; }, bird() { return { x: condor.pos.x, y: condor.pos.y, z: condor.pos.z, yaw: condor.yaw, crash: crash.state, to: crash.to }; }, probe(x, z) { return { terrain: H.height(x, z), obstacle: H.obstacle ? H.obstacle(x, z) : null }; }, cityCands() { return lastCityCands; }, quality() { return { tier: quality.tier, target: quality.target, locked: quality.locked, verdict: quality.verdict, dprLimit: quality.dprLimit, pendingFog: quality.pendingFog, pending: lastPending, fadingChunks: fading.length, name: QUALITY[quality.tier].name, gpu: quality.gpu, displayMs: quality.displayMs, viewDistance: P.viewDistance, fog: P.fogDensity, dprCap: quality.dprCap, bloom: P.bloom, frames: quality.frames.length }; }, stats() { const byLod = {}; for (const c of chunks.values()) byLod[c.lod] = (byLod[c.lod] || 0) + 1; return { chunks: chunks.size, byLod, tiles: real.tiles.size, tileBytes: real.bytes, peaks: real.peaks.length, slowestBuilds: [...buildTimes].sort((a, b) => b[1] - a[1]).slice(0, 6), buildTotalMs: buildTimes.reduce((a, b) => a + b[1], 0) }; } }; // tiny API for the host page (and tests)
 
 function ambientInputs(dt) {
   // autopilot: hold a lane beside the coast, cruise altitude, and a slow lazy sway
@@ -1654,6 +1696,7 @@ addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
   composer.setSize(innerWidth, innerHeight);
+  minimap.base = null;
 });
 
 // ---------------------------------------------------------------- names (HUD)
@@ -1810,6 +1853,171 @@ function updatePeakLabels() {
   }
 }
 
+// ---------------------------------------------------------------- the map of Chile
+// Bottom right in game mode: the dataset's outline (corridor km, projected back to lat/lon so the
+// country keeps its true shape; the Rapa Nui insert is one of its rings) as a soft silhouette,
+// and the condor with its heading. A click anywhere on it flies the condor there.
+const minimap = { el: document.getElementById('minimap'), base: null, w: 0, h: 0, pad: 8, s: 1, u0: 0, v0: 0, cosLat: 1 };
+// map units: u degrees of longitude east (scaled so km are true at the country's middle latitude), v degrees south
+function mapPx(kmX, kmZ) {
+  const { lat, lon } = real.toLatLon(kmX, kmZ);
+  return [minimap.pad + (lon - minimap.u0) * minimap.cosLat * minimap.s, minimap.pad + (minimap.v0 - lat) * minimap.s];
+}
+function mapKm(px, py) {
+  return real.toKm(minimap.v0 - (py - minimap.pad) / minimap.s, minimap.u0 + (px - minimap.pad) / minimap.s / minimap.cosLat);
+}
+function buildMinimap() {
+  const el = minimap.el, I = real.index, rings = I?.outline;
+  minimap.base = null;
+  if (!rings || !H?.real) { el.hidden = true; return; }
+  el.hidden = false;
+  // the mainland and the big islands; islets would read as stray dots next to the condor. An
+  // insert (Rapa Nui) stays whatever its size: it is a destination
+  const inserts = (I.inserts ?? []).map((ins) => ({ x: ins.kmX, z: real.latToKmZ(ins.lat), r: ins.radiusKm }));
+  const shown = rings.filter((r) => {
+    let xa = Infinity, xb = -Infinity, za = Infinity, zb = -Infinity;
+    for (const [x, z] of r) { xa = Math.min(xa, x); xb = Math.max(xb, x); za = Math.min(za, z); zb = Math.max(zb, z); }
+    return Math.max(xb - xa, zb - za) >= 40 || inserts.some((ins) => Math.hypot(r[0][0] - ins.x, r[0][1] - ins.z) <= ins.r);
+  });
+  let latA = Infinity, latB = -Infinity, lonA = Infinity, lonB = -Infinity;
+  for (const [x, z] of shown.flat()) {
+    const { lat, lon } = real.toLatLon(x, z);
+    latA = Math.min(latA, lat); latB = Math.max(latB, lat); lonA = Math.min(lonA, lon); lonB = Math.max(lonB, lon);
+  }
+  minimap.cosLat = Math.cos((((latA + latB) / 2) * Math.PI) / 180);
+  minimap.u0 = lonA; minimap.v0 = latB;
+  const h = el.clientHeight; // the CSS height; the width follows the country's shape
+  minimap.s = (h - 2 * minimap.pad) / (latB - latA);
+  const w = Math.round((lonB - lonA) * minimap.cosLat * minimap.s + 2 * minimap.pad);
+  el.style.width = `${w}px`;
+  minimap.w = w; minimap.h = h;
+  // the search panel sits left of the map and its button right over the country's northern tip
+  let tip = [w / 2, 0];
+  for (const [x, z] of shown.flat()) { const p = mapPx(x, z); if (p[1] < tip[1] || tip[1] === 0) tip = p; }
+  const ui = document.getElementById('gameui').style;
+  ui.setProperty('--map-w', `${w}px`); ui.setProperty('--map-tip', `${(w - tip[0]).toFixed(1)}px`);
+  const dpr = Math.min(devicePixelRatio, 2);
+  el.width = Math.round(w * dpr); el.height = Math.round(h * dpr);
+  const base = document.createElement('canvas');
+  base.width = el.width; base.height = el.height;
+  const c = base.getContext('2d');
+  c.scale(dpr, dpr);
+  const path = (ring) => { ring.forEach(([x, z], i) => { const [px, py] = mapPx(x, z); if (i) c.lineTo(px, py); else c.moveTo(px, py); }); c.closePath(); };
+  c.beginPath(); for (const r of shown) path(r);
+  c.fillStyle = 'rgba(255,255,255,.42)'; c.fill();
+  minimap.base = base;
+}
+function drawMinimap() {
+  const el = minimap.el;
+  if (!H?.real) return;
+  if (!minimap.base || el.clientHeight !== minimap.h) buildMinimap();
+  if (!minimap.base) return;
+  const c = el.getContext('2d');
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  c.clearRect(0, 0, el.width, el.height); // the base is transparent: without this every arrow stays
+  c.drawImage(minimap.base, 0, 0);
+  c.scale(el.width / minimap.w, el.width / minimap.w);
+  const [px, py] = mapPx(condor.pos.x / H.upk, H.zKm(condor.pos.z));
+  // the heading: -z is north in the strip, south in its mirrored copies
+  const t = (((condor.pos.z / H.L) % 2) + 2) % 2, south = t <= 1 ? 1 : -1;
+  const dx = -Math.sin(condor.yaw), dy = -Math.cos(condor.yaw) * south;
+  // an arrowhead pointing where the bird flies, with a dark edge so it reads on the white
+  const nx = -dy, ny = dx;
+  c.shadowColor = 'rgba(238,43,43,.9)'; c.shadowBlur = 7;
+  c.fillStyle = '#EE2B2B'; c.strokeStyle = 'rgba(0,0,0,.7)'; c.lineWidth = 1; c.lineJoin = 'round';
+  c.beginPath();
+  c.moveTo(px + dx * 7, py + dy * 7);
+  c.lineTo(px - dx * 4 + nx * 4.5, py - dy * 4 + ny * 4.5);
+  c.lineTo(px - dx * 1.5, py - dy * 1.5);
+  c.lineTo(px - dx * 4 - nx * 4.5, py - dy * 4 - ny * 4.5);
+  c.closePath(); c.fill(); c.shadowBlur = 0; c.stroke();
+}
+minimap.el.addEventListener('pointerdown', (e) => {
+  if (mode !== 'game' || !minimap.base) return;
+  const r = minimap.el.getBoundingClientRect();
+  const { kmX, kmZ } = mapKm(e.clientX - r.left, e.clientY - r.top);
+  teleport(kmX, kmZ);
+});
+
+// ---------------------------------------------------------------- search: a city or a summit, then fly there
+// The magnifying glass in the corner opens a panel: every populated place (the index) and every
+// named summit (peaks.json, fetched the first time), fuzzy-matched as you type; Enter or a click
+// teleports. While the input has focus the flight keys are off (isTyping).
+const search = {
+  btn: document.getElementById('search-btn'), panel: document.getElementById('search'),
+  input: document.getElementById('search-input'), list: document.getElementById('search-results'),
+  items: null, results: [], active: 0,
+};
+async function searchItems() {
+  if (!search.items) {
+    const summits = H?.real ? await real.loadSummits() : [];
+    const cities = real.cities.map((c) => ({ name: c.name, kind: 'ciudad', sub: c.pop >= 1000 ? `${Math.round(c.pop / 1000)} k hab.` : `${c.pop} hab.`, kmX: c.kmX, kmZ: c.kmZ }));
+    const peaks = summits.map((p) => ({ name: p.name, kind: 'cumbre', sub: `${p.ele} m`, kmX: p.kmX, kmZ: p.kmZ }));
+    search.items = [...cities, ...peaks].map((it) => ({ ...it, key: fold(it.name) }));
+  }
+  return search.items;
+}
+function openSearch() {
+  if (mode !== 'game') return;
+  search.panel.hidden = false; search.btn.classList.add('open');
+  search.input.value = ''; renderResults([], '');
+  search.input.focus();
+  searchItems().then(runSearch);
+}
+function closeSearch(refocus = true) {
+  if (search.panel.hidden) return;
+  search.panel.hidden = true; search.btn.classList.remove('open');
+  if (refocus) document.getElementById('exit').focus?.({ preventScroll: true });
+}
+function runSearch() {
+  if (!search.items) return;
+  const q = search.input.value.trim();
+  search.results = q ? fuzzySearch(q, search.items, 8) : [];
+  search.active = 0;
+  renderResults(search.results, q);
+}
+function renderResults(results, q) {
+  const list = search.list;
+  list.textContent = '';
+  if (!results.length) {
+    if (q) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Sin resultados'; list.append(li); }
+    return;
+  }
+  results.forEach(({ item, match }, i) => {
+    const li = document.createElement('li');
+    li.className = i === search.active ? 'active' : '';
+    li.setAttribute('role', 'option');
+    const b = document.createElement('b');
+    // the matched letters in red (names come from the map data: built from text nodes, never markup)
+    const hit = new Set(match.indices);
+    let run = '', runHit = false;
+    const flush = () => { if (!run) return; const el = runHit ? document.createElement('mark') : document.createTextNode(run); if (runHit) el.textContent = run; b.append(el); run = ''; };
+    [...item.name].forEach((ch, k) => { const h = hit.has(k); if (h !== runHit) { flush(); runHit = h; } run += ch; });
+    flush();
+    const span = document.createElement('span'); span.textContent = `${item.kind} · ${item.sub}`;
+    li.append(b, span);
+    li.addEventListener('pointerdown', (e) => { e.preventDefault(); pickResult(item); });
+    li.addEventListener('pointerenter', () => { search.active = i; for (const el of list.children) el.classList.toggle('active', el === li); });
+    list.append(li);
+  });
+}
+function pickResult(item) {
+  closeSearch();
+  teleport(item.kmX, item.kmZ);
+}
+search.btn.addEventListener('click', () => (search.panel.hidden ? openSearch() : closeSearch()));
+search.input.addEventListener('input', runSearch);
+search.input.addEventListener('keydown', (e) => {
+  e.stopPropagation();
+  const n = search.results.length;
+  if (e.key === 'Escape') { e.preventDefault(); closeSearch(); }
+  else if (e.key === 'ArrowDown' && n) { e.preventDefault(); search.active = (search.active + 1) % n; renderResults(search.results, search.input.value.trim()); }
+  else if (e.key === 'ArrowUp' && n) { e.preventDefault(); search.active = (search.active + n - 1) % n; renderResults(search.results, search.input.value.trim()); }
+  else if (e.key === 'Enter' && n) { e.preventDefault(); pickResult(search.results[search.active].item); }
+});
+// a click elsewhere (the scene grabs focus on pointerdown) closes the panel
+search.input.addEventListener('blur', () => setTimeout(() => { if (!search.panel.contains(document.activeElement)) closeSearch(false); }, 0));
+
 const hud = document.getElementById('hud');
 const clock = new THREE.Clock();
 let hudTick = 0, fpsAcc = 0, fpsN = 0;
@@ -1834,6 +2042,7 @@ function frame() {
   updateFades(dt);
   updateSea();
   updatePeakLabels();
+  if (!ambient) drawMinimap();
   sky.position.copy(camera.position);
   bloomPass.strength = ambient ? P.ambientBloom : P.bloomStrength;
   if (P.bloom) composer.render(); else renderer.render(scene, camera);

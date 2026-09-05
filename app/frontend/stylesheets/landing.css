@@ -79,8 +79,39 @@ body.game #exit { pointer-events: auto; }
 #help b { color: var(--ink); }
 #help .hud { margin-top: 6px; color: var(--red); }
 #help .credit { margin-top: 4px; font-size: 10px; letter-spacing: .04em; color: #525252; }
+/* the map of Chile, bottom right: a translucent silhouette with the condor on it, no frame; a click
+   flies the condor there (the width follows the country's shape, set by the scene) */
+#gameui { --map-h: min(420px, 48vh); --map-w: 90px; --map-tip: 45px; } /* the map's height; its width and the tip's offset from its right edge follow the country, set by the scene */
+#minimap { position: absolute; right: 18px; bottom: 18px; height: var(--map-h); width: var(--map-w); pointer-events: none; cursor: crosshair;
+  opacity: .6; transition: opacity .25s; }
+body.game #minimap { pointer-events: auto; }
+#minimap:hover { opacity: 1; }
+/* the search: a bare magnifying glass right on the country's northern tip; its panel opens beside the map
+   at the glass's row and fuzzy-matches every city and summit; the pick flies the condor there */
+#search-btn { position: absolute; right: var(--map-tip); bottom: calc(var(--map-h) + 2px); width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center; pointer-events: none; cursor: pointer; border: 0; padding: 0; background: none;
+  color: rgba(255,255,255,.7); transition: color .2s, transform .2s; }
+body.game #search-btn { pointer-events: auto; }
+#search-btn:hover, #search-btn.open { color: var(--red); transform: scale(1.1); }
+#search-btn:focus-visible { outline: 2px solid var(--red); outline-offset: -4px; border-radius: 2px; }
+#search { position: absolute; right: calc(var(--map-w) + 30px); top: calc(100% - var(--map-h) - 38px); max-height: calc(var(--map-h) + 20px);
+  width: min(320px, calc(100vw - var(--map-w) - 48px)); display: flex; flex-direction: column; pointer-events: none;
+  background: rgba(0,0,0,.72); border: 1px solid var(--line); border-radius: 2px; backdrop-filter: blur(8px); font: 12px var(--mono); }
+#search[hidden] { display: none; }
+body.game #search:not([hidden]) { pointer-events: auto; }
+#search input { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 0; border-bottom: 1px solid var(--line);
+  background: transparent; color: var(--ink); font: 13px var(--mono); outline: none; border-radius: 0; -webkit-appearance: none; appearance: none; }
+#search input::placeholder { color: #666; }
+#search input::-webkit-search-cancel-button { display: none; }
+#search ul { list-style: none; margin: 0; padding: 4px 0; flex: 1; min-height: 0; overflow-y: auto; }
+#search ul:empty { display: none; }
+#search li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 12px; cursor: pointer; color: var(--ink); }
+#search li mark { background: none; color: var(--red); }
+#search li.active, #search li:hover { background: rgba(238,43,43,.12); }
+#search li span { color: #777; white-space: nowrap; font-size: 11px; }
+#search li.empty { color: #666; cursor: default; }
 /* peak names: a mono label above a 1px red tick that ends on the summit vertex */
-#peaks { position: fixed; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .4s ease; }
+#peaks { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .4s ease; }
 body.game #peaks { opacity: 1; }
 .peak { position: absolute; left: 0; top: 0; will-change: transform; }
 .peak > div { position: relative; padding: 0 0 22px 7px; border-left: 1px solid var(--red);
@@ -110,6 +141,10 @@ body.game #peaks { opacity: 1; }
 .lil-gui.root { max-height: 100vh; overflow-y: auto; }
 
 @media (max-width: 720px) {
+  #gameui { --map-h: 34vh; }
+  #minimap { bottom: 14px; right: 14px; }
+  #search-btn { bottom: calc(var(--map-h) - 2px); }
+  #search { right: calc(var(--map-w) + 24px); top: calc(100% - var(--map-h) - 34px); }
   #hero { padding-top: 90px; padding-bottom: 90px; justify-content: flex-end; }
   .logo { width: 78vw; }
   #hero .lede { max-width: 30ch; }
