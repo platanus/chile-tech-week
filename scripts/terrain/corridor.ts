@@ -6,6 +6,7 @@
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
+import { gunzipSync } from 'node:zlib'
 
 // centreline, north -> south
 export const CENTER: [number, number][] = [
@@ -123,6 +124,40 @@ export function paethEncode(v: Int16Array, cols: number, rows: number): Buffer {
     out.writeInt16LE(v[i] - (pa <= pb && pa <= pc ? a : pb <= pc ? b : c), i * 2)
   }
   return out
+}
+/** the JSON header of a tile or overview file, without touching its samples */
+export function readHeader(buf: Buffer): any {
+  if (buf.toString('latin1', 0, 4) !== 'CTW1') throw new Error('bad terrain file')
+  return JSON.parse(buf.toString('utf8', 8, 8 + buf.readUInt32LE(4)))
+}
+/**
+ * peaks.json: every named summit of the dataset as [name, kmX, kmZ, ele], gathered from the tile
+ * headers (where the scene reads them tile by tile), for the in-game search, which needs them
+ * all at once. Returns its size in bytes.
+ */
+export function writePeaksIndex(dir: string): number {
+  const rows: [string, number, number, number][] = []
+  for (const file of readdirSync(`${dir}/t`)) if (/^\d+-\d+\.bin$/.test(file)) rows.push(...(readHeader(readFileSync(`${dir}/t/${file}`)).peaks as [string, number, number, number][]))
+  rows.sort((a, b) => b[3] - a[3])
+  const json = JSON.stringify(rows)
+  writeFileSync(`${dir}/peaks.json`, json)
+  return Buffer.byteLength(json)
+}
+/** the inverse of pack + paethEncode: a tile or overview file back to its header and samples */
+export function unpack(buf: Buffer): { header: any; data: Int16Array } {
+  if (buf.toString('latin1', 0, 4) !== 'CTW1') throw new Error('bad terrain file')
+  const len = buf.readUInt32LE(4)
+  const header = JSON.parse(buf.toString('utf8', 8, 8 + len))
+  const raw = gunzipSync(buf.subarray(8 + len))
+  const data = new Int16Array(raw.buffer, raw.byteOffset, raw.length / 2)
+  const cols: number = header.cols ?? header.n, rows: number = header.rows ?? header.n
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const i = y * cols + x
+    const a = x > 0 ? data[i - 1] : 0, b = y > 0 ? data[i - cols] : 0, c = x > 0 && y > 0 ? data[i - cols - 1] : 0
+    const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c)
+    data[i] += pa <= pb && pa <= pc ? a : pb <= pc ? b : c
+  }
+  return { header, data }
 }
 export function pack(header: object, blob: Buffer): Buffer {
   const h = Buffer.from(JSON.stringify(header))

@@ -22,7 +22,7 @@
 import { createHash } from 'node:crypto'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { gzipSync, inflateSync } from 'node:zlib'
-import { CACHE, HALF_WIDTH_KM, KM_PER_DEG, KM_PER_SAMPLE, LAT_N, LAT_S, PUBLIC_DIR, TILE, TILES_X, TILES_Y, TILE_KM, CENTER, INSERTS, cached, corridorBox, insertBoxes, pack, paethEncode, pool, publish, toKm, toLatLon } from './corridor.ts'
+import { CACHE, HALF_WIDTH_KM, KM_PER_DEG, KM_PER_SAMPLE, LAT_N, LAT_S, PUBLIC_DIR, TILE, TILES_X, TILES_Y, TILE_KM, CENTER, INSERTS, cached, corridorBox, insertBoxes, pack, paethEncode, pool, publish, toKm, toLatLon, writePeaksIndex } from './corridor.ts'
 
 // ---------------------------------------------------------------- config (the corridor itself lives in corridor.ts)
 const OVERVIEW_KM = 2
@@ -242,6 +242,7 @@ for (let ty = 0; ty < TILES_Y; ty++) {
 }
 const ovFile = pack({ cols: ovCols, rows: ovRows, kmPerSample: OVERVIEW_KM, quant: QUANT }, gzipSync(paethEncode(overview, ovCols, ovRows), { level: 9 }))
 writeFileSync(`${tmp}/overview.bin`, ovFile)
+const peaksBytes = writePeaksIndex(tmp) // every summit at once, for the search
 
 const index = {
   name: 'Chile',
@@ -250,7 +251,7 @@ const index = {
   latN: LAT_N, kmPerDeg: KM_PER_DEG, center: CENTER, inserts: INSERTS, quant: QUANT,
   overview: { cols: ovCols, rows: ovRows, kmPerSample: OVERVIEW_KM, bytes: ovFile.length },
   sizes, // tile bytes, row-major (ty, tx); 0 = sea, not on disk
-  peaks: peaks.length,
+  peaks: peaks.length, peaksBytes,
 }
 writeFileSync(`${tmp}/index.json`, JSON.stringify(index))
 const out = publish(tmp)

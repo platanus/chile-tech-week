@@ -17,7 +17,14 @@ type Index = {
   buildings?: number[]
   /** populated places [name, kmX, kmZ, population, always?], when scripts/fetch-places.ts has run */
   places?: [string, number, number, number, number?][]
+  /** places far outside the corridor drawn inside it (Rapa Nui): a circle at kmX on its true latitude */
+  inserts?: { name: string; lat: number; lon: number; kmX: number; radiusKm: number }[]
+  /** the country's outline as rings of [kmX, kmZ], largest first, when scripts/fetch-outline.ts has run */
+  outline?: [number, number][][]
+  /** size of peaks.json (every summit, for the search), when it exists */
+  peaksBytes?: number
 }
+export type Summit = { name: string; kmX: number; kmZ: number; ele: number }
 export type City = { name: string; kmX: number; kmZ: number; pop: number; always: boolean }
 export type Peak = { name: string; kmX: number; kmZ: number; ele: number; tile: string }
 /** a named tall building: height and footprint in metres */
@@ -93,6 +100,16 @@ export class ChileTerrain {
       this.cities = (idx.places ?? []).map(([name, kmX, kmZ, pop, always]) => ({ name, kmX, kmZ, pop, always: !!always }))
       this.bytes += idx.overview.bytes
     })()
+  }
+
+  private summits: Promise<Summit[]> | null = null
+  /** every named summit of the country, highest first: peaks.json, fetched once on demand (~200 KB) */
+  loadSummits(): Promise<Summit[]> {
+    this.summits ??= fetch(`${base}/peaks.json`)
+      .then((r) => (r.ok ? (r.json() as Promise<[string, number, number, number][]>) : []))
+      .then((rows) => rows.map(([name, kmX, kmZ, ele]) => ({ name, kmX, kmZ, ele })))
+      .catch(() => [])
+    return this.summits
   }
 
   get tileKm() { return this.index!.tile * this.index!.kmPerSample }

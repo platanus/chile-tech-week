@@ -7,7 +7,11 @@
     "test": "vitest run",
     "terrain:fetch": "node --experimental-strip-types scripts/terrain/fetch-terrain.ts",
     "buildings:fetch": "node --experimental-strip-types scripts/terrain/fetch-buildings.ts",
-    "places:fetch": "node --experimental-strip-types scripts/terrain/fetch-places.ts"
+    "places:fetch": "node --experimental-strip-types scripts/terrain/fetch-places.ts",
+    "terrain:spikes": "node --experimental-strip-types scripts/terrain/find-spikes.ts",
+    "terrain:despike": "node --experimental-strip-types scripts/terrain/despike.ts",
+    "outline:fetch": "node --experimental-strip-types scripts/terrain/fetch-outline.ts",
+    "peaks:index": "node --experimental-strip-types scripts/terrain/index-peaks.ts"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.5-r.4",
