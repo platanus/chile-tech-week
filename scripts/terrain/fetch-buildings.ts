@@ -2,8 +2,9 @@
 // named tall buildings, from Overture Maps (OSM + Microsoft + Google footprints, ODbL/CDLA).
 // Run: npm run buildings:fetch      (after npm run terrain:fetch; re-runs are offline)
 //
-// 1. One DuckDB query copies every building in the corridor's lon/lat box from Overture's parquet
-//    on S3 into scripts/.cache (bbox, height, floors, class, name: no geometry, so ~100 MB, not GB).
+// 1. DuckDB copies every building in the corridor's lon/lat box from Overture's parquet on S3 into
+//    scripts/terrain/.cache (bbox, height, floors, class, name: no geometry, so ~200 MB, not GB), and each
+//    insert (Rapa Nui) as its own small extract, so adding an insert never rescans the country.
 // 2. Each footprint lands in its 250 m cell of the corridor grid: built-up fraction (footprint area
 //    over cell area) and max height. Heights are explicit when tagged, else floors x 3.2 m, else a
 //    class/size heuristic (most houses have neither tag; for a carpet that is fine).
@@ -11,7 +12,7 @@
 //    buildings over LANDMARK_M, with footprint size) + gzipped u8 pairs [fraction, height/2 m].
 // 4. index.json gets `buildings` (bytes per tile, 0 = none) and the directory is re-published
 //    under a new hash so the CDN never serves a stale index.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 import { DuckDBInstance } from '@duckdb/node-api'
 import { CACHE, HALF_WIDTH_KM, KM_PER_SAMPLE, LAT_N, LAT_S, TILE, TILES_X, TILES_Y, TILE_KM, corridorBox, currentDir, insertBoxes, pack, publish, toKm } from './corridor.ts'
@@ -21,29 +22,31 @@ const LANDMARK_M = 60 // named buildings at least this tall (or LANDMARK_FLOORS)
 const LANDMARK_FLOORS = 18
 const MIN_FRACTION = 0.03 // cells below this built-up fraction stay empty
 const FLOOR_M = 3.2
-const LOCAL = `${CACHE}/overture-${RELEASE}-buildings-cl2.parquet` // cl2: corridor + inserts
+const LOCAL = `${CACHE}/overture-${RELEASE}-buildings-cl.parquet`
+const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+const LOCALS = [LOCAL, ...insertBoxes().map((b) => `${CACHE}/overture-${RELEASE}-buildings-${slug(b.name)}.parquet`)]
 
-// ---------------------------------------------------------------- 1. extract
-if (!existsSync(LOCAL)) {
-  const { w, e } = corridorBox(LAT_S, LAT_N)
-  console.log(`extracting Overture ${RELEASE} buildings for lon ${w.toFixed(2)}..${e.toFixed(2)}, lat ${LAT_S}..${LAT_N} (this scans S3, several minutes)`)
+// ---------------------------------------------------------------- 1. extract (one file for the corridor, one per insert)
+async function extract(file: string, box: { w: number; e: number; s: number; n: number }, label: string) {
+  if (existsSync(file)) return
+  console.log(`extracting Overture ${RELEASE} buildings for ${label}: lon ${box.w.toFixed(2)}..${box.e.toFixed(2)}, lat ${box.s.toFixed(2)}..${box.n.toFixed(2)} (scans S3)`)
   const t0 = Date.now()
   const inst = await DuckDBInstance.create(':memory:')
   const c = await inst.connect()
   await c.run("INSTALL httpfs; LOAD httpfs; SET s3_region='us-west-2'; SET enable_object_cache=true;")
   mkdirSync(CACHE, { recursive: true })
-  const tmp = `${LOCAL}.part`
+  const tmp = `${file}.part`
   await c.run(`COPY (
     SELECT bbox.xmin AS xmin, bbox.ymin AS ymin, bbox.xmax AS xmax, bbox.ymax AS ymax,
            height, num_floors AS floors, class, names.primary AS name
     FROM read_parquet('s3://overturemaps-us-west-2/release/${RELEASE}/theme=buildings/type=building/*', hive_partitioning=1)
-    WHERE (bbox.xmin BETWEEN ${w.toFixed(3)} AND ${e.toFixed(3)} AND bbox.ymin BETWEEN ${LAT_S} AND ${LAT_N})
-       ${insertBoxes().map((b) => `OR (bbox.xmin BETWEEN ${b.w.toFixed(3)} AND ${b.e.toFixed(3)} AND bbox.ymin BETWEEN ${b.s.toFixed(3)} AND ${b.n.toFixed(3)})`).join('\n       ')}
+    WHERE bbox.xmin BETWEEN ${box.w.toFixed(3)} AND ${box.e.toFixed(3)} AND bbox.ymin BETWEEN ${box.s.toFixed(3)} AND ${box.n.toFixed(3)}
   ) TO '${tmp}' (FORMAT parquet, COMPRESSION zstd)`)
-  const { renameSync } = await import('node:fs')
-  renameSync(tmp, LOCAL)
+  renameSync(tmp, file)
   console.log(`  extracted in ${((Date.now() - t0) / 1000).toFixed(0)} s`)
 }
+await extract(LOCAL, { ...corridorBox(LAT_S, LAT_N), s: LAT_S, n: LAT_N }, 'the corridor')
+for (const b of insertBoxes()) await extract(`${CACHE}/overture-${RELEASE}-buildings-${slug(b.name)}.parquet`, b, b.name)
 
 // ---------------------------------------------------------------- 2. aggregate
 type Landmark = { name: string; kmX: number; kmZ: number; h: number; w: number; d: number }
@@ -55,7 +58,7 @@ const cellArea = (KM_PER_SAMPLE * 1000) ** 2
 const t1 = Date.now()
 const inst = await DuckDBInstance.create(':memory:')
 const c = await inst.connect()
-const res = await c.stream(`SELECT xmin, ymin, xmax, ymax, height, floors, class, name FROM read_parquet('${LOCAL}')`)
+const res = await c.stream(`SELECT xmin, ymin, xmax, ymax, height, floors, class, name FROM read_parquet([${LOCALS.map((f) => `'${f}'`).join(', ')}])`)
 let rows = 0, withH = 0, withF = 0
 for (;;) {
   const chunk = await res.fetchChunk()

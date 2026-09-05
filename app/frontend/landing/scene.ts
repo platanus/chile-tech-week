@@ -1039,7 +1039,7 @@ function adaptQuality(dt, rendered) {
   quality.frames.push([now, dt * 1000]);
   while (quality.frames.length && now - quality.frames[0][0] > 3000) quality.frames.shift();
   const settled = now - quality.since;
-  if (settled < 3000 || quality.frames.length < 20) return; // let the ramp and the shader warm-up pass
+  if (settled < 3000 || quality.frames.length < 8) return; // let the ramp and the shader warm-up pass (a slow device has few frames per window)
   const ms = quality.frames.map((f) => f[1]);
   const avg = ms.reduce((a, b) => a + b, 0) / ms.length;
   const slow = ms.filter((m) => m > budget * 1.6).length / ms.length;
