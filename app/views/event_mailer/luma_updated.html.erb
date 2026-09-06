@@ -1,0 +1,18 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Actualizamos tu evento</h1>
+<p style="margin:0 0 14px;color:#fff;">Hola <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">Detectamos cambios en tu evento de Luma y los reflejamos en techweek.cl:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border:1px solid #262626;border-radius:2px;">
+  <% {title: "Título", starts_at: "Inicio", ends_at: "Término"}.each do |key, label| %>
+    <% change = @changes[key] || @changes[key.to_s] %>
+    <% next unless change %>
+    <% old_value, new_value = change.values_at(:old, :new).compact.presence || change.values_at("old", "new") %>
+    <tr><td style="padding:10px 16px;border-bottom:1px solid #262626;">
+      <strong style="color:#fff;"><%= label %>:</strong><br>
+      <span style="color:#a3a3a3;text-decoration:line-through;"><%= old_value.respond_to?(:strftime) ? long_date(old_value) : old_value %></span><br>
+      <span style="color:#fff;"><%= new_value.respond_to?(:strftime) ? long_date(new_value) : new_value %></span>
+    </td></tr>
+  <% end %>
+</table>
+<p style="margin:0 0 14px;color:#fff;">📅 <a href="<%= @event.luma_event_url %>" style="color:#fff;">Ver el evento en Luma</a><br>
+🌐 <a href="<%= @status_url %>" style="color:#fff;">Ver el evento en Chile Tech Week</a></p>
+<p style="margin:0 0 14px;color:#a3a3a3;">Tu evento se sincroniza solo con Luma.</p>

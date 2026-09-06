@@ -1,0 +1,3 @@
+<% ["Enviar evento", "Revisión y aprobación", "Editar Luma y publicar", "Evento publicado"].each_with_index do |step, i| %>
+<% n = i + 1 %><%= (n < current) ? "✓" : ((n == current) ? "→" : "○") %> <%= n %>. <%= step.upcase %><%= " — EN CURSO" if n == current %>
+<% end %>

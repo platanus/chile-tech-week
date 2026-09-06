@@ -93,7 +93,7 @@ RSpec.describe Legacy2025::Importer do
   it "refuses a row this app's schema cannot hold instead of writing part of the archive" do
     source = instance_double(Legacy2025::Source, events: [event_row.merge("format" => "karaoke")], themes: [theme_row], audiences: [], event_themes: [], event_audiences: [], cohosts: [])
 
-    expect { described_class.new(source).run }.to raise_error(ActiveRecord::RecordInvalid, /Format/)
+    expect { described_class.new(source).run }.to raise_error(ActiveRecord::RecordInvalid, /formato/)
     expect(Theme.count).to eq(0)
   end
 end

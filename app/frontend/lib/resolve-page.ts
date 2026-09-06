@@ -1,5 +1,7 @@
 import { type ComponentType, createElement, type ReactNode } from 'react';
+import { AdminLayout } from '@/components/admin/layout';
 import { Edition2025Layout } from '@/components/edition2025/layout';
+import { SiteLayout } from '@/components/site/layout';
 
 export type PageComponent = ComponentType & {
   layout?: (page: ReactNode) => ReactNode;
@@ -14,8 +16,13 @@ export type ResolvedComponent = {
 // can't drift on which pages get which shell. When another area grows a persistent layout,
 // key on its prefix here the same way.
 function attachLayout(name: string, page: ResolvedComponent): ResolvedComponent {
-  if (name.startsWith('Edition2025/') && !page.default.layout) {
+  if (page.default.layout) return page;
+  if (name.startsWith('Edition2025/')) {
     page.default.layout = (content) => createElement(Edition2025Layout, null, content);
+  } else if (name.startsWith('Events/')) {
+    page.default.layout = (content) => createElement(SiteLayout, null, content);
+  } else if (name.startsWith('Admin/') && !name.startsWith('Admin/Sessions/')) {
+    page.default.layout = (content) => createElement(AdminLayout, null, content);
   }
   return page;
 }

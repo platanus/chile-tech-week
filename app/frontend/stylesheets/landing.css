@@ -23,11 +23,13 @@ body.game #veil { opacity: 0; }
 #hero > * { pointer-events: auto; }
 body.game #hero { opacity: 0; transform: translateY(-16px); pointer-events: none; }
 body.game #hero > * { pointer-events: none; }
-#hero .brand { position: absolute; top: 26px; left: 8vw; font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: -.02em; text-decoration: none; color: var(--ink); }
-#hero .brand b { color: var(--red); font-weight: 800; }
 .label { font-family: var(--mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; }
-#hero .eyebrow { color: var(--red); margin-bottom: 28px; }
-#hero .lede { font-size: clamp(16px, 1.35vw, 20px); line-height: 1.45; max-width: 34ch; color: var(--gray); margin: 28px 0 30px; }
+#hero .lede { font-size: clamp(16px, 1.35vw, 20px); line-height: 1.45; max-width: 34ch; color: var(--gray); margin: 28px 0 26px; }
+/* the dates: the two days in the display face with the red dash, the month and city beside them */
+#hero .dates { display: flex; align-items: center; gap: 18px; margin: 0 0 30px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); width: fit-content; }
+#hero .dates .days { display: inline-flex; align-items: baseline; gap: 6px; font-family: var(--display); font-weight: 800; font-size: clamp(30px, 3.2vw, 46px); letter-spacing: -.04em; line-height: 1; }
+#hero .dates .days i { color: var(--red); font-style: normal; font-size: .55em; transform: translateY(-.25em); }
+#hero .dates .month { font-family: var(--mono); font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); }
 #hero .cta { display: flex; flex-wrap: wrap; gap: 10px; }
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 20px; border-radius: 2px; border: 1px solid var(--ink);
   text-decoration: none; font-family: var(--display); font-weight: 800; font-size: 12px; letter-spacing: .04em; text-transform: uppercase;

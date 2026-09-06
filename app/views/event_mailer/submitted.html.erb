@@ -1,0 +1,7 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Recibimos tu evento</h1>
+<p style="margin:0 0 14px;color:#fff;">Hola <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">Tu evento quedó enviado y está en revisión.</p>
+<%= render "event_summary" %>
+<%= render "steps", current: 2 %>
+<p style="margin:0 0 14px;color:#a3a3a3;">Nuestro equipo revisará tu evento. Cuando esté aprobado te escribiremos con los siguientes pasos, incluido el enlace para editar tu evento en Luma.</p>
+<%= render "button", url: @status_url, label: "Ver el estado de tu evento" %>

@@ -188,6 +188,8 @@ step_end
 # its schema) and migrates the rest, and it is the one task that handles all four together.
 step_begin "database-setup"
 dc run --rm app bin/rails db:prepare
+# The catalogue every submission picks from (themes, audiences); idempotent.
+dc run --rm app bin/rails db:seed
 step_end
 
 # --remove-orphans clears out the previous stack's `migrator` and `cron-ticker`

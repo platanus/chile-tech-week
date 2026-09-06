@@ -1,0 +1,10 @@
+<% steps = ["Enviar evento", "Revisión y aprobación", "Editar Luma y publicar", "Evento publicado"] %>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;font-family:'Space Mono',Menlo,monospace;font-size:12px;letter-spacing:.04em;">
+  <% steps.each_with_index do |step, i| %>
+    <% n = i + 1 %>
+    <% state = (n < current) ? :done : ((n == current) ? :current : :pending) %>
+    <tr><td style="padding:7px 0;border-top:1px solid #262626;color:<%= {done: "#a3a3a3", current: "#fff", pending: "#525252"}[state] %>;">
+      <%= {done: "✓", current: "→", pending: "○"}[state] %> <%= n %>. <%= step.upcase %><%= " — EN CURSO" if state == :current %>
+    </td></tr>
+  <% end %>
+</table>

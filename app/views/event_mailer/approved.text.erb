@@ -1,0 +1,17 @@
+Hola <%= @event.author_name %>,
+
+Buenas noticias: aprobamos tu evento y ya está listo para el siguiente paso.
+
+<%= render "event_summary" %>
+<%= render "steps", current: 3 %>
+Deberías haber recibido en tu correo una invitación de Luma para editar tu evento.
+<% if @luma_url.present? %>Tu evento en Luma: <%= @luma_url %> (verás las opciones de edición cuando entres como anfitrión)<% end %>
+
+Edita el evento en Luma con los detalles finales:
+- Verifica la fecha y la hora
+- Agrega imágenes del evento
+- Confirma la dirección
+- Completa la descripción
+- Edita tu perfil de Luma (https://luma.com/settings) con el nombre y logo de tu empresa
+
+Cuando termines, publica tu evento aquí: <%= @publish_url %>

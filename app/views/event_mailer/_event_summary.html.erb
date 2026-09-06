@@ -1,0 +1,11 @@
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid #262626;border-radius:2px;">
+  <tr><td style="padding:16px 18px;">
+    <p style="margin:0 0 6px;font-family:'Space Mono',Menlo,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#ee2b2b;">Tu evento</p>
+    <p style="margin:0 0 10px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:18px;line-height:1.2;letter-spacing:-0.02em;color:#fff;"><%= @event.title %></p>
+    <p style="margin:0;color:#a3a3a3;"><strong style="color:#fff;">Empresa:</strong> <%= @event.company_name %><br>
+    <strong style="color:#fff;">Formato:</strong> <%= @format_label %><br>
+    <strong style="color:#fff;">Temas:</strong> <%= @themes %><br>
+    <strong style="color:#fff;">Cuándo:</strong> <%= @when %><br>
+    <strong style="color:#fff;">Dónde:</strong> <%= @event.commune %></p>
+  </td></tr>
+</table>

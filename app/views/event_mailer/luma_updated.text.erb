@@ -1,0 +1,10 @@
+Hola <%= @event.author_name %>,
+
+Detectamos cambios en tu evento de Luma y los reflejamos en techweek.cl:
+<% {title: "Título", starts_at: "Inicio", ends_at: "Término"}.each do |key, label| %>
+<% change = @changes[key] || @changes[key.to_s] %><% next unless change %>
+<% old_value, new_value = change.values_at(:old, :new).compact.presence || change.values_at("old", "new") %>
+- <%= label %>: <%= old_value.respond_to?(:strftime) ? long_date(old_value) : old_value %> → <%= new_value.respond_to?(:strftime) ? long_date(new_value) : new_value %>
+<% end %>
+Ver el evento en Luma: <%= @event.luma_event_url %>
+Ver el evento en Chile Tech Week: <%= @status_url %>

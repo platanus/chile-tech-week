@@ -1,13 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <style>
-      /* Email styles need to be inline */
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= @subject || "Chile Tech Week" %></title>
   </head>
-
-  <body>
-    <%= yield %>
+  <body style="margin:0;padding:0;background:#000;color:#fff;font-family:Syne,Inter,-apple-system,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#000;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border:1px solid #262626;border-radius:2px;background:#000;">
+            <tr>
+              <td style="padding:24px 28px;border-bottom:1px solid #262626;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.02em;color:#fff;">
+                CLTW<span style="color:#ee2b2b;">26</span>
+                <span style="float:right;font-family:'Space Mono',Menlo,monospace;font-weight:400;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#a3a3a3;">16 al 22 de noviembre</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px;">
+                <%= yield %>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 28px;border-top:1px solid #262626;font-family:'Space Mono',Menlo,monospace;font-size:11px;letter-spacing:.06em;color:#a3a3a3;">
+                Chile Tech Week 2026 · <a href="<%= site_url %>" style="color:#a3a3a3;">techweek.cl</a> · ¿Dudas? Escríbenos a <a href="mailto:<%= contact_email %>" style="color:#fff;">
+                <%= contact_email %></a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>

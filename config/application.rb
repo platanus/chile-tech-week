@@ -61,5 +61,12 @@ module TechWeek
     config.i18n.default_locale = :es
     config.i18n.fallbacks = [:en]
     config.time_zone = "Santiago"
+
+    # Mail goes through OutboundEmail::Delivery in every environment (the outbound log the
+    # admin reads); whether anything is actually sent is AppConfig#send_emails.
+    config.action_mailer.delivery_method = :outbound
+    config.action_mailer.perform_deliveries = true
+    config.action_mailer.raise_delivery_errors = true
+    config.action_mailer.default_url_options = {host: "techweek.cl", protocol: "https"}
   end
 end

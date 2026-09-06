@@ -1,0 +1,9 @@
+Hola <%= @event.author_name %>,
+
+Recibimos tu evento y está en revisión.
+
+<%= render "event_summary" %>
+<%= render "steps", current: 2 %>
+Nuestro equipo revisará tu evento. Cuando esté aprobado te escribiremos con los siguientes pasos, incluido el enlace para editar tu evento en Luma.
+
+Ver el estado de tu evento: <%= @status_url %>

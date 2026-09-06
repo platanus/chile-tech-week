@@ -1,0 +1,46 @@
+es:
+  errors:
+    messages:
+      https_url: "debe ser una URL que empiece con https://"
+  activerecord:
+    errors:
+      models:
+        event:
+          attributes:
+            starts_at:
+              outside_the_week: "debe estar dentro de la semana (%{week})"
+            ends_at:
+              outside_the_week: "debe estar dentro de la semana (%{week})"
+              blank: "no puede estar en blanco"
+    attributes:
+      event:
+        title: "El título"
+        description: "La descripción"
+        author_name: "El nombre de contacto"
+        author_email: "El email de contacto"
+        author_phone_number: "El teléfono de contacto"
+        company_name: "El nombre de la empresa"
+        company_website: "El sitio web"
+        company_logo_url: "El logo"
+        logo: "El logo"
+        starts_at: "El inicio"
+        ends_at: "El término"
+        commune: "La comuna"
+        format: "El formato"
+        capacity: "La capacidad"
+        themes: "Los temas"
+        audiences: "Las audiencias"
+        custom_url: "La URL"
+      cohost:
+        company_name: "El nombre de la empresa"
+        company_logo_url: "El logo"
+        primary_contact_name: "El nombre de contacto"
+        primary_contact_email: "El email de contacto"
+        primary_contact_phone_number: "El teléfono"
+        primary_contact_website: "El sitio web"
+        primary_contact_linkedin: "El LinkedIn"
+      user:
+        email: "El email"
+        password: "La contraseña"
+        first_name: "El nombre"
+        last_name: "El apellido"

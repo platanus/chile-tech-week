@@ -10,9 +10,37 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_05_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_06_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.uuid "record_id", null: false
+    t.string "record_type", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.string "content_type"
+    t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
 
   create_table "audiences", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -78,6 +106,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_130000) do
     t.decimal "latitude", precision: 10, scale: 8
     t.timestamptz "logo_shown_at"
     t.decimal "longitude", precision: 11, scale: 8
+    t.string "luma_cover_url"
     t.string "luma_event_api_id"
     t.timestamptz "luma_event_created_at"
     t.string "luma_event_url"
@@ -96,6 +125,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_130000) do
     t.index ["public_id"], name: "index_events_on_public_id", unique: true
   end
 
+  create_table "outbound_emails", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.jsonb "bcc"
+    t.jsonb "cc"
+    t.datetime "created_at", null: false
+    t.string "external_message_id"
+    t.text "failure_reason"
+    t.text "html_content", null: false
+    t.timestamptz "queued_at"
+    t.timestamptz "sent_at"
+    t.string "status", default: "queued", null: false
+    t.string "subject", null: false
+    t.jsonb "template_data"
+    t.string "template_name", null: false
+    t.text "text_content"
+    t.string "to", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_outbound_emails_on_created_at"
+    t.index ["status"], name: "index_outbound_emails_on_status"
+  end
+
   create_table "players", force: :cascade do |t|
     t.string "codename", null: false
     t.string "color", null: false
@@ -103,6 +152,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_130000) do
     t.datetime "last_seen_at"
     t.datetime "updated_at", null: false
     t.index ["codename"], name: "index_players_on_codename"
+  end
+
+  create_table "task_runs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "execution_count", default: 0, null: false
+    t.text "last_error"
+    t.timestamptz "last_executed_at"
+    t.string "last_status"
+    t.string "task_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_id"], name: "index_task_runs_on_task_id", unique: true
   end
 
   create_table "themes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -114,6 +174,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_130000) do
     t.index ["slug"], name: "index_themes_on_slug", unique: true
   end
 
+  create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.timestamptz "notifications_enabled_at"
+    t.datetime "remember_created_at"
+    t.string "role", default: "default", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+  end
+
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "cohosts", "events", on_delete: :cascade
   add_foreign_key "event_audiences", "audiences", on_delete: :cascade
   add_foreign_key "event_audiences", "events", on_delete: :cascade

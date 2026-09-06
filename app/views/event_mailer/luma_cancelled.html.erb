@@ -1,0 +1,5 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Evento dado de baja</h1>
+<p style="margin:0 0 14px;color:#fff;">Hola <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">Detectamos que tu evento <strong><%= @event.title %></strong> fue cancelado en Luma, así que lo quitamos del programa de Chile Tech Week.</p>
+<p style="margin:0 0 14px;color:#a3a3a3;">Si fue un error o quieres reactivarlo, escríbenos a <a href="mailto:<%= contact_email %>" style="color:#fff;"><%= contact_email %></a>.</p>
+<%= render "button", url: @status_url, label: "Ver el estado de tu evento" %>

@@ -1,0 +1,7 @@
+Hola <%= @event.author_name %>,
+
+Han pasado <%= pluralize(@days_waiting, "día") %> desde que creamos tu evento en Luma para "<%= @event.title %>".
+
+Recuerda editar el evento en Luma con los detalles finales y luego publicarlo en Chile Tech Week.
+- Editar el evento en Luma: <%= @event.luma_event_url %>
+- Publicar en Chile Tech Week: <%= @publish_url %>

@@ -1,0 +1,19 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Tu evento fue aprobado</h1>
+<p style="margin:0 0 14px;color:#fff;">Hola <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">Buenas noticias: aprobamos tu evento y ya está listo para el siguiente paso.</p>
+<%= render "event_summary" %>
+<%= render "steps", current: 3 %>
+<p style="margin:0 0 14px;color:#fff;"><strong>Deberías haber recibido en tu correo una invitación de Luma para editar tu evento.</strong></p>
+<% if @luma_url.present? %>
+<p style="margin:0 0 14px;color:#fff;">📅 <a href="<%= @luma_url %>" style="color:#fff;">Ver tu evento en Luma</a> <span style="color:#a3a3a3;">(verás las opciones de edición cuando entres como anfitrión)</span></p>
+<% end %>
+<p style="margin:0 0 14px;color:#a3a3a3;">Edita el evento en Luma con los detalles finales:</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 8px;color:#fff;">
+  <tr><td style="padding:3px 0;">☐ Verifica la fecha y la hora</td></tr>
+  <tr><td style="padding:3px 0;">☐ Agrega imágenes del evento</td></tr>
+  <tr><td style="padding:3px 0;">☐ Confirma la dirección</td></tr>
+  <tr><td style="padding:3px 0;">☐ Completa la descripción</td></tr>
+  <tr><td style="padding:3px 0;">☐ <a href="https://luma.com/settings" style="color:#fff;">Edita tu perfil de Luma</a> con el nombre y logo de tu empresa</td></tr>
+</table>
+<p style="margin:0 0 14px;color:#a3a3a3;">Cuando termines, publica tu evento con el botón de abajo:</p>
+<%= render "button", url: @publish_url, label: "Ya edité Luma · Publicar evento" %>

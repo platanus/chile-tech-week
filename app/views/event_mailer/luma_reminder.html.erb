@@ -1,0 +1,8 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Tu evento en Luma te espera</h1>
+<p style="margin:0 0 14px;color:#fff;">Hola <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">Han pasado <strong><%= pluralize(@days_waiting, "día") %></strong> desde que creamos tu evento en Luma para <strong><%= @event.title %></strong>.</p>
+<p style="margin:0 0 14px;color:#a3a3a3;">Recuerda editar el evento en Luma con los detalles finales y luego publicarlo en Chile Tech Week.</p>
+<p style="margin:0 0 14px;color:#fff;">📅 <a href="<%= @event.luma_event_url %>" style="color:#fff;">Editar el evento en Luma</a><br>
+🌐 <a href="<%= @publish_url %>" style="color:#fff;">Publicar en Chile Tech Week</a></p>
+<p style="margin:0 0 14px;color:#a3a3a3;">Cuando termines de editar, pulsa «Publicar evento» en la página de estado de tu evento.</p>
+<%= render "button", url: @publish_url, label: "Ya edité Luma · Publicar evento" %>

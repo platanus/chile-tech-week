@@ -68,7 +68,7 @@ const SPECIMEN: Record<string, React.ReactNode> = {
       Una semana. Cientos de eventos. <b className="font-semibold">Toda la comunidad tech de Chile.</b>
     </span>
   ),
-  'Space Mono': <span className="text-[13px] tracking-[0.22em] uppercase">Santiago · 16 al 22 de noviembre · #CTW2026</span>,
+  'Space Mono': <span className="text-[13px] tracking-[0.22em] uppercase">16 al 22 de noviembre · #CTW2026</span>,
 };
 
 export default function Show({ title, description }: BrandShow) {

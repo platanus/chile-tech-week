@@ -1,0 +1,4 @@
+<%= @event.title %>, de <%= @event.company_name %>, espera revisión.
+
+<%= render "event_summary" %>
+Revisar el evento: <%= admin_event_url(@event, host: site_url) %>

@@ -5,6 +5,14 @@ Rails.application.routes.draw do
 
   root "home#show"
 
+  # The current edition: the programme, the submission form and each event's status page
+  # (its id is the unguessable uuid the host receives by email), where the host publishes.
+  resources :events, only: [:index, :new, :create, :show]
+  post "events/:id/publish", to: "event_publications#create", as: :publish_event
+
+  # The public Luma calendar every published event ends up in.
+  get "luma", to: redirect(AppConfig.instance.luma_calendar_url)
+
   # The 2026 brand kit (public/brand, built by npm run brand:marks), the icon page and the
   # wireframe generator.
   get "brand", to: "brand#show", as: :brand
@@ -23,6 +31,27 @@ Rails.application.routes.draw do
   end
   # The condor flock: the pilot's identity over HTTP (FlockChannel carries the flight itself).
   resource :flock_session, path: "flock/session", only: [:create, :update]
+
+  # The moderation panel (Admin::BaseController: signed-in admins only). Devise signs admins
+  # in at /admin/login (Admin::SessionsController renders the Inertia page) and out at
+  # /admin/logout; there is no sign-up or password reset.
+  devise_for :users, path: "admin", path_names: {sign_in: "login", sign_out: "logout"},
+    controllers: {sessions: "admin/sessions"}, skip: [:registrations, :passwords]
+  namespace :admin do
+    root "events#index"
+
+    resources :events, only: [:index, :show, :update] do
+      resource :approval, only: :create, controller: "event_approvals"
+      resource :rejection, only: :create, controller: "event_rejections"
+      resources :cohosts, only: [:create, :update, :destroy]
+    end
+    resources :outbound_emails, only: [:index, :show], path: "emails" do
+      resource :resend, only: :create, controller: "outbound_email_resends"
+    end
+    resources :tasks, only: :index do
+      resource :run, only: :create, controller: "task_runs"
+    end
+  end
 
   # Solid Queue dashboard, only when its basic-auth credentials are configured.
   mount MissionControl::Jobs::Engine, at: "/admin/jobs" if AppConfig.instance.mission_control?

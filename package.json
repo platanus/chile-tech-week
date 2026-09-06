@@ -16,10 +16,12 @@
     "terrain:despike": "node --experimental-strip-types scripts/terrain/despike.ts",
     "outline:fetch": "node --experimental-strip-types scripts/terrain/fetch-outline.ts",
     "peaks:index": "node --experimental-strip-types scripts/terrain/index-peaks.ts",
-    "water:fetch": "node --experimental-strip-types scripts/terrain/fetch-water.ts"
+    "water:fetch": "node --experimental-strip-types scripts/terrain/fetch-water.ts",
+    "e2e": "playwright test"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.5-r.4",
+    "@playwright/test": "^1.63.0",
     "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.20.1",
     "opentype.js": "^2.0.0",
@@ -41,6 +43,7 @@
     "clsx": "^2.1.1",
     "lil-gui": "^0.19.2",
     "lucide-react": "^1.40.0",
+    "radix-ui": "^1.6.7",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwind-merge": "^3.6.0",

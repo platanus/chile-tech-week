@@ -1,9 +1,11 @@
 import { Head } from '@inertiajs/react';
 import { type CSSProperties, useEffect } from 'react';
+import { startExit } from '@/landing/exit';
 import { startFlock } from '@/flock';
 import { startLogo } from '@/landing/logo';
 import { startScene } from '@/landing/scene';
 import { startTouchControls } from '@/landing/touch';
+import { events_path, new_event_path } from '@/routes';
 import type { HomeShow } from '@/types';
 
 // The landing: the outline logo over the condor flying the real Chile relief, the page below
@@ -26,6 +28,7 @@ export default function Show({ title, description }: HomeShow) {
     if (started) return;
     started = true;
     startLogo();
+    startExit();
     void startScene();
     startFlock(); // the scene installs its hooks synchronously, before its first await
     startTouchControls();
@@ -41,10 +44,6 @@ export default function Show({ title, description }: HomeShow) {
       <div id="veil" />
 
       <section id="hero">
-        <a className="brand" href="/">
-          CLTW<b>26</b>
-        </a>
-        <div className="label eyebrow">Santiago · 16 al 22 de noviembre</div>
         <svg
           className="logo"
           id="logo"
@@ -76,12 +75,23 @@ export default function Show({ title, description }: HomeShow) {
             <tspan className="y26">26</tspan>
           </text>
         </svg>
-        <p className="lede">Una semana. Cientos de eventos. Toda la comunidad tech de Chile.</p>
+        <p className="lede">La semana descentralizada con los mejores eventos tech del país.</p>
+        {/* the dates, the one fact a visitor must leave with: the display face, the days in red */}
+        <div className="dates" aria-label="16 al 22 de noviembre de 2026">
+          <span className="days">
+            <b>16</b>
+            <i>—</i>
+            <b>22</b>
+          </span>
+          <span className="month">noviembre 2026</span>
+        </div>
         <div className="cta">
-          <a className="btn primary" href="#more">
-            Inscríbete
+          {/* plain anchors with data-exit: landing/exit.ts fades to black and hands the
+              document over, so the scene dies with it (see the module for why) */}
+          <a className="btn primary" href={events_path()} data-exit>
+            Ver eventos
           </a>
-          <a className="btn" href="#more">
+          <a className="btn" href={new_event_path()} data-exit>
             Organiza un evento
           </a>
         </div>
@@ -92,14 +102,18 @@ export default function Show({ title, description }: HomeShow) {
       </section>
 
       <main id="more">
-        <div className="label">16 al 22 de noviembre · Santiago</div>
-        <h2>Una semana. Toda la ciudad.</h2>
+        <div className="label">16 al 22 de noviembre</div>
+        <h2>Una semana. Todo el país.</h2>
         <p>
-          Meetups, charlas, demos y fiestas organizados por la comunidad, en toda la ciudad.
-          Cualquiera puede organizar un evento.
+          La semana descentralizada con los mejores eventos tech del país: meetups, charlas, demos y
+          fiestas organizados por la comunidad, de Arica a Punta Arenas. Cualquiera puede organizar
+          un evento.
         </p>
         <div className="cta">
-          <a className="btn" href="#">
+          <a className="btn primary" href={events_path()} data-exit>
+            Ver eventos
+          </a>
+          <a className="btn" href={new_event_path()} data-exit>
             Organiza un evento
           </a>
         </div>
@@ -107,7 +121,9 @@ export default function Show({ title, description }: HomeShow) {
       <footer className="label">
         <span>Chile Tech Week 2026</span>
         <span>#CTW2026</span>
-        <a href="/brand/">Marca</a>
+        <a href="/brand/" data-exit>
+          Marca
+        </a>
       </footer>
 
       <div id="gameui">

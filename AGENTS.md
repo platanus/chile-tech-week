@@ -1,10 +1,12 @@
 # Agent guidelines — Chile Tech Week
 
 Rails 8.1 + Inertia/React, one app, one database. The site behind techweek.cl: the landing is
-the condor flight over the real Chile relief (`app/frontend/landing`), and everything else —
-events, organizers, the programme — is still to be built on this setup. The structure, scripts
-and workflow are the ones from `platanus/hack`; the landing was prototyped as a static Vite
-page in `platanus/chile-tech-week-25`.
+the condor flight over the real Chile relief (`app/frontend/landing`); the platform behind it
+(the programme, the submission form, the Luma-backed review flow, the admin) is described
+under "The events platform". The structure, scripts and workflow are the ones from
+`platanus/hack`; the landing was prototyped as a static Vite page in
+`platanus/chile-tech-week-25`, and the platform reproduces the 2025 site
+(`platanus/chile-tech-week`, Next.js) whose archive lives under `/25`.
 
 ## Dev flow — one feature, one worktree
 
@@ -166,6 +168,54 @@ Nginx Proxy Manager on the host terminates TLS and routes techweek.cl to
   `AppConfig.instance.site_url`). Add new settings there, not `ENV[...]` scattered around.
 - **Architecture**: Server owns routing, data, and auth. React renders only. See
   `inertia-rails-architecture` for the decision matrix.
+
+## The events platform
+
+The 2025 site's flow, rebuilt: a host submits an event → an admin approves it and the site
+creates a **private Luma event** with the hosts invited to edit it → the host finishes it on
+Luma and publishes from the status page → the Luma event goes public and the event appears in
+the programme. `Edition` (`app/lib/edition.rb`) holds the year and the week every submission
+must fall in; the 2025 archive shares the `events` table (`edition` column) under `/25`.
+
+- **Public** (`pages/Events/*`, `SiteLayout` attached by prefix in `lib/resolve-page.ts`):
+  `/events` the programme filtered in the browser (day, topic, start time, type, search);
+  `/events/new` the submission form (Inertia `<Form>`, multipart; `Event#logo_upload=`
+  stores the logo with Active Storage and keeps its permanent URL in `company_logo_url`);
+  `/events/:id` the status page (the uuid is the host's link) with the publish dialog
+  (`POST /events/:id/publish` → `Events::Publish`). The `:submission` validation context on
+  `Event`/`Cohost` is the form's rule set; errors reach the page as full Spanish messages
+  (`config/locales/es.yml` names the attributes, rails-i18n the messages).
+- **Admin** (`/admin`, `pages/Admin/*`, `AdminLayout`): Devise sign-in at `/admin/login`
+  (`bin/rails 'admin:create[email,first,last]'` prints a password; dev seeds create
+  `admin@techweek.cl` / `techweek2026`), events with approve/reject
+  (`Events::Approve`, `Events::Reject`), the outbound mail log with resend, and the
+  scheduled tasks with "run now". Functional and light on purpose.
+- **Mail**: `EventMailer` (Spanish, `app/views/event_mailer`), delivered by
+  `OutboundEmail::Delivery` — the Action Mailer delivery method in every environment — which
+  logs each message as an `OutboundEmail` row and sends it through Resend's HTTP API
+  (`ResendClient`, `app/clients/`). `SEND_EMAILS=false` (the default outside production) logs the message as
+  sent with a mock id and sends nothing; outside production a real send goes to
+  `EMAIL_CATCH_ALL` instead of the recipient. Specs assert on `OutboundEmail` rows and
+  `have_enqueued_mail`.
+- **Luma** (`app/clients/luma/`, `app/lib/luma/`): `Luma.client` is `Luma::Client` with
+  `LUMA_API_KEY`, else `Luma::FakeClient` (in-memory, so approve → edit → publish works
+  locally and in specs).
+  `Luma::EventCreator` builds the private event and invites the hosts — outside production
+  only the addresses in `LUMA_ALLOWED_COHOST_DEV`. `Luma::Sync` (every 10 min) mirrors the
+  host's edits and takes down cancelled events; `Luma::Reminder` (daily) nudges hosts.
+- **Scheduled tasks**: `config/recurring.yml` (Solid Queue, production) and
+  `ScheduledTask` (`app/services/scheduled_task.rb`) must list the same jobs; each job
+  `include RecordsTaskRun` so the admin sees its last outcome (`TaskRun`).
+- **Slack**: `SlackNotifier` posts new submissions when `SLACK_BOT_TOKEN` + `SLACK_CHANNEL`
+  are set.
+- **Seeds** (`db/seeds.rb`, idempotent, run by the deploy after `db:prepare`): the themes
+  and audiences catalogue; in development also the admin and a sample 2026 programme.
+- **Settings** (all through `AppConfig`, sampled in `.env.sample`): `LUMA_API_KEY`, `LUMA_COVER_URL`,
+  `LUMA_ALLOWED_COHOST_DEV`, `SEND_EMAILS`, `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
+  `EMAIL_CATCH_ALL`, `CONTACT_EMAIL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL`.
+- **End-to-end**: Playwright specs under `e2e/` run against a live dev stack —
+  `PLAYWRIGHT_BASE_URL=http://localhost:$PORT npm run e2e` (Chromium via
+  `npx playwright install chromium`). They are not part of `bin/ci`.
 
 ## The landing and the game
 

@@ -1,0 +1,14 @@
+Hola <%= @event.author_name %>,
+
+¡Felicitaciones! Tu evento ya aparece en el programa de Chile Tech Week y en el calendario de Luma.
+
+<%= render "event_summary" %>
+Tu evento está en:
+- Luma: <%= @event.luma_event_url %>
+- El calendario de Chile Tech Week: <%= AppConfig.instance.luma_calendar_url %>
+- El programa: <%= events_url(host: site_url) %>
+
+Los cambios de título, fecha y hora que hagas en Luma se reflejan solos en techweek.cl.
+Ver tu evento: <%= @status_url %>
+
+Gracias por ser parte de Chile Tech Week <%= @event.edition %>. ¡Nos vemos en tu evento!

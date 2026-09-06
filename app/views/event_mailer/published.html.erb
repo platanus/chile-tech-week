@@ -1,0 +1,11 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Tu evento está publicado</h1>
+<p style="margin:0 0 14px;color:#fff;">Hola <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">¡Felicitaciones! Tu evento ya aparece en el programa de Chile Tech Week y en el calendario de Luma.</p>
+<%= render "event_summary" %>
+<p style="margin:0 0 14px;color:#fff;"><strong>Tu evento está en:</strong></p>
+<p style="margin:0 0 14px;color:#fff;">🎫 <a href="<%= @event.luma_event_url %>" style="color:#fff;">Tu evento en Luma</a><br>
+📅 <a href="<%= AppConfig.instance.luma_calendar_url %>" style="color:#fff;">El calendario de Chile Tech Week en Luma</a><br>
+🌐 <a href="<%= events_url(host: site_url) %>" style="color:#fff;">El programa en techweek.cl</a></p>
+<p style="margin:0 0 14px;color:#a3a3a3;"><strong style="color:#fff;">¿Necesitas cambiar algo?</strong> Los cambios de título, fecha y hora que hagas en Luma se reflejan solos en techweek.cl.</p>
+<%= render "button", url: @status_url, label: "Ver tu evento" %>
+<p style="margin:0 0 14px;color:#a3a3a3;">Gracias por ser parte de Chile Tech Week <%= @event.edition %>. ¡Nos vemos en tu evento!</p>

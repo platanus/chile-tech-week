@@ -45,3 +45,35 @@ FactoryBot.define do
     slug { name.parameterize }
   end
 end
+
+FactoryBot.define do
+  factory :user do
+    sequence(:email) { |n| "admin#{n}@techweek.cl" }
+    password { "secret-password" }
+    first_name { "Ada" }
+    last_name { "Lovelace" }
+    role { "admin" }
+
+    trait :notified do
+      notifications_enabled_at { Time.current }
+    end
+  end
+
+  factory :outbound_email do
+    template_name { "event_submitted" }
+    to { "host@example.com" }
+    subject { "Un asunto" }
+    html_content { "<p>Hola</p>" }
+    text_content { "Hola" }
+    status { "sent" }
+    sent_at { Time.current }
+    external_message_id { "msg_123" }
+  end
+
+  factory :task_run do
+    task_id { "sync-luma-events" }
+    last_executed_at { Time.current }
+    last_status { "success" }
+    execution_count { 1 }
+  end
+end

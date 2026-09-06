@@ -8,6 +8,12 @@
         title and description too, unless SSR produced the page's own <Head> with them. %>
     <%= display_meta_tags(ssr_head.present? ? default_meta_tags.except(:title, :description) : default_meta_tags) %>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <%# The site is black everywhere. Inline so the very first paint is black too: the real
+        stylesheet arrives with Vite (in development it is injected by JS), and without this
+        the browser flashes white between documents — most visibly on the landing's fade-out
+        handover (app/frontend/landing/exit.ts). %>
+    <style>html { background: #000; color-scheme: dark; }</style>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 

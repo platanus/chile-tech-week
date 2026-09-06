@@ -7,7 +7,14 @@ export type FlashData = {
   alert?: string | null;
 };
 
+// The signed-in admin (Admin::BaseController `inertia_share`), on the admin pages only.
+export type CurrentUser = {
+  email: string;
+  fullName: string;
+};
+
 // Props shared with every Inertia page (see ApplicationController `inertia_share`).
 export type SharedProps = {
   flash: FlashData;
+  currentUser?: CurrentUser | null;
 };

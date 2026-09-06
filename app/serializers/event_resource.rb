@@ -9,6 +9,11 @@ class EventResource < ApplicationResource
   typelize :string?
   attribute :registration_url, &:registration_url
 
+  # The event's picture: our mirror of the Luma cover, else Luma's own URL (see
+  # Event#cover_image_url). Nil until the event has a Luma event.
+  typelize :string?
+  attribute :cover_image_url, &:cover_image_url
+
   has_many :themes, resource: ThemeResource
   has_many :audiences, resource: AudienceResource
   has_many :cohosts, resource: CohostResource

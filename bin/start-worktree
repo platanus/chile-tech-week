@@ -153,7 +153,7 @@ fi
 # parallel_tests databases: one per worker, same count parallel_rspec will pick.
 workers="${PARALLEL_TEST_PROCESSORS:-$(sysctl -n hw.ncpu 2>/dev/null || nproc)}"
 echo "bin/start-worktree: creating ${workers} test databases (${wt_test_prefix}*)…"
-(cd "$wt_dir" && bundle exec rake "parallel:create[$workers]" "parallel:load_schema[$workers]" >/dev/null)
+(cd "$wt_dir" && RAILS_ENV=test bundle exec rake "parallel:create[$workers]" "parallel:load_schema[$workers]" >/dev/null)
 
 echo
 echo "bin/start-worktree: $path ready (branch $branch)"

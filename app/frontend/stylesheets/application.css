@@ -4,7 +4,7 @@
  * theme and the utilities are loaded, so `flex`, `gap-*`, `text-*` etc. work in new components
  * and nothing global changes. If a future area wants the reset, scope it or add it then
  * (edition2025.css scopes one to its own wrapper). */
-@layer theme, base, landing, edition2025, components, utilities;
+@layer theme, base, landing, edition2025, site, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "tw-animate-css";
@@ -13,10 +13,39 @@
  * instead of beating every layered rule on the page as unlayered CSS would. */
 @import "./landing.css" layer(landing);
 @import "./edition2025.css" layer(edition2025);
+@import "./site.css" layer(site);
 
 @theme {
-  /* The brand red — the 2025 site's `--primary: 0 85% 55%` and the 2026 landing's `--red`
-   * are the same colour. `bg-primary`, `text-primary`, `border-primary`, … */
-  --color-primary: #ee2b2b;
-  --color-primary-foreground: #ffffff;
+  /* The brand's type (loaded by the inertia layout): `font-display`, `font-body`, `font-mono`. */
+  --font-display: Unbounded, Inter, -apple-system, sans-serif;
+  --font-body: Syne, Inter, -apple-system, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, Menlo, monospace;
+  /* 2px radii everywhere (shadcn's rounded-* read these). */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+}
+
+/* The shadcn colour tokens, as variables so each area sets its own palette (site.css: .site
+ * is dark, .site-light is the admin's light set). `bg-primary`, `text-muted-foreground`, … */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary, #ee2b2b);
+  --color-primary-foreground: var(--primary-foreground, #ffffff);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }

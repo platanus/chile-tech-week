@@ -1,0 +1,73 @@
+/* The 2026 pages other than the landing — the programme (/events), the submission form, the
+   status page and the admin. Same brand as the landing (black, white, the red; Unbounded for
+   display, Syne for body, Space Mono for labels; 1px rules, 2px radii), built with Tailwind
+   utilities and the shadcn components under components/ui. Tailwind's preflight is not loaded
+   (application.css), so the reset those assume is reproduced here, scoped to the .site wrapper
+   the layouts render in — like edition2025.css does for the archive. The shadcn colour tokens
+   are the variables application.css maps into the theme; .site is the dark set, .site-light
+   (the admin) the light one. */
+@layer site {
+  .site {
+    --background: #000;
+    --foreground: #fff;
+    --card: #0a0a0a;
+    --card-foreground: #fff;
+    --popover: #0a0a0a;
+    --popover-foreground: #fff;
+    --primary: #ee2b2b;
+    --primary-foreground: #fff;
+    --secondary: #171717;
+    --secondary-foreground: #fff;
+    --muted: #171717;
+    --muted-foreground: #a3a3a3;
+    --accent: #262626;
+    --accent-foreground: #fff;
+    --destructive: #ee2b2b;
+    --border: #262626;
+    --input: #404040;
+    --ring: #ee2b2b;
+
+    min-height: 100vh;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    /* the far side of the landing's fade-out (landing/exit.ts): the document arrives from
+       black instead of popping in. Once per document — Inertia keeps this wrapper mounted
+       across client-side visits, so it does not replay on every page. */
+    animation: site-in .32s ease both;
+  }
+  @keyframes site-in { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .site { animation: none; }
+  }
+  .site-light {
+    --background: #fff;
+    --foreground: #0a0a0a;
+    --card: #fff;
+    --card-foreground: #0a0a0a;
+    --popover: #fff;
+    --popover-foreground: #0a0a0a;
+    --secondary: #f5f5f5;
+    --secondary-foreground: #0a0a0a;
+    --muted: #f5f5f5;
+    --muted-foreground: #737373;
+    --accent: #f5f5f5;
+    --accent-foreground: #0a0a0a;
+    --border: #e5e5e5;
+    --input: #d4d4d4;
+  }
+  .site *, .site *::before, .site *::after { box-sizing: border-box; border: 0 solid var(--border); margin: 0; padding: 0; }
+  .site h1, .site h2, .site h3, .site h4, .site p { font-size: inherit; font-weight: inherit; }
+  .site a { color: inherit; text-decoration: inherit; }
+  .site button, .site input, .site select, .site textarea { font: inherit; color: inherit; background: transparent; border-radius: 0; letter-spacing: inherit; }
+  .site button { cursor: pointer; text-align: inherit; }
+  .site input::placeholder, .site textarea::placeholder { color: var(--muted-foreground); opacity: 1; }
+  .site img, .site svg, .site video, .site canvas { display: block; max-width: 100%; }
+  .site ul, .site ol { list-style: none; }
+  .site table { border-collapse: collapse; border-spacing: 0; }
+  .site ::selection { background: var(--primary); color: #fff; }
+  /* the mono label of the landing (.label), same voice here */
+  .site .label { font-family: var(--font-mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; }
+}
