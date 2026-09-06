@@ -992,25 +992,61 @@ const QUALITY = [
   { name: 'ultra',  viewDistance: 3600, dprCap: 2.0, bloom: true },  // ~178 chunks, 0.9 M tris, ~100 MB
 ];
 const quality = { tier: 1, target: 1, gpu: '', dprCap: 1.5, dprLimit: 2, fogTarget: P.fogDensity, pendingView: null, pendingFog: null, displayMs: 16.7, frames: [], lastChange: 0, since: 0, locked: false, verdict: '' };
-// The guess. GPU class from the renderer string, then the screen's fill load: the bloom is about
-// six passes, so a frame costs ~3.2 x the canvas pixels; each class has a rough budget for that
-// at 60 fps (discrete ~30 Mpx, M-series ~16, Intel ~8, mobile ~4). Too many pixels lowers the
-// pixel-ratio cap first (cheaper than losing distance), then the tier. Cores and memory nudge.
+// The guess. GPU class from the renderer string when the browser shows one, else a fill-rate
+// probe (Brave with shields, Firefox resisting fingerprinting and Safari all mask the string).
+// Each class has a rough fill budget: the bloom is about six passes, so a frame costs ~3.2 x
+// the canvas pixels, and the budget is what fits at 60 fps. Classes and budgets follow 3DMark
+// Wild Life Extreme, with the M1 Pro (16 cores) as 1.0: discrete and M-series Pro/Max 0.7+ are
+// ultra at 30 Mpx; the M-series base, Radeon 7x0M, Arc iGPUs and the fastest phones at ~0.45
+// high at 16; Iris Xe (0.27), Vega 8 (0.13) and UHD 620 (0.07) medium at 8; below 0.05 (a
+// mid-range phone, a software renderer) low at 4 or less. Phones and tablets are capped
+// anyway. Too many pixels lowers the pixel-ratio cap first (cheaper than losing distance), then
+// the tier. Cores and memory nudge, only when the browser is honest about them.
+// What earlier visits learnt, in localStorage for 90 days: the probe's rate and, once the frame times
+// confirmed or lowered a tier, that tier. Each against the renderer string, so a new GPU measures again.
+const remembered = (() => {
+  const out = {};
+  for (const k of ['probe', 'tier']) {
+    try { const v = JSON.parse(localStorage.getItem(`condor.quality.${k}`)); if (v && Date.now() - v.at < 90 * 864e5) out[k] = v; } catch {}
+  }
+  return out;
+})();
+function remember(k, v) {
+  try { localStorage.setItem(`condor.quality.${k}`, JSON.stringify({ ...v, at: Date.now() })); } catch {}
+  return v;
+}
+const PROBE_REF = 14000; // Mpx/s of probeFill's shader on an M1 Pro (16 cores; Chromium on Metal measures 14,000–14,600): the 1.0 of the scale above
 function guessTier() {
   const gl = renderer.getContext();
   const ext = gl.getExtension('WEBGL_debug_renderer_info');
   const gpu = String((ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)) || '');
   const mobile = navigator.userAgentData?.mobile || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1100);
-  let t = 1, mpxBudget = 8;
-  if (/swiftshader|llvmpipe|software/i.test(gpu)) { t = 0; mpxBudget = 1; }
-  else if (/nvidia|geforce|rtx|gtx|radeon|amd|\barc\b/i.test(gpu)) { t = 3; mpxBudget = 30; }
+  const touchOnly = navigator.maxTouchPoints > 1 && matchMedia('(hover: none)').matches; // a tablet in landscape: throttles, so high at most
+  let t = 1, mpxBudget = 8, named = true, verdict = gpu.replace(/^ANGLE \((.*)\)$/, '$1').slice(0, 48);
+  if (/swiftshader|llvmpipe|softpipe|software/i.test(gpu)) { t = 0; mpxBudget = 1; }
   else if (/apple m\d/i.test(gpu)) { t = /m\d+ (pro|max|ultra)/i.test(gpu) ? 3 : 2; mpxBudget = /m\d+ (pro|max|ultra)/i.test(gpu) ? 30 : 16; }
-  else if (/apple gpu/i.test(gpu)) { t = 2; mpxBudget = 16; } // Safari hides the model; M-series desktops mostly
-  else if (/mali|adreno|powervr|apple a\d/i.test(gpu)) { t = 0; mpxBudget = 4; }
+  else if (/radeon (rx )?vega|radeon graphics|radeon \d{3}m\b|\bvega\b|geforce mx|\barc(?:\(tm\))?(?![a-z(])(?! [ab]\d{3})|iris(?:\(r\))? xe/i.test(gpu)) { // integrated (not the Arc A/B cards): Vega and Iris Xe medium, the rest high
+    const mid = /vega|iris(?:\(r\))? xe/i.test(gpu); t = mid ? 1 : 2; mpxBudget = mid ? 8 : 16;
+  }
+  else if (/nvidia|geforce|rtx|gtx|radeon|amd|arc(?:\(tm\))? [ab]\d{3}/i.test(gpu)) { t = 3; mpxBudget = 30; }
+  else if (/adreno [78]\d\d|immortalis|mali-g[67]1\d|mali-g7[68]|apple a1[5-9]|apple a[2-9]\d/i.test(gpu)) { t = 1; mpxBudget = 4; } // the phones that keep up with an Iris Xe
+  else if (/mali|adreno|powervr|apple a\d|xclipse/i.test(gpu)) { t = 0; mpxBudget = 4; }
   else if (/intel|iris|uhd/i.test(gpu)) { t = 1; mpxBudget = 8; }
+  else { // masked ("WebKit WebGL", "Apple GPU", "Mozilla"...): measure
+    named = false;
+    const ratio = (remembered.probe?.gpu === gpu ? remembered.probe.rate : remember('probe', { gpu, rate: probeFill() }).rate) / PROBE_REF;
+    mpxBudget = clamp(30 * ratio ** 0.63, 1, 30); // 0.7 → 24, 0.35 → 15, 0.07 → 5.6, 0.01 → 1.7
+    t = ratio >= 0.7 ? 3 : ratio >= 0.35 ? 2 : ratio >= 0.05 ? 1 : 0;
+    verdict = `${verdict || 'unnamed gpu'} · probe ${(ratio * 100).toFixed(0)}% of M1 Pro`;
+  }
+  const px = innerWidth * innerHeight * devicePixelRatio ** 2;
+  if (remembered.tier?.gpu === gpu && remembered.tier.tier < t && px >= remembered.tier.px * 0.8) { t = remembered.tier.tier; verdict += ' · remembered'; } // an earlier visit on this screen (or a smaller one) stepped down
   if (mobile) { t = Math.min(t, 1); mpxBudget = Math.min(mpxBudget, 4); }
-  if ((navigator.hardwareConcurrency || 8) <= 4) t = Math.max(0, t - 1);
-  if (navigator.deviceMemory && navigator.deviceMemory <= 4) t = Math.max(0, t - 1);
+  else if (touchOnly) { t = Math.min(t, 2); mpxBudget = Math.min(mpxBudget, 12); }
+  if (named) { // a browser that hides the GPU fakes these too (Brave draws the core count at random)
+    if ((navigator.hardwareConcurrency || 8) <= 4) t = Math.max(0, t - 1);
+    if (navigator.deviceMemory && navigator.deviceMemory <= 4) t = Math.max(0, t - 1);
+  }
   // fill: find the largest pixel-ratio cap whose frame fits the budget, dropping the tier if even 1x does not
   let dprLimit = 2;
   const mpx = (cap) => (innerWidth * innerHeight * Math.min(devicePixelRatio, cap) ** 2 * 3.2) / 1e6;
@@ -1018,8 +1054,48 @@ function guessTier() {
   if (mpx(1) > mpxBudget * 1.3) t = Math.max(0, t - 1);
   quality.gpu = gpu;
   quality.dprLimit = dprLimit;
-  quality.verdict = `${gpu.replace(/^ANGLE \((.*)\)$/, '$1').slice(0, 48)} · ${mpx(dprLimit).toFixed(0)} Mpx/frame`;
+  quality.verdict = `${verdict} · ${mpx(dprLimit).toFixed(0)} Mpx/frame`;
   return t;
+}
+// Fill-rate probe: a full-screen quad with a fragment shader shaped like the bloom's (eight
+// texture taps and a short chain of multiply-adds), drawn into an offscreen target and read back
+// (the one-pixel readback waits for the GPU). The batches grow, 256² to 2048² and then more
+// passes, until one takes over 8 ms, so a weak device stops early and a strong one measures a
+// 2048² batch of many passes: some tens of ms either way. Runs once per browser: the result is
+// remembered in localStorage against the renderer string. Returns Mpx/s.
+function probeFill() {
+  const noise = new Uint8Array(64 * 64 * 4);
+  for (let i = 0; i < noise.length; i++) noise[i] = (i * 2654435761) >>> 24;
+  const tex = new THREE.DataTexture(noise, 64, 64, THREE.RGBAFormat);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.magFilter = tex.minFilter = THREE.LinearFilter; tex.needsUpdate = true;
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uTex: { value: tex }, uSeed: { value: 0 } },
+    vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: 'uniform sampler2D uTex; uniform float uSeed; void main() { vec2 p = gl_FragCoord.xy * (1.0 / 256.0); vec4 c = vec4(0.0); for (int i = 0; i < 8; i++) { float f = float(i) - 3.5; c += texture2D(uTex, p + vec2(f, -f) * (0.004 + uSeed * 0.0001)); } float a = c.x * 0.125; for (int i = 0; i < 16; i++) a = a * (1.02 - a) * 3.7 + uSeed * 0.001; gl_FragColor = vec4(a, c.y * 0.125, c.z * 0.125, 1.0); }',
+  });
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat), sc = new THREE.Scene().add(quad), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const px = new Uint8Array(4);
+  let rate = 0, rt = null;
+  for (const [size, passes] of [[256, 8], [512, 8], [1024, 8], [2048, 8], [2048, 16], [2048, 32], [2048, 64]]) {
+    if (!rt || rt.width !== size) { rt?.dispose(); rt = new THREE.WebGLRenderTarget(size, size, { depthBuffer: false }); }
+    const draw = (seed) => { mat.uniforms.uSeed.value = seed; renderer.setRenderTarget(rt); renderer.render(sc, cam); };
+    const sync = () => renderer.readRenderTargetPixels(rt, 0, 0, 1, 1, px); // ~1 ms round trip, so once per batch
+    draw(0); sync(); // warm-up: the shader compile at the first size, the allocation at the others
+    const times = []; // best of three batches, and more while the two best disagree: the first Metal command
+    while (times.length < 6) { // buffers, the GPU clock ramp and a busy neighbour tab all stall at random
+      const t0 = performance.now();
+      for (let i = 1; i <= passes; i++) draw(i + times.length * passes);
+      sync();
+      times.push(performance.now() - t0);
+      if (times.length >= 3 && [...times].sort((a, b) => a - b)[1] < Math.min(...times) * 1.3) break;
+    }
+    const best = Math.min(...times);
+    rate = Math.max(rate, (size * size * passes) / (best * 1e3)); // short batches are sync-bound, so the longest wins
+    if (best >= 8) break;
+  }
+  rt.dispose();
+  renderer.setRenderTarget(null); mat.dispose(); quad.geometry.dispose(); tex.dispose();
+  return rate;
 }
 // Apply a tier. Going up, the view distance grows at once (new chunks appear inside the fog) and
 // the fog thins over a second. Going down, the fog thickens first and the far chunks are evicted
@@ -1067,9 +1143,11 @@ function adaptQuality(dt, rendered) {
     quality.target = quality.tier - 1;
     setTier(quality.target);
     quality.locked = true;
+    remember('tier', { gpu: quality.gpu, tier: quality.tier, px: innerWidth * innerHeight * devicePixelRatio ** 2 });
   } else if (settled > 8000) {
     quality.verdict += ` · ${avg.toFixed(1)} ms vs ${budget.toFixed(1)}: confirmed`;
     quality.locked = true;
+    remember('tier', { gpu: quality.gpu, tier: quality.tier, px: innerWidth * innerHeight * devicePixelRatio ** 2 });
   }
 }
 // the display's frame interval: the shortest steady rAF delta seen early on (60 / 75 / 120 Hz...)
