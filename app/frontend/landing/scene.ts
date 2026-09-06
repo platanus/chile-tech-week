@@ -65,11 +65,8 @@ const DEFAULTS = {
   landmarkFootprint: 3.5,  // footprints are widened so a 300 m tower is a tower, not a needle
   landmarkWire: '#ffffff',
   // water: the water layer (Overture lakes rasterized to 250 m cells, river centrelines) draws
-  // lakes as planes at their real level in the sea's dark palette and rivers as draped lines.
+  // lakes at their real level with the sea's material and rivers as pale draped lines.
   showWater: true,
-  lakeColor: '#02060c',
-  lakeWire: '#4f7fa8',
-  riverColor: '#5f9ad6',
   riverOpacity: 0.9,
   riverLift: 0.25,         // units above the mesh faces, so a line never sinks into a slope
   lakeLabels: true,
@@ -117,9 +114,9 @@ const DEFAULTS = {
   waveAmp: 1.4,
   waveFreq: 0.06,
   waveSpeed: 1.0,
-  seaDeep: '#000000',
-  seaCrest: '#050505',
-  seaWireColor: '#6b6b6b',
+  seaDeep: '#b8b8b8',
+  seaCrest: '#eeeeee',
+  seaWireColor: '#ffffff',
   seaWireOpacity: 0.28,
   // terrain colors
   colorLow: '#140303',
@@ -507,7 +504,7 @@ const wireMat = new THREE.LineBasicMaterial({
 });
 // rivers: one colour, drawn like the wire (additive, no depth write) so they glow the same way
 const riverMat = new THREE.LineBasicMaterial({
-  color: new THREE.Color(P.riverColor), transparent: true, opacity: P.riverOpacity,
+  color: new THREE.Color(P.seaWireColor), transparent: true, opacity: P.riverOpacity,
   blending: THREE.AdditiveBlending, depthWrite: false,
 });
 
@@ -536,7 +533,7 @@ const seaMat = new THREE.ShaderMaterial({
     #include <fog_pars_vertex>
     void main() {
       vec4 wp = modelMatrix * vec4(position, 1.0);
-      wp.y += wave(wp.xz); vH = wp.y; vWorldPos = wp.xyz;
+      vH = wave(wp.xz); wp.y += vH; vWorldPos = wp.xyz;
       vec4 mvPosition = viewMatrix * wp;
       gl_Position = projectionMatrix * mvPosition;
       #include <fog_vertex>
@@ -699,17 +696,21 @@ function buildChunk(i, k, lod) {
   // the sea floor is never seen: whatever lies entirely below the deepest wave trough is left out
   // (faces and wire), so there is no mesh under the water for it to show through
   const sunk = (v) => pos[v * 3 + 1] <= -P.waveAmp;
-  // water cells: a wire vertex on one takes the lake wire colour, a face whose centre is on one the lake face colour
+  // Route inland water into the sea's shared materials, including waves, light and fog.
   const water = H.real && H.wet && P.showWater;
-  const wet = water ? new Uint8Array(w * rows) : null;
-  if (wet) for (let v = 0; v < w * rows; v++) wet[v] = H.wet(pos[v * 3], pos[v * 3 + 2]) ? 1 : 0;
-  const lakeWire = _wc.set(P.lakeWire).clone(), lakeFace = _fc.set(P.lakeColor).clone();
+  const waterFaces = [], waterLines = [];
 
   // wire grid (rows + columns, optional diagonals)
   const lp = [], lc = [];
   const range = Math.max(grid.cMax - grid.cMin, 1e-6);
-  const tint = (v) => { const c = wet && wet[v] ? lakeWire : wireColorAt(clamp((pos[v * 3 + 1] - grid.cMin) / range, 0, 1)); lc.push(c.r, c.g, c.b); };
-  const push = (a, b) => { if (sunk(a) && sunk(b)) return; lp.push(pos[a * 3], pos[a * 3 + 1], pos[a * 3 + 2], pos[b * 3], pos[b * 3 + 1], pos[b * 3 + 2]); tint(a); tint(b); };
+  const tint = (v) => { const c = wireColorAt(clamp((pos[v * 3 + 1] - grid.cMin) / range, 0, 1)); lc.push(c.r, c.g, c.b); };
+  const push = (a, b) => {
+    if (sunk(a) && sunk(b)) return;
+    const isWater = water && H.wet((pos[a * 3] + pos[b * 3]) / 2, (pos[a * 3 + 2] + pos[b * 3 + 2]) / 2);
+    const out = isWater ? waterLines : lp;
+    out.push(pos[a * 3], pos[a * 3 + 1], pos[a * 3 + 2], pos[b * 3], pos[b * 3 + 1], pos[b * 3 + 2]);
+    if (!isWater) { tint(a); tint(b); }
+  };
   for (let j = 0; j < rows; j++) for (let ii = 0; ii < w; ii++) {
     const a = idx(ii, j);
     if (ii < nx) push(a, idx(ii + 1, j));
@@ -729,10 +730,16 @@ function buildChunk(i, k, lod) {
 
   // flat-shaded faces with per-face color (non-indexed)
   const tri = [];
+  const pushFace = (a, b, c) => {
+    if (sunk(a) && sunk(b) && sunk(c)) return;
+    if (water && H.wet((pos[a * 3] + pos[b * 3] + pos[c * 3]) / 3, (pos[a * 3 + 2] + pos[b * 3 + 2] + pos[c * 3 + 2]) / 3)) {
+      for (const v of [a, b, c]) waterFaces.push(pos[v * 3], pos[v * 3 + 1], pos[v * 3 + 2]);
+    } else tri.push(a, b, c);
+  };
   for (let j = 0; j < segsZ; j++) for (let ii = 0; ii < nx; ii++) {
     const a = idx(ii, j), b = idx(ii + 1, j), c = idx(ii, j + 1), d = idx(ii + 1, j + 1);
-    if (!(sunk(a) && sunk(c) && sunk(b))) tri.push(a, c, b);
-    if (!(sunk(b) && sunk(c) && sunk(d))) tri.push(b, c, d);
+    pushFace(a, c, b);
+    pushFace(b, c, d);
   }
   const indexed = new THREE.BufferGeometry();
   indexed.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -745,9 +752,7 @@ function buildChunk(i, k, lod) {
   const L = sunDir(), N = new THREE.Vector3();
   for (let f = 0; f < fp.count; f += 3) {
     const y = (fp.getY(f) + fp.getY(f + 1) + fp.getY(f + 2)) / 3;
-    const c = water && H.wet((fp.getX(f) + fp.getX(f + 1) + fp.getX(f + 2)) / 3, (fp.getZ(f) + fp.getZ(f + 1) + fp.getZ(f + 2)) / 3)
-      ? _gc.copy(lakeFace)
-      : gradientColor(clamp((y - grid.cMin) / range, 0, 1));
+    const c = gradientColor(clamp((y - grid.cMin) / range, 0, 1));
     // baked shade: faces toward the sun are full, faces away keep a floor so nothing goes black
     N.set(fn.getX(f), fn.getY(f), fn.getZ(f));
     c.multiplyScalar(P.faceShadeFloor + (1 - P.faceShadeFloor) * Math.max(0, N.dot(L)));
@@ -769,6 +774,16 @@ function buildChunk(i, k, lod) {
   g.add(new THREE.Mesh(faces, terrainMat));
   g.add(new THREE.LineSegments(lineGeo, wireMat));
   if (water) {
+    if (waterFaces.length) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(waterFaces, 3));
+      g.add(new THREE.Mesh(geo, seaMat));
+    }
+    if (waterLines.length) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(waterLines, 3));
+      g.add(new THREE.LineSegments(geo, seaWireMat));
+    }
     const rp = buildRivers(gi0, gi1, gj0, S, lod, pos, w, rows);
     if (rp.length) {
       const riverGeo = new THREE.BufferGeometry();
@@ -1044,7 +1059,7 @@ function applyAtmosphere() {
   const pr = Math.min(devicePixelRatio, quality.dprCap) * P.renderScale;
   if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); composer.setPixelRatio(pr); composer.setSize(innerWidth, innerHeight); }
   wireMat.opacity = P.wireOpacity;
-  riverMat.color.set(P.riverColor);
+  riverMat.color.set(P.seaWireColor);
   riverMat.opacity = P.riverOpacity;
   seaUniforms.uAmp.value = P.waveAmp;
   seaUniforms.uFreq.value = P.waveFreq;
@@ -1667,13 +1682,10 @@ fCity.addColor(P, 'landmarkWire').name('tower wire');
 fCity.onChange(scheduleRebuild);
 const fWater = gui.addFolder('Water');
 fWater.add(P, 'showWater').name('lakes & rivers');
-fWater.addColor(P, 'lakeColor').name('lake faces');
-fWater.addColor(P, 'lakeWire').name('lake wire');
 fWater.add(P, 'riverLift', 0, 2, 0.05).name('river lift');
 fWater.add(P, 'lakeLabels').name('lake names');
 fWater.add(P, 'lakeLabelKm2', 0.5, 100, 0.5).name('min lake km²');
 fWater.onChange(scheduleRebuild);
-fWater.addColor(P, 'riverColor').name('river color').onChange(applyAtmosphere);
 fWater.add(P, 'riverOpacity', 0, 1, 0.01).name('river opacity').onChange(applyAtmosphere);
 const fCities = gui.addFolder('City names');
 fCities.add(P, 'cityLabels').name('waypoints');
@@ -1733,10 +1745,10 @@ fCoast.onChange(scheduleRebuild);
 fCoast.add(P, 'waveAmp', 0, 6, 0.05).name('wave height').onChange(applyAtmosphere);
 fCoast.add(P, 'waveFreq', 0.01, 0.3, 0.005).name('wave frequency').onChange(applyAtmosphere);
 fCoast.add(P, 'waveSpeed', 0, 4, 0.05).name('wave speed');
-fCoast.addColor(P, 'seaDeep').name('sea deep').onChange(applyAtmosphere);
-fCoast.addColor(P, 'seaCrest').name('sea crest').onChange(applyAtmosphere);
-fCoast.addColor(P, 'seaWireColor').name('sea wire').onChange(applyAtmosphere);
-fCoast.add(P, 'seaWireOpacity', 0, 1, 0.01).name('sea wire opacity').onChange(applyAtmosphere);
+fWater.addColor(P, 'seaDeep').name('water deep').onChange(applyAtmosphere);
+fWater.addColor(P, 'seaCrest').name('water crest').onChange(applyAtmosphere);
+fWater.addColor(P, 'seaWireColor').name('water wire').onChange(applyAtmosphere);
+fWater.add(P, 'seaWireOpacity', 0, 1, 0.01).name('water wire opacity').onChange(applyAtmosphere);
 
 const fColors = gui.addFolder('Terrain colors');
 fColors.addColor(P, 'colorLow').name('floor');
