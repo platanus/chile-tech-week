@@ -119,6 +119,13 @@ export default function Show({ title, description }: HomeShow) {
             <span style={{ opacity: 0.6 }}>Esc</span>
           </span>
         </button>
+        <div id="throttle" aria-hidden="true">
+          <span className="cap">turbo</span>
+          <div className="track">
+            <div className="fill" />
+            <div className="knob" />
+          </div>
+        </div>
         <div id="joystick-base" aria-hidden="true">
           <div id="joystick-knob" />
         </div>

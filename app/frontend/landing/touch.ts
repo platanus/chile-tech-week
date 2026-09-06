@@ -1,23 +1,48 @@
-// Mobile flight controls: a joystick, bottom-left in game mode on a coarse (touch) pointer,
+// Mobile flight controls: a joystick, bottom centre in game mode on a coarse (touch) pointer,
 // that drives the exact same key state the keyboard does — window.condorScene.flock.keys — so
 // updateCondor() and the flock's network reporting see no difference between a key press and a
 // drag. `body.touch-ui` (toggled here from the same media query) is what the rest of the game
 // UI keys off to go minimal: no map to teleport with a tap, no keyboard legend, a compact pilot
 // corner (see landing.css and flock/hud.ts).
 //
-// Dragging the thumb well clear of the base — a full base diameter past its perimeter, so
-// steering near the edge never trips it — engages sprint (the Shift boost); one more radius
-// out, it steps the flight speed up once — the same step one scroll-wheel notch would, replayed
-// as a synthetic wheel event on the scene's canvas so the two stay in perfect sync instead of
-// duplicating scene.ts's speed formula here.
-const coarse = matchMedia('(pointer: coarse)');
+// Left of it, under the other thumb, a spring-loaded throttle lever. Pushing it up feeds
+// window.condorScene.setThrottle() the same acceleration Shift gives a keyboard pilot, in
+// proportion to how far it is pushed; lifting the thumb eases it straight back down to cruise.
+// That boost is the whole speed control on touch: the base glide speed (the scroll wheel's job
+// on a desktop) stays where the scene set it, so a thumb can never leave it somewhere it can't
+// be brought back from.
+
+/**
+ * Lever position — 0 resting at the bottom, 1 pushed to the top — for a thumb at viewport `y`,
+ * on a track `height` tall whose top edge is at `top` and whose knob is `knob` tall. The knob's
+ * centre follows the thumb, so the ends are half a knob inside the track; past either one the
+ * lever pins there.
+ */
+export function throttleAt(y: number, top: number, height: number, knob: number): number {
+  const travel = height - knob;
+  if (travel <= 0) return 0;
+  const idle = top + height - knob / 2; // where the knob's centre sits with the lever down
+  return Math.min(1, Math.max(0, (idle - y) / travel));
+}
+
+const keys = () => window.condorScene?.flock?.keys;
+const flying = () => window.condorScene?.flock?.mode() === 'game';
 
 export function startTouchControls() {
+  // Read inside the call, not at import: this module is bundled into the SSR build too, where
+  // there is no matchMedia to ask.
+  const coarse = matchMedia('(pointer: coarse)');
   const applyClass = () => document.body.classList.toggle('touch-ui', coarse.matches);
   applyClass();
   coarse.addEventListener('change', applyClass);
   if (!coarse.matches) return; // nothing to wire for a mouse
 
+  wireJoystick();
+  wireThrottle();
+}
+
+/** Steering: a relative drag from the base's centre, held as the four flight keys. */
+function wireJoystick() {
   const baseEl = document.getElementById('joystick-base');
   const knobEl = document.getElementById('joystick-knob');
   if (!baseEl || !knobEl) return;
@@ -29,34 +54,20 @@ export function startTouchControls() {
   let pointerId: number | null = null;
   let originX = 0;
   let originY = 0;
-  // distances from the base's centre, in multiples of its on-screen radius: sprint needs the
-  // thumb a whole diameter clear of the perimeter, not just near its edge, so these come from
-  // the rendered element rather than a constant that could drift from the CSS. Set on
-  // pointerdown, alongside the origin.
-  let sprintAt = Infinity;
-  let stepAt = Infinity;
-  let stepArmed = true; // must ease back inside the sprint ring before another step can fire
 
-  const keys = () => window.condorScene?.flock?.keys;
-
-  function setKeys(dx: number, dy: number, dist: number) {
+  function setKeys(dx: number, dy: number) {
     const k = keys();
     if (!k) return;
     k.KeyA = dx < -DEAD;
     k.KeyD = dx > DEAD;
     k.KeyW = dy < -DEAD;
     k.KeyS = dy > DEAD;
-    k.ShiftLeft = dist > sprintAt;
   }
 
   function clearKeys() {
     const k = keys();
     if (!k) return;
-    k.KeyA = k.KeyD = k.KeyW = k.KeyS = k.ShiftLeft = false;
-  }
-
-  function bumpSpeed() {
-    document.querySelector('canvas.scene')?.dispatchEvent(new WheelEvent('wheel', { deltaY: -1 }));
+    k.KeyA = k.KeyD = k.KeyW = k.KeyS = false;
   }
 
   function move(e: PointerEvent) {
@@ -67,38 +78,79 @@ export function startTouchControls() {
     const clamped = Math.min(dist, R);
     const angle = Math.atan2(dy, dx);
     knob.style.transform = dist > DEAD ? `translate(${Math.cos(angle) * clamped}px, ${Math.sin(angle) * clamped}px)` : '';
-    setKeys(dx, dy, dist);
-    base.classList.toggle('sprint', dist > sprintAt);
-    base.classList.toggle('boost', dist > stepAt);
-    if (dist > stepAt) {
-      if (stepArmed) { stepArmed = false; bumpSpeed(); }
-    } else if (dist <= sprintAt) {
-      stepArmed = true;
-    }
+    setKeys(dx, dy);
   }
 
   function end(e: PointerEvent) {
     if (e.pointerId !== pointerId) return;
     pointerId = null;
-    stepArmed = true;
     clearKeys();
     knob.style.transform = '';
-    base.classList.remove('sprint', 'boost');
   }
 
   base.addEventListener('pointerdown', (e) => {
-    if (window.condorScene?.flock?.mode() !== 'game' || pointerId !== null) return;
+    if (!flying() || pointerId !== null) return;
     pointerId = e.pointerId;
     const r = base.getBoundingClientRect();
     originX = r.left + r.width / 2;
     originY = r.top + r.height / 2;
-    const baseRadius = r.width / 2;
-    sprintAt = baseRadius * 3; // the perimeter plus one full diameter of clearance
-    stepAt = baseRadius * 4;
     base.setPointerCapture(e.pointerId);
     move(e);
   });
   base.addEventListener('pointermove', move);
   base.addEventListener('pointerup', end);
   base.addEventListener('pointercancel', end);
+}
+
+/** The throttle lever: the knob follows the thumb up the track, and springs back on release. */
+function wireThrottle() {
+  const lever = document.getElementById('throttle');
+  const trackEl = lever?.querySelector<HTMLElement>('.track');
+  const knobEl = lever?.querySelector<HTMLElement>('.knob');
+  if (!lever || !trackEl || !knobEl) return;
+  const el = lever, track = trackEl, knob = knobEl; // non-null for the closures below
+
+  const SPRING_MS = 180; // the glide back down to cruise once the thumb lifts
+
+  let pointerId: number | null = null;
+  let value = 0;
+  let spring = 0; // rAF handle for that glide
+
+  // One number drives the lot: the scene's boost, the knob's travel, and — as `--t` on the
+  // element — how far the red fill has risen and how hot the knob and its label look.
+  function apply(v: number) {
+    value = v;
+    el.style.setProperty('--t', v.toFixed(3));
+    knob.style.transform = `translateY(${-v * (track.clientHeight - knob.offsetHeight)}px)`;
+    window.condorScene?.setThrottle?.(v);
+  }
+
+  function follow(e: PointerEvent) {
+    if (e.pointerId !== pointerId) return;
+    const r = track.getBoundingClientRect();
+    apply(throttleAt(e.clientY, r.top + track.clientTop, track.clientHeight, knob.offsetHeight));
+  }
+
+  function end(e: PointerEvent) {
+    if (e.pointerId !== pointerId) return;
+    pointerId = null;
+    const from = value, t0 = performance.now();
+    const step = () => {
+      const k = Math.min(1, (performance.now() - t0) / SPRING_MS);
+      apply(from * (1 - k) ** 2); // leaves the top at once, settles softly at the bottom
+      if (k < 1) spring = requestAnimationFrame(step);
+    };
+    spring = requestAnimationFrame(step);
+  }
+
+  el.addEventListener('pointerdown', (e) => {
+    if (!flying() || pointerId !== null) return;
+    pointerId = e.pointerId;
+    cancelAnimationFrame(spring);
+    el.setPointerCapture(e.pointerId);
+    follow(e);
+  });
+  el.addEventListener('pointermove', follow);
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
 }

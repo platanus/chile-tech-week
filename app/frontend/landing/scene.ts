@@ -1390,6 +1390,9 @@ function placeAt(x, z, altitude) {
   camera.position.set(x + Math.sin(condor.yaw) * P.camDistance, y + P.camHeight, z + Math.cos(condor.yaw) * P.camDistance);
 }
 const keys = {};
+// The mobile throttle lever (landing/touch.ts), 0…1: how far the thumb is pushing, folded into
+// the same boost Shift gives below. A keyboard flight never sets it, so it sits at 0.
+let throttle = 0;
 addEventListener('keydown', (e) => {
   if (isTyping()) return;
   if (mode !== 'game') { if (e.code === 'KeyF') setMode('game'); return; } // ambient: never capture keys
@@ -1530,6 +1533,7 @@ function setMode(m) {
   if (m === 'game') {
     scrollTo({ top: 0, behavior: 'instant' });
     for (const k in keys) keys[k] = false;
+    throttle = 0;
     crash = { state: 'none', t: 0, z: 0 };
     fadeEl.style.opacity = 0;
     // every flight starts over Santiago (resetCamera scatters the spawns and clears the ground),
@@ -1540,6 +1544,7 @@ function setMode(m) {
     gui.hide();
     closeSearch(false);
     for (const k in keys) keys[k] = false;
+    throttle = 0;
   }
   window.condorFlock?.setMode(m);
 }
@@ -1560,7 +1565,7 @@ const flockHooks = {
   },
   mode() { return mode; },
 };
-window.condorScene = { setMode, teleport, get mode() { return mode; }, flock: flockHooks, bird() { return { x: condor.pos.x, y: condor.pos.y, z: condor.pos.z, yaw: condor.yaw, crash: crash.state, to: crash.to }; }, probe(x, z) { return { terrain: H.height(x, z), obstacle: H.obstacle ? H.obstacle(x, z) : null }; }, cityCands() { return lastCityCands; }, quality() { return { tier: quality.tier, target: quality.target, locked: quality.locked, verdict: quality.verdict, dprLimit: quality.dprLimit, pendingFog: quality.pendingFog, pending: lastPending, fadingChunks: fading.length, name: QUALITY[quality.tier].name, gpu: quality.gpu, displayMs: quality.displayMs, viewDistance: P.viewDistance, fog: P.fogDensity, dprCap: quality.dprCap, bloom: P.bloom, frames: quality.frames.length }; }, stats() { const byLod = {}; for (const c of chunks.values()) byLod[c.lod] = (byLod[c.lod] || 0) + 1; return { chunks: chunks.size, byLod, tiles: real.tiles.size, tileBytes: real.bytes, peaks: real.peaks.length, slowestBuilds: [...buildTimes].sort((a, b) => b[1] - a[1]).slice(0, 6), buildTotalMs: buildTimes.reduce((a, b) => a + b[1], 0) }; } }; // tiny API for the host page (and tests)
+window.condorScene = { setMode, teleport, setThrottle(v) { throttle = clamp(v, 0, 1); }, get mode() { return mode; }, flock: flockHooks, bird() { return { x: condor.pos.x, y: condor.pos.y, z: condor.pos.z, yaw: condor.yaw, crash: crash.state, to: crash.to }; }, probe(x, z) { return { terrain: H.height(x, z), obstacle: H.obstacle ? H.obstacle(x, z) : null }; }, cityCands() { return lastCityCands; }, quality() { return { tier: quality.tier, target: quality.target, locked: quality.locked, verdict: quality.verdict, dprLimit: quality.dprLimit, pendingFog: quality.pendingFog, pending: lastPending, fadingChunks: fading.length, name: QUALITY[quality.tier].name, gpu: quality.gpu, displayMs: quality.displayMs, viewDistance: P.viewDistance, fog: P.fogDensity, dprCap: quality.dprCap, bloom: P.bloom, frames: quality.frames.length }; }, stats() { const byLod = {}; for (const c of chunks.values()) byLod[c.lod] = (byLod[c.lod] || 0) + 1; return { chunks: chunks.size, byLod, tiles: real.tiles.size, tileBytes: real.bytes, peaks: real.peaks.length, slowestBuilds: [...buildTimes].sort((a, b) => b[1] - a[1]).slice(0, 6), buildTotalMs: buildTimes.reduce((a, b) => a + b[1], 0) }; } }; // tiny API for the host page (and tests)
 
 function ambientInputs(dt) {
   // autopilot: hold a lane beside the coast, cruise altitude, and a slow lazy sway
@@ -1590,7 +1595,8 @@ function updateCondor(dt) {
   else {
     turn = frozen ? 0 : (keys.KeyA || keys.ArrowLeft ? 1 : 0) - (keys.KeyD || keys.ArrowRight ? 1 : 0);
     climb = frozen ? 0 : (keys.KeyW || keys.ArrowUp || keys.Space ? 1 : 0) - (keys.KeyS || keys.ArrowDown || keys.KeyC ? 1 : 0);
-    boost = !frozen && (keys.ShiftLeft || keys.ShiftRight) ? 2.2 : 1;
+    // Shift is all-or-nothing; the touch lever is the same 2.2x, dialled in by how far it is up
+    boost = frozen ? 1 : Math.max(keys.ShiftLeft || keys.ShiftRight ? 2.2 : 1, 1 + throttle * 1.2);
   }
   if (frozen) dt = 0; // hold still while the screen is black
 
@@ -1612,7 +1618,7 @@ function updateCondor(dt) {
   }
 
   // pose + wing animation (glide flap, faster under boost, wings rise a little when banking)
-  flightTime += dt * (boost > 1 ? 2 : 1);
+  flightTime += dt * (1 + (boost - 1) / 1.2); // twice as fast at full boost, and smooth between
   const flap = Math.sin(flightTime * P.flapSpeed) * P.flapAmount + 0.12 + Math.abs(condor.roll) * 0.15;
   condor.wingR.rotation.z = flap;
   condor.wingL.rotation.z = -flap;

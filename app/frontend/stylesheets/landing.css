@@ -187,8 +187,27 @@ body.touch-ui #joystick-base { position: absolute; left: 50%; bottom: 56px; tran
   touch-action: none; }
 body.game #joystick-base { pointer-events: auto; } /* like #exit, #minimap, #search-btn: interactive only in game mode */
 #joystick-knob { width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,.55); }
-#joystick-base.sprint #joystick-knob { background: rgba(238,43,43,.7); }
-#joystick-base.boost #joystick-knob { background: var(--red); box-shadow: 0 0 14px var(--red); }
+
+/* ---- the throttle lever, left of the joystick and under the other thumb: push it up to
+   accelerate, lift the thumb and it glides back down to cruise. landing/touch.ts sets `--t`
+   (0 down … 1 full) and moves the knob; everything else here follows that one number. */
+#throttle { display: none; --t: 0; }
+body.touch-ui #throttle { position: absolute; left: 22px; bottom: 56px; display: flex; flex-direction: column;
+  align-items: center; gap: 9px; touch-action: none; }
+body.game #throttle { pointer-events: auto; } /* like the joystick: interactive only in game mode */
+#throttle .cap { font: 9px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--gray);
+  color: color-mix(in srgb, var(--red) calc(var(--t) * 100%), var(--gray)); }
+#throttle .track { position: relative; width: 44px; height: 156px; border-radius: 22px;
+  border: 1px solid var(--line); background: rgba(0,0,0,.55); }
+/* the trail the knob leaves behind it: 44px is the knob, so this is exactly its travel */
+#throttle .fill { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--t) * (100% - 44px)); border-radius: 21px;
+  background: linear-gradient(to top, rgba(238,43,43,.16), rgba(238,43,43,.55)); }
+/* the knob squares `--t` on its way to red, so a light thumbwheel goes hot only near the top */
+#throttle .knob { position: absolute; left: 0; bottom: 0; width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,.55);
+  background: color-mix(in srgb, var(--red) calc(var(--t) * var(--t) * 100%), rgba(255,255,255,.6));
+  box-shadow: 0 0 calc(var(--t) * 15px) rgb(238 43 43 / calc(var(--t) * .9)); }
+@media (max-height: 520px) { #throttle .track { height: 104px; } } /* landscape: down to the joystick's own height */
 
 /* ---- touch layout: no map to tap-teleport with (a finger can't hover it), no keyboard legend,
    the exit button shrinks to a bare ✕ top-left so the pilot corner and the search glass — moved
