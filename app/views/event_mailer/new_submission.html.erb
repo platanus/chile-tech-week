@@ -1,4 +1,4 @@
 <h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Nuevo evento enviado</h1>
 <p style="margin:0 0 14px;color:#fff;"><strong><%= @event.title %></strong>, de <%= @event.company_name %>, espera revisión.</p>
 <%= render "event_summary" %>
-<%= render "button", url: admin_event_url(@event, host: site_url), label: "Revisar el evento" %>
+<%= render "button", url: admin_event_url(@event.week, @event, host: site_url), label: "Revisar el evento" %>

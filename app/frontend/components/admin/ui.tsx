@@ -4,10 +4,18 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { AdminPagination, EventState } from '@/types';
+import type { AdminPagination, AdminWeek, EventState } from '@/types';
 
 // The pieces every admin page shares: the flash bar, the page title, the state badges, the
 // dates (always Santiago time) and the pager.
+
+// The Tech Week the panel is on — every admin route carries its slug (/admin/26/events), so
+// every path helper on these pages takes it. Admin::BaseController shares it.
+export function useWeek(): AdminWeek {
+  const week = usePage().props.week;
+  if (!week) throw new Error('No week in the props: is this page rendered by Admin::BaseController?');
+  return week;
+}
 
 export function Flash() {
   const { flash } = usePage().props;

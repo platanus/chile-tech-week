@@ -230,15 +230,15 @@ const selectClass = 'h-11! w-full border-input bg-transparent px-3 text-base foc
 
 // The submission form: the organiser, the event, the catalogue and the optional co-hosts,
 // posted as one Rails nested form (event[…], event[cohosts_attributes][i][…]).
-export default function New({ days, week, communes, formats, themes, audiences, descriptionLimit, ...page }: EventsNew) {
+export default function New({ days, weekDates, communes, formats, themes, audiences, descriptionLimit, ...page }: EventsNew) {
   const [description, setDescription] = useState('');
   const [startsAt, setStartsAt] = useState('');
   const [endsAt, setEndsAt] = useState('');
   const [cohostIds, setCohostIds] = useState<number[]>([]);
   const [nextCohostId, setNextCohostId] = useState(0);
 
-  const min = `${week.from}T00:00`;
-  const max = `${week.to}T23:59`;
+  const min = `${weekDates.from}T00:00`;
+  const max = `${weekDates.to}T23:59`;
 
   const onStartChange = (value: string) => {
     setStartsAt(value);

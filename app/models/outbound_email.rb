@@ -9,6 +9,11 @@ class OutboundEmail < ApplicationRecord
   validates :template_name, :to, :subject, :html_content, presence: true
 
   scope :newest_first, -> { order(created_at: :desc) }
+  # Every EventMailer message carries its event in template_data (the X-Template-Data
+  # header); that event's `edition` is the Tech Week the message belongs to.
+  scope :for_week, ->(week) {
+    where("outbound_emails.template_data->>'event_id' IN (SELECT events.id::text FROM events WHERE events.edition = ?)", week.year)
+  }
   scope :search, ->(query) {
     term = "%#{sanitize_sql_like(query.to_s.strip)}%"
     where("outbound_emails.to ILIKE :q OR subject ILIKE :q OR template_name ILIKE :q", q: term)

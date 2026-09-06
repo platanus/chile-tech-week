@@ -1,7 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { CheckCircle2, Clock, Play, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import { Field, Flash, formatDateTime, PageTitle } from '@/components/admin/ui';
+import { Field, Flash, formatDateTime, PageTitle, useWeek } from '@/components/admin/ui';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { admin_task_run_path } from '@/routes';
@@ -15,10 +15,12 @@ function StatusBadge({ task }: { task: AdminTask }) {
   return <Badge variant="outline" className="rounded-sm border-red-200 bg-red-50 font-mono text-[11px] uppercase tracking-wider text-red-700"><XCircle /> Error</Badge>;
 }
 
-// /admin/tasks — the scheduled tasks, their last run, and a button to run one now.
+// /admin/26/tasks — the scheduled tasks, their last run, and a button to run one now. The
+// jobs themselves are not per-edition; the week is only in the URL for the switcher.
 export default function Index({ tasks }: AdminTasksIndex) {
+  const week = useWeek();
   const [running, setRunning] = useState<string | null>(null);
-  const run = (task: AdminTask) => router.post(admin_task_run_path(task.id), {}, { onStart: () => setRunning(task.id), onFinish: () => setRunning(null) });
+  const run = (task: AdminTask) => router.post(admin_task_run_path(week.slug, task.id), {}, { onStart: () => setRunning(task.id), onFinish: () => setRunning(null) });
 
   return (
     <>

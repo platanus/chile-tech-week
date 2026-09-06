@@ -12,7 +12,7 @@ RSpec.describe SlackNotifier do
     request = stub_request(:post, "https://slack.com/api/chat.postMessage").with(headers: {"Authorization" => "Bearer xoxb-1"}).to_return(status: 200, body: {ok: true}.to_json)
 
     expect(described_class.new_submission(event)).to be(true)
-    expect(request.with { |req| JSON.parse(req.body)["channel"] == "C123" && JSON.parse(req.body)["text"].include?("Demo Day") && JSON.parse(req.body)["text"].include?("https://techweek.cl/admin/events/#{event.id}") }).to have_been_requested
+    expect(request.with { |req| JSON.parse(req.body)["channel"] == "C123" && JSON.parse(req.body)["text"].include?("Demo Day") && JSON.parse(req.body)["text"].include?("https://techweek.cl/admin/25/events/#{event.id}") }).to have_been_requested
   end
 
   it "swallows failures" do

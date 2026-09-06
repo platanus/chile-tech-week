@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Check, ChevronLeft, ExternalLink, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
-import { Field, Flash, formatDateTime, LogoOnBlack, StateBadge } from '@/components/admin/ui';
+import { Field, Flash, formatDateTime, LogoOnBlack, StateBadge, useWeek } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -38,16 +38,17 @@ const TITLE = 'label text-[10px] text-muted-foreground';
 
 // /admin/events/:id — everything about one submission, and every change the admin can make.
 export default function Show({ event, communes }: AdminEventsShow) {
+  const week = useWeek();
   const [busy, setBusy] = useState(false);
   const patch = (data: Record<string, string | boolean | File>) =>
-    router.patch(admin_event_path(event.id), { event: data }, { preserveScroll: true, forceFormData: true, onStart: () => setBusy(true), onFinish: () => setBusy(false) });
+    router.patch(admin_event_path(week.slug, event.id), { event: data }, { preserveScroll: true, forceFormData: true, onStart: () => setBusy(true), onFinish: () => setBusy(false) });
 
   return (
     <div className="mx-auto max-w-4xl">
       <Head>
         <title>{`${event.title} · Admin`}</title>
       </Head>
-      <Link href={admin_events_path()} className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+      <Link href={admin_events_path(week.slug)} className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" /> Volver a eventos
       </Link>
       <Flash />
@@ -216,17 +217,18 @@ export default function Show({ event, communes }: AdminEventsShow) {
 
 // Aprobar / Rechazar (with the reason the host will read), for submitted events only.
 function Moderation({ eventId }: { eventId: string }) {
+  const week = useWeek();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [pending, setPending] = useState<'approve' | 'reject' | null>(null);
 
   const approve = () =>
-    router.post(admin_event_approval_path(eventId), {}, { onStart: () => setPending('approve'), onFinish: () => setPending(null) });
+    router.post(admin_event_approval_path(week.slug, eventId), {}, { onStart: () => setPending('approve'), onFinish: () => setPending(null) });
   const reject = (e: FormEvent) => {
     e.preventDefault();
     if (!reason.trim()) return;
     router.post(
-      admin_event_rejection_path(eventId),
+      admin_event_rejection_path(week.slug, eventId),
       { reason: reason.trim() },
       { onStart: () => setPending('reject'), onFinish: () => setPending(null), onSuccess: () => setOpen(false) },
     );
@@ -365,6 +367,7 @@ const COHOST_FIELDS: Array<{ name: string; label: string; type?: string; require
 ];
 
 function Cohosts({ eventId, cohosts, published }: { eventId: string; cohosts: AdminCohost[]; published: boolean }) {
+  const week = useWeek();
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<AdminCohost | null>(null);
   const [busy, setBusy] = useState(false);
@@ -374,16 +377,16 @@ function Cohosts({ eventId, cohosts, published }: { eventId: string; cohosts: Ad
     const form = new FormData(e.currentTarget);
     const cohost: Record<string, FormDataEntryValue> = {};
     form.forEach((value, key) => { cohost[key] = value; });
-    router.post(admin_event_cohosts_path(eventId), { cohost }, {
+    router.post(admin_event_cohosts_path(week.slug, eventId), { cohost }, {
       forceFormData: true, preserveScroll: true,
       onStart: () => setBusy(true), onFinish: () => setBusy(false), onSuccess: () => setAdding(false),
     });
   };
   const patch = (cohost: AdminCohost, data: Record<string, string | boolean | File>) =>
-    router.patch(admin_event_cohost_path(eventId, cohost.id), { cohost: data }, { forceFormData: true, preserveScroll: true, onStart: () => setBusy(true), onFinish: () => setBusy(false) });
+    router.patch(admin_event_cohost_path(week.slug, eventId, cohost.id), { cohost: data }, { forceFormData: true, preserveScroll: true, onStart: () => setBusy(true), onFinish: () => setBusy(false) });
   const remove = () => {
     if (!removing) return;
-    router.delete(admin_event_cohost_path(eventId, removing.id), { preserveScroll: true, onStart: () => setBusy(true), onFinish: () => setBusy(false), onSuccess: () => setRemoving(null) });
+    router.delete(admin_event_cohost_path(week.slug, eventId, removing.id), { preserveScroll: true, onStart: () => setBusy(true), onFinish: () => setBusy(false), onSuccess: () => setRemoving(null) });
   };
 
   return (

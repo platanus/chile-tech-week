@@ -4,7 +4,7 @@ RSpec.describe "admin sign-in" do
   let(:admin) { create(:user, email: "ada@techweek.cl", password: "secret-password") }
 
   it "sends visitors of the panel to the login page" do
-    get "/admin/events"
+    get "/admin/25/events"
 
     expect(response).to redirect_to("/admin/login")
   end
@@ -19,7 +19,9 @@ RSpec.describe "admin sign-in" do
   it "signs an admin in and shows the panel" do
     post "/admin/login", params: {user: {email: admin.email, password: "secret-password"}}
 
-    expect(response).to redirect_to("/admin/events")
+    expect(response).to redirect_to("/admin")
+    follow_redirect!
+    expect(response).to redirect_to("/admin/#{Week.current.slug}/events")
     follow_redirect!
     expect(inertia).to render_component("Admin/Events/Index")
     expect(inertia.props.dig(:currentUser, :email)).to eq("ada@techweek.cl")
@@ -36,7 +38,7 @@ RSpec.describe "admin sign-in" do
   it "keeps non-admin accounts out" do
     sign_in create(:user, role: "default")
 
-    get "/admin/events"
+    get "/admin/25/events"
 
     expect(response).to redirect_to("/admin/login")
     follow_redirect!
@@ -49,7 +51,7 @@ RSpec.describe "admin sign-in" do
     delete "/admin/logout"
 
     expect(response).to redirect_to("/admin/login")
-    get "/admin/events"
+    get "/admin/25/events"
     expect(response).to redirect_to("/admin/login")
   end
 end

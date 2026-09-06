@@ -52,7 +52,7 @@ test('submit → approve → publish → in the programme', async ({ page }) => 
   await expect(page.getByText(/luma\.com\/fake-/)).toBeVisible();
 
   // the outbound log has the approval mail
-  await page.goto('/admin/emails');
+  await page.goto(adminPath('/emails'));
   await expect(page.getByText('event_approved').first()).toBeVisible();
 
   // the host publishes from the status page

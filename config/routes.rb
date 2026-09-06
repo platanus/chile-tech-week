@@ -38,18 +38,23 @@ Rails.application.routes.draw do
   devise_for :users, path: "admin", path_names: {sign_in: "login", sign_out: "logout"},
     controllers: {sessions: "admin/sessions"}, skip: [:registrations, :passwords]
   namespace :admin do
+    # /admin with no week in it: Admin::BaseController sends you to the nearest one's events.
     root "events#index"
 
-    resources :events, only: [:index, :show, :update] do
-      resource :approval, only: :create, controller: "event_approvals"
-      resource :rejection, only: :create, controller: "event_rejections"
-      resources :cohosts, only: [:create, :update, :destroy]
-    end
-    resources :outbound_emails, only: [:index, :show], path: "emails" do
-      resource :resend, only: :create, controller: "outbound_email_resends"
-    end
-    resources :tasks, only: :index do
-      resource :run, only: :create, controller: "task_runs"
+    # Every page of the panel is about one Chile Tech Week, named by the two digits it is
+    # known by: /admin/25/events, /admin/26/emails. The switcher in the sidebar swaps them.
+    scope ":week", constraints: {week: /\d{2}/} do
+      resources :events, only: [:index, :show, :update] do
+        resource :approval, only: :create, controller: "event_approvals"
+        resource :rejection, only: :create, controller: "event_rejections"
+        resources :cohosts, only: [:create, :update, :destroy]
+      end
+      resources :outbound_emails, only: [:index, :show], path: "emails" do
+        resource :resend, only: :create, controller: "outbound_email_resends"
+      end
+      resources :tasks, only: :index do
+        resource :run, only: :create, controller: "task_runs"
+      end
     end
   end
 

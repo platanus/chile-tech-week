@@ -1,6 +1,6 @@
-# An event of one Chile Tech Week edition, as submitted by its host company. The columns
-# mirror the 2025 site's "Events" table (see db/migrate/*_create_events.rb); `edition` is the
-# year, so the 2025 archive and the editions to come share the table.
+# An event of one Chile Tech Week, as submitted by its host company. The columns mirror the
+# 2025 site's "Events" table (see db/migrate/*_create_events.rb); `edition` is the year, and
+# the foreign key to weeks, so the archive and the editions to come share the table.
 class Event < ApplicationRecord
   FORMATS = %w[
     breakfast_brunch_lunch dinner experiential hackathon happy_hour matchmaking networking
@@ -17,6 +17,8 @@ class Event < ApplicationRecord
   DESCRIPTION_LIMIT = 300
   CAPACITY_LIMIT = 500_000
 
+  belongs_to :week, foreign_key: :edition, primary_key: :year, inverse_of: :events
+
   has_many :cohosts, dependent: :destroy, index_errors: true
   accepts_nested_attributes_for :cohosts, allow_destroy: true
 
@@ -31,7 +33,6 @@ class Event < ApplicationRecord
   enum :format, FORMATS.index_by(&:itself), validate: true
   enum :state, STATES.index_by(&:itself), validate: true
 
-  validates :edition, presence: true, numericality: {only_integer: true, greater_than_or_equal_to: 2025}
   validates :author_email, :author_name, :author_phone_number, :company_name, :company_website,
     :company_logo_url, :title, :description, :starts_at, :ends_at, :commune, presence: true
   validates :capacity, numericality: {only_integer: true, greater_than: 0}
@@ -104,8 +105,10 @@ class Event < ApplicationRecord
   private
 
   def within_the_week
-    errors.add(:starts_at, :outside_the_week, week: Edition.dates_label) if starts_at.present? && !Edition.within_window?(starts_at)
-    errors.add(:ends_at, :outside_the_week, week: Edition.dates_label) if ends_at.present? && !Edition.within_window?(ends_at)
+    return if week.blank?
+
+    errors.add(:starts_at, :outside_the_week, week: week.dates_label) if starts_at.present? && !week.within_window?(starts_at)
+    errors.add(:ends_at, :outside_the_week, week: week.dates_label) if ends_at.present? && !week.within_window?(ends_at)
   end
 
   def logo_uploaded

@@ -53,7 +53,7 @@ RSpec.describe EventMailer do
 
     expect(mail.to).to eq(["mod@techweek.cl"])
     expect(mail.subject).to eq("Nuevo evento enviado: Demo Day")
-    expect(mail.html_part.decoded).to include("https://techweek.cl/admin/events/#{event.id}")
+    expect(mail.html_part.decoded).to include("https://techweek.cl/admin/26/events/#{event.id}")
   end
 
   it "reminds the host how long the Luma event has waited" do

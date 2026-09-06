@@ -6,7 +6,7 @@ module Admin
   # visitor is already on instead of Devise's own re-render.
   class SessionsController < InertiaController
     def new
-      redirect_to admin_events_path and return if user_signed_in?
+      redirect_to admin_root_path and return if user_signed_in?
 
       render_inertia "Admin/Sessions/New"
     end
@@ -22,7 +22,7 @@ module Admin
       # Devise's rememberable hook reads this while signing in.
       user.remember_me = params.dig(:user, :remember_me) == "1"
       sign_in(:user, user)
-      redirect_to stored_location_for(:user) || admin_events_path
+      redirect_to stored_location_for(:user) || admin_root_path
     end
 
     def destroy

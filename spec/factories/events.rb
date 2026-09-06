@@ -60,7 +60,12 @@ FactoryBot.define do
   end
 
   factory :outbound_email do
+    # The admin's log is scoped by the event each message is about (OutboundEmail.for_week),
+    # so a message always has one; pass `event:` to put it in another week.
+    transient { event { create(:event) } }
+
     template_name { "event_submitted" }
+    template_data { {"event_id" => event.id} }
     to { "host@example.com" }
     subject { "Un asunto" }
     html_content { "<p>Hola</p>" }

@@ -44,7 +44,7 @@ RSpec.describe "the current edition's events" do
       expect(response).to have_http_status(:ok)
       expect(inertia).to render_component("Events/New")
       expect(inertia).to have_props(
-        week: {from: "2026-11-16", to: "2026-11-22"},
+        weekDates: {from: "2026-11-16", to: "2026-11-22"},
         formats: Event::FORMATS,
         descriptionLimit: 300,
         themes: [{id: theme.id, name: "Fintech", slug: "fintech"}],

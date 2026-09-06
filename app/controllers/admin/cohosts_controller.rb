@@ -6,9 +6,9 @@ module Admin
     def create
       cohost = @event.cohosts.build(cohost_params)
       if cohost.save
-        redirect_to admin_event_path(@event), notice: "Co-host agregado."
+        redirect_to admin_event_path(@week, @event), notice: "Co-host agregado."
       else
-        redirect_to admin_event_path(@event), alert: cohost.errors.full_messages.to_sentence, inertia: {errors: cohost.errors.to_hash(true)}
+        redirect_to admin_event_path(@week, @event), alert: cohost.errors.full_messages.to_sentence, inertia: {errors: cohost.errors.to_hash(true)}
       end
     end
 
@@ -18,21 +18,21 @@ module Admin
       attributes[:logo_shown_at] = ActiveModel::Type::Boolean.new.cast(attributes.delete(:logo_shown)) ? Time.current : nil if attributes.key?(:logo_shown)
 
       if cohost.update(attributes)
-        redirect_to admin_event_path(@event), notice: "Co-host actualizado."
+        redirect_to admin_event_path(@week, @event), notice: "Co-host actualizado."
       else
-        redirect_to admin_event_path(@event), alert: cohost.errors.full_messages.to_sentence
+        redirect_to admin_event_path(@week, @event), alert: cohost.errors.full_messages.to_sentence
       end
     end
 
     def destroy
       @event.cohosts.find(params[:id]).destroy!
-      redirect_to admin_event_path(@event), notice: "Co-host eliminado."
+      redirect_to admin_event_path(@week, @event), notice: "Co-host eliminado."
     end
 
     private
 
     def set_event
-      @event = Event.find(params[:event_id])
+      @event = find_event(params[:event_id])
     end
 
     def cohost_params

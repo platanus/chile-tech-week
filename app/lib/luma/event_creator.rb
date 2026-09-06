@@ -22,7 +22,7 @@ module Luma
         name: @event.title,
         start_at: @event.starts_at.utc.iso8601,
         end_at: @event.ends_at.utc.iso8601,
-        timezone: Edition::TIME_ZONE,
+        timezone: Week::TIME_ZONE,
         description_md: Description.new(@event).to_md,
         cover_url: @config.luma_cover_url.presence,
         tint_color: "#ee2b2b",

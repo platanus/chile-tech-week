@@ -174,8 +174,15 @@ Nginx Proxy Manager on the host terminates TLS and routes techweek.cl to
 The 2025 site's flow, rebuilt: a host submits an event → an admin approves it and the site
 creates a **private Luma event** with the hosts invited to edit it → the host finishes it on
 Luma and publishes from the status page → the Luma event goes public and the event appears in
-the programme. `Edition` (`app/lib/edition.rb`) holds the year and the week every submission
-must fall in; the 2025 archive shares the `events` table (`edition` column) under `/25`.
+the programme.
+
+Every event belongs to a **`Week`** (`app/models/week.rb`, table `weeks`): one Chile Tech
+Week, keyed by the year it runs — which is `events.edition`, now a real foreign key — plus
+the dates a submission must fall in. It is `Week` and not `TechWeek` because `TechWeek` is
+this application's own module (`config/application.rb`), so that constant is taken. There is
+no CRUD for editions: `Week::KNOWN` lists them and `db/seeds.rb` writes them. `Week.current`
+is the one running today, else the nearest, and it is what the public site shows; the 2025
+archive is that year's week, under `/25`.
 
 - **Public** (`pages/Events/*`, `SiteLayout` attached by prefix in `lib/resolve-page.ts`):
   `/events` the programme filtered in the browser (day, topic, start time, type, search);
@@ -185,11 +192,19 @@ must fall in; the 2025 archive shares the `events` table (`edition` column) unde
   (`POST /events/:id/publish` → `Events::Publish`). The `:submission` validation context on
   `Event`/`Cohost` is the form's rule set; errors reach the page as full Spanish messages
   (`config/locales/es.yml` names the attributes, rails-i18n the messages).
-- **Admin** (`/admin`, `pages/Admin/*`, `AdminLayout`): Devise sign-in at `/admin/login`
+- **Admin** (`/admin/:week/…`, `pages/Admin/*`, `AdminLayout`): every page of the panel is
+  about one Tech Week — `/admin/26/events`, `/admin/25/emails` — and the switcher in the
+  sidebar moves between them without leaving the section you are on. `/admin`, or a year
+  with no row, redirects to `Week.current`'s events. `Admin::BaseController` sets `@week`,
+  404s an event of another week, and shares `week`/`weeks` with React (`useWeek()` in
+  `components/admin/ui.tsx`); every `admin_*_path` helper takes the slug first, in Ruby and
+  in TypeScript. Devise sign-in at `/admin/login`
   (`bin/rails 'admin:create[email,first,last]'` prints a password; dev seeds create
-  `admin@techweek.cl` / `techweek2026`), events with approve/reject
-  (`Events::Approve`, `Events::Reject`), the outbound mail log with resend, and the
-  scheduled tasks with "run now". Functional and light on purpose.
+  `admin@techweek.cl` / `techweek2026`), the week's events with approve/reject
+  (`Events::Approve`, `Events::Reject`), its outbound mail log with resend
+  (`OutboundEmail.for_week`, matched through the `event_id` every message carries in
+  `template_data`), and the scheduled tasks with "run now" — those are not per-edition, the
+  week is only in their URL. Functional and light on purpose.
 - **Mail**: `EventMailer` (Spanish, `app/views/event_mailer`), delivered by
   `OutboundEmail::Delivery` — the Action Mailer delivery method in every environment — which
   logs each message as an `OutboundEmail` row and sends it through Resend's HTTP API
@@ -208,8 +223,10 @@ must fall in; the 2025 archive shares the `events` table (`edition` column) unde
   `include RecordsTaskRun` so the admin sees its last outcome (`TaskRun`).
 - **Slack**: `SlackNotifier` posts new submissions when `SLACK_BOT_TOKEN` + `SLACK_CHANNEL`
   are set.
-- **Seeds** (`db/seeds.rb`, idempotent, run by the deploy after `db:prepare`): the themes
-  and audiences catalogue; in development also the admin and a sample 2026 programme.
+- **Seeds** (`db/seeds.rb`, idempotent, run by the deploy after `db:prepare`): the editions
+  (`Week.seed!`) and the themes and audiences catalogue; in development also the admin and a
+  sample programme for `Week.current`. Specs get the same two weeks from
+  `spec/support/weeks.rb` — a database loaded from `db/schema.rb` has none.
 - **Settings** (all through `AppConfig`, sampled in `.env.sample`): `LUMA_API_KEY`, `LUMA_COVER_URL`,
   `LUMA_ALLOWED_COHOST_DEV`, `SEND_EMAILS`, `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
   `EMAIL_CATCH_ALL`, `CONTACT_EMAIL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL`.

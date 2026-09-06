@@ -65,3 +65,6 @@ node_modules/.tmp/
 
 # Overmind socket (bin/dev).
 /.overmind.sock
+
+# Playwright's run artifacts (npm run e2e).
+/test-results/

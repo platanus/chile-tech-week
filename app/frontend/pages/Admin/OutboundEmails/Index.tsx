@@ -1,16 +1,17 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Mail, Search, X } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
-import { buildQuery, EmailStatusBadge, Flash, formatDateTime, PageTitle, Pager } from '@/components/admin/ui';
+import { buildQuery, EmailStatusBadge, Flash, formatDateTime, PageTitle, Pager, useWeek } from '@/components/admin/ui';
 import { Input } from '@/components/ui/input';
 import { admin_outbound_email_path, admin_outbound_emails_path } from '@/routes';
 import type { AdminOutboundEmailsIndex } from '@/types';
 
-// /admin/emails — every message sent, with the totals.
+// /admin/26/emails — every message this week's events sent, with the totals.
 export default function Index({ emails, pagination, search, stats }: AdminOutboundEmailsIndex) {
+  const week = useWeek();
   const [query, setQuery] = useState(search);
   const go = (params: { search?: string; page?: number }) =>
-    router.get(admin_outbound_emails_path() + buildQuery({ search, ...params }), {}, { preserveState: true });
+    router.get(admin_outbound_emails_path(week.slug) + buildQuery({ search, ...params }), {}, { preserveState: true });
   const submit = (e: FormEvent) => {
     e.preventDefault();
     go({ search: query.trim(), page: undefined });
@@ -29,7 +30,7 @@ export default function Index({ emails, pagination, search, stats }: AdminOutbou
         <title>Correos · Admin</title>
       </Head>
       <Flash />
-      <PageTitle title="Correos" subtitle="Todo lo que el sitio ha enviado." action={<div className="font-mono text-xs text-muted-foreground">Total: {pagination.count} correos</div>} />
+      <PageTitle title="Correos" subtitle="Lo que el sitio envió por los eventos de esta edición." action={<div className="font-mono text-xs text-muted-foreground">Total: {pagination.count} correos</div>} />
 
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {tiles.map(([label, value]) => (
@@ -59,7 +60,7 @@ export default function Index({ emails, pagination, search, stats }: AdminOutbou
         <ul className="flex flex-col gap-2">
           {emails.map((email) => (
             <li key={email.id}>
-              <Link href={admin_outbound_email_path(email.id)} className="block rounded-sm border border-border bg-card p-4 transition-colors hover:border-foreground">
+              <Link href={admin_outbound_email_path(week.slug, email.id)} className="block rounded-sm border border-border bg-card p-4 transition-colors hover:border-foreground">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="font-mono text-[11px] text-muted-foreground">{email.templateName}</div>
@@ -77,7 +78,7 @@ export default function Index({ emails, pagination, search, stats }: AdminOutbou
         </ul>
       )}
 
-      <Pager pagination={pagination} buildHref={(page) => admin_outbound_emails_path() + buildQuery({ search, page })} />
+      <Pager pagination={pagination} buildHref={(page) => admin_outbound_emails_path(week.slug) + buildQuery({ search, page })} />
     </>
   );
 }

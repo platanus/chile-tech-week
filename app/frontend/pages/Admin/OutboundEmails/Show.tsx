@@ -1,23 +1,24 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ChevronLeft, RotateCw } from 'lucide-react';
 import { useState } from 'react';
-import { EmailStatusBadge, Field, Flash, formatDateTime } from '@/components/admin/ui';
+import { EmailStatusBadge, Field, Flash, formatDateTime, useWeek } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { admin_outbound_email_resend_path, admin_outbound_emails_path } from '@/routes';
 import type { AdminOutboundEmailsShow } from '@/types';
 
-// /admin/emails/:id — one message: its envelope, its outcome and the HTML as it went out.
+// /admin/26/emails/:id — one message: its envelope, its outcome and the HTML as it went out.
 export default function Show({ email, htmlContent }: AdminOutboundEmailsShow) {
+  const week = useWeek();
   const [sending, setSending] = useState(false);
-  const resend = () => router.post(admin_outbound_email_resend_path(email.id), {}, { onStart: () => setSending(true), onFinish: () => setSending(false) });
+  const resend = () => router.post(admin_outbound_email_resend_path(week.slug, email.id), {}, { onStart: () => setSending(true), onFinish: () => setSending(false) });
 
   return (
     <div className="mx-auto max-w-4xl">
       <Head>
         <title>{`${email.subject} · Correos · Admin`}</title>
       </Head>
-      <Link href={admin_outbound_emails_path()} className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+      <Link href={admin_outbound_emails_path(week.slug)} className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" /> Volver a correos
       </Link>
       <Flash />

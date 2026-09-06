@@ -74,7 +74,7 @@ class EventMailer < ApplicationMailer
   DAYS = %w[domingo lunes martes miércoles jueves viernes sábado].freeze
 
   def long_date(time)
-    local = time.in_time_zone(Edition::TIME_ZONE)
+    local = time.in_time_zone(Week::TIME_ZONE)
     "#{DAYS[local.wday]} #{local.day} de noviembre, #{local.strftime("%H:%M")}"
   end
   helper_method :long_date

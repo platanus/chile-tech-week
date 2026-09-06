@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Building2, CalendarDays, Clock, Search, X } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
-import { buildQuery, Flash, formatDateTime, PageTitle, Pager, STATE_LABELS, StateBadge } from '@/components/admin/ui';
+import { buildQuery, Flash, formatDateTime, PageTitle, Pager, STATE_LABELS, StateBadge, useWeek } from '@/components/admin/ui';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { admin_event_path, admin_events_path } from '@/routes';
@@ -11,10 +11,11 @@ const STATES = Object.keys(STATE_LABELS) as EventState[];
 
 // /admin/events — the submissions of one state, searched and paged.
 export default function Index({ events, pagination, status, search }: AdminEventsIndex) {
+  const week = useWeek();
   const [query, setQuery] = useState(search);
 
   const go = (params: { status?: string; search?: string; page?: number }) =>
-    router.get(admin_events_path() + buildQuery({ status, search, ...params }), {}, { preserveState: true });
+    router.get(admin_events_path(week.slug) + buildQuery({ status, search, ...params }), {}, { preserveState: true });
 
   const submitSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -87,7 +88,7 @@ export default function Index({ events, pagination, status, search }: AdminEvent
           {events.map((event) => (
             <li key={event.id}>
               <Link
-                href={admin_event_path(event.id)}
+                href={admin_event_path(week.slug, event.id)}
                 className="block rounded-sm border border-border bg-card p-4 transition-colors hover:border-foreground"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -111,7 +112,7 @@ export default function Index({ events, pagination, status, search }: AdminEvent
         </ul>
       )}
 
-      <Pager pagination={pagination} buildHref={(page) => admin_events_path() + buildQuery({ status, search, page })} />
+      <Pager pagination={pagination} buildHref={(page) => admin_events_path(week.slug) + buildQuery({ status, search, page })} />
     </>
   );
 }

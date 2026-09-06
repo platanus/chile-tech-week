@@ -1,20 +1,20 @@
 module Admin
-  # The submissions, every edition: the list to moderate (filtered by state, searched by
-  # title/company/host) and one event with everything the admin can change on it.
+  # The submissions of the week in the URL: the list to moderate (filtered by state,
+  # searched by title/company/host) and one event with everything the admin can change on it.
   class EventsController < BaseController
     PER_PAGE = 10
 
     def index
       @status = Event::STATES.include?(params[:status]) ? params[:status] : "submitted"
       @search = params[:search].to_s.strip
-      scope = Event.where(state: @status).order(created_at: :desc)
+      scope = @week.events.where(state: @status).order(created_at: :desc)
       scope = scope.where("title ILIKE :q OR company_name ILIKE :q OR author_name ILIKE :q", q: "%#{Event.sanitize_sql_like(@search)}%") if @search.present?
       pagy, @events = pagy(:offset, scope, limit: PER_PAGE)
       @pagination = Pagination.from_pagy(pagy)
     end
 
     def show
-      @event = Event.includes(:themes, :audiences, :cohosts).with_attached_cover.find(params[:id])
+      @event = find_event
       @communes = Communes::ALL
     end
 
@@ -25,9 +25,9 @@ module Admin
       attributes[:custom_url] = attributes[:custom_url].presence if attributes.key?(:custom_url)
 
       if event.update(attributes)
-        redirect_to admin_event_path(event), notice: "Evento actualizado."
+        redirect_to admin_event_path(@week, event), notice: "Evento actualizado."
       else
-        redirect_to admin_event_path(event), alert: event.errors.full_messages.to_sentence, inertia: {errors: event.errors.to_hash(true)}
+        redirect_to admin_event_path(@week, event), alert: event.errors.full_messages.to_sentence, inertia: {errors: event.errors.to_hash(true)}
       end
     end
 

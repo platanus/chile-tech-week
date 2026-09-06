@@ -4,11 +4,11 @@ module Admin
     def create
       task = ScheduledTask.find(params[:task_id])
       ScheduledTask.run(task.id)
-      redirect_to admin_tasks_path, notice: "Tarea #{task.id} ejecutada."
+      redirect_to admin_tasks_path(@week), notice: "Tarea #{task.id} ejecutada."
     rescue ArgumentError
-      redirect_to admin_tasks_path, alert: "Tarea desconocida."
+      redirect_to admin_tasks_path(@week), alert: "Tarea desconocida."
     rescue => e
-      redirect_to admin_tasks_path, alert: "La tarea #{params[:task_id]} falló: #{e.message}"
+      redirect_to admin_tasks_path(@week), alert: "La tarea #{params[:task_id]} falló: #{e.message}"
     end
   end
 end

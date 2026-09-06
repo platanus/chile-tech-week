@@ -5,20 +5,21 @@ RSpec.describe "admin events" do
 
   before { sign_in admin }
 
-  describe "GET /admin/events" do
-    it "lists the submitted events newest first, with the edition and the state" do
+  describe "GET /admin/:week/events" do
+    it "lists the week's submitted events newest first, with the edition and the state" do
       older = create(:event, title: "Older", created_at: 2.days.ago)
-      newer = create(:event, title: "Newer", edition: 2026, created_at: 1.day.ago)
+      newer = create(:event, title: "Newer", created_at: 1.day.ago)
       create(:event, :published, title: "Published")
+      create(:event, title: "Next year", edition: 2026)
 
-      get "/admin/events"
+      get "/admin/25/events"
 
       expect(response).to have_http_status(:ok)
       expect(inertia).to render_component("Admin/Events/Index")
       expect(inertia).to have_props(status: "submitted", search: "")
       events = inertia.props.fetch(:events).map(&:deep_symbolize_keys)
       expect(events.map { |e| e[:title] }).to eq(["Newer", "Older"])
-      expect(events.first).to include(id: newer.id, edition: 2026, state: "submitted", authorEmail: newer.author_email)
+      expect(events.first).to include(id: newer.id, edition: 2025, state: "submitted", authorEmail: newer.author_email)
       expect(events.last[:id]).to eq(older.id)
       expect(inertia.props[:pagination].deep_symbolize_keys).to include(count: 2, page: 1, last: 1)
     end
@@ -28,34 +29,34 @@ RSpec.describe "admin events" do
       create(:event, :published, title: "AI breakfast", company_name: "Platanus", author_name: "Ada")
       create(:event, title: "Fintech submitted")
 
-      get "/admin/events", params: {status: "published", search: "fintech"}
+      get "/admin/25/events", params: {status: "published", search: "fintech"}
       expect(inertia.props.fetch(:events).map { |e| e["title"] }).to eq(["Fintech night"])
 
-      get "/admin/events", params: {status: "published", search: "ada"}
+      get "/admin/25/events", params: {status: "published", search: "ada"}
       expect(inertia.props.fetch(:events).map { |e| e["title"] }).to eq(["AI breakfast"])
 
-      get "/admin/events", params: {status: "bogus"}
+      get "/admin/25/events", params: {status: "bogus"}
       expect(inertia).to have_props(status: "submitted")
     end
 
     it "pages ten at a time" do
       12.times { |i| create(:event, title: "Event #{i}", created_at: i.hours.ago) }
 
-      get "/admin/events", params: {page: 2}
+      get "/admin/25/events", params: {page: 2}
 
       expect(inertia.props.fetch(:events).size).to eq(2)
       expect(inertia.props[:pagination].deep_symbolize_keys).to include(count: 12, page: 2, last: 2, previous: 1, next: nil)
     end
   end
 
-  describe "GET /admin/events/:id" do
+  describe "GET /admin/:week/events/:id" do
     it "shows the whole row, the co-hosts' contacts and the communes to pick from" do
       theme = create(:theme, name: "Fintech")
       event = create(:event, :published, themes: [theme], author_email: "host@acme.cl", rejection_reason: nil, custom_url: "https://acme.cl/e",
         luma_cover_url: "https://images.lumacdn.com/cover.png")
       cohost = create(:cohost, event: event, primary_contact_email: "co@host.cl")
 
-      get "/admin/events/#{event.id}"
+      get "/admin/25/events/#{event.id}"
 
       expect(response).to have_http_status(:ok)
       expect(inertia).to render_component("Admin/Events/Show")
@@ -71,38 +72,38 @@ RSpec.describe "admin events" do
     end
   end
 
-  describe "PATCH /admin/events/:id" do
+  describe "PATCH /admin/:week/events/:id" do
     let(:event) { create(:event, :published) }
 
     it "changes the commune" do
-      patch "/admin/events/#{event.id}", params: {event: {commune: "Vitacura"}}
+      patch "/admin/25/events/#{event.id}", params: {event: {commune: "Vitacura"}}
 
-      expect(response).to redirect_to("/admin/events/#{event.id}")
+      expect(response).to redirect_to("/admin/25/events/#{event.id}")
       follow_redirect!
       expect(inertia).to have_flash(notice: "Evento actualizado.")
       expect(event.reload.commune).to eq("Vitacura")
     end
 
     it "sets and clears the custom url" do
-      patch "/admin/events/#{event.id}", params: {event: {custom_url: "https://acme.cl/evento"}}
+      patch "/admin/25/events/#{event.id}", params: {event: {custom_url: "https://acme.cl/evento"}}
       expect(event.reload.custom_url).to eq("https://acme.cl/evento")
 
-      patch "/admin/events/#{event.id}", params: {event: {custom_url: ""}}
+      patch "/admin/25/events/#{event.id}", params: {event: {custom_url: ""}}
       expect(event.reload.custom_url).to be_nil
     end
 
     it "toggles the logo's visibility on the landing" do
-      patch "/admin/events/#{event.id}", params: {event: {logo_shown: "true"}}
+      patch "/admin/25/events/#{event.id}", params: {event: {logo_shown: "true"}}
       expect(event.reload.logo_shown_at).to be_present
 
-      patch "/admin/events/#{event.id}", params: {event: {logo_shown: "false"}}
+      patch "/admin/25/events/#{event.id}", params: {event: {logo_shown: "false"}}
       expect(event.reload.logo_shown_at).to be_nil
     end
 
     it "replaces the logo with an upload" do
       file = Rack::Test::UploadedFile.new(StringIO.new("\x89PNG\r\n\x1a\n" + ("x" * 64)), "image/png", original_filename: "logo.png")
 
-      patch "/admin/events/#{event.id}", params: {event: {logo_upload: file}}
+      patch "/admin/25/events/#{event.id}", params: {event: {logo_upload: file}}
 
       follow_redirect!
       expect(event.reload.logo).to be_attached
@@ -110,7 +111,7 @@ RSpec.describe "admin events" do
     end
 
     it "reports a rejected change" do
-      patch "/admin/events/#{event.id}", params: {event: {commune: ""}}
+      patch "/admin/25/events/#{event.id}", params: {event: {commune: ""}}
 
       follow_redirect!
       expect(inertia).to have_flash(alert: "La comuna no puede estar en blanco")
@@ -118,14 +119,14 @@ RSpec.describe "admin events" do
     end
   end
 
-  describe "POST /admin/events/:id/approval" do
+  describe "POST /admin/:week/events/:id/approval" do
     it "approves through Events::Approve and reports" do
       event = create(:event)
       allow(Events::Approve).to receive(:new).with(event).and_return(instance_double(Events::Approve, call: Events::Approve::Result.new(ok: true, error: nil)))
 
-      post "/admin/events/#{event.id}/approval"
+      post "/admin/25/events/#{event.id}/approval"
 
-      expect(response).to redirect_to("/admin/events/#{event.id}")
+      expect(response).to redirect_to("/admin/25/events/#{event.id}")
       follow_redirect!
       expect(inertia).to have_flash(notice: "Evento aprobado, evento en Luma creado y correo enviado.")
     end
@@ -134,7 +135,7 @@ RSpec.describe "admin events" do
       event = create(:event)
       allow(Events::Approve).to receive(:new).and_return(instance_double(Events::Approve, call: Events::Approve::Result.new(ok: false, error: "Luma no responde")))
 
-      post "/admin/events/#{event.id}/approval"
+      post "/admin/25/events/#{event.id}/approval"
 
       follow_redirect!
       expect(inertia).to have_flash(alert: "Luma no responde")
@@ -144,20 +145,20 @@ RSpec.describe "admin events" do
       event = create(:event, :published)
       expect(Events::Approve).not_to receive(:new)
 
-      post "/admin/events/#{event.id}/approval"
+      post "/admin/25/events/#{event.id}/approval"
 
       follow_redirect!
       expect(inertia).to have_flash(alert: "Solo se puede aprobar un evento enviado.")
     end
   end
 
-  describe "POST /admin/events/:id/rejection" do
+  describe "POST /admin/:week/events/:id/rejection" do
     it "rejects with a reason through Events::Reject" do
       event = create(:event)
       service = instance_double(Events::Reject, call: true)
       allow(Events::Reject).to receive(:new).with(event, reason: "No calza").and_return(service)
 
-      post "/admin/events/#{event.id}/rejection", params: {reason: " No calza "}
+      post "/admin/25/events/#{event.id}/rejection", params: {reason: " No calza "}
 
       expect(service).to have_received(:call)
       follow_redirect!
@@ -168,7 +169,7 @@ RSpec.describe "admin events" do
       event = create(:event)
       expect(Events::Reject).not_to receive(:new)
 
-      post "/admin/events/#{event.id}/rejection", params: {reason: ""}
+      post "/admin/25/events/#{event.id}/rejection", params: {reason: ""}
 
       follow_redirect!
       expect(inertia).to have_flash(alert: "Escribe el motivo del rechazo.")
@@ -179,16 +180,16 @@ RSpec.describe "admin events" do
     let(:event) { create(:event) }
 
     it "adds one" do
-      post "/admin/events/#{event.id}/cohosts", params: {cohost: {company_name: "BCI", primary_contact_name: "Bea", primary_contact_email: "bea@bci.cl"}}
+      post "/admin/25/events/#{event.id}/cohosts", params: {cohost: {company_name: "BCI", primary_contact_name: "Bea", primary_contact_email: "bea@bci.cl"}}
 
-      expect(response).to redirect_to("/admin/events/#{event.id}")
+      expect(response).to redirect_to("/admin/25/events/#{event.id}")
       follow_redirect!
       expect(inertia).to have_flash(notice: "Co-host agregado.")
       expect(event.cohosts.pluck(:company_name)).to eq(["BCI"])
     end
 
     it "reports a missing field" do
-      post "/admin/events/#{event.id}/cohosts", params: {cohost: {company_name: "BCI"}}
+      post "/admin/25/events/#{event.id}/cohosts", params: {cohost: {company_name: "BCI"}}
 
       follow_redirect!
       expect(inertia.props[:flash]["alert"]).to include("El nombre de contacto no puede estar en blanco")
@@ -198,7 +199,7 @@ RSpec.describe "admin events" do
     it "toggles a co-host's logo visibility" do
       cohost = create(:cohost, event: event)
 
-      patch "/admin/events/#{event.id}/cohosts/#{cohost.id}", params: {cohost: {logo_shown: "true"}}
+      patch "/admin/25/events/#{event.id}/cohosts/#{cohost.id}", params: {cohost: {logo_shown: "true"}}
 
       expect(cohost.reload.logo_shown_at).to be_present
     end
@@ -206,7 +207,7 @@ RSpec.describe "admin events" do
     it "removes one" do
       cohost = create(:cohost, event: event)
 
-      delete "/admin/events/#{event.id}/cohosts/#{cohost.id}"
+      delete "/admin/25/events/#{event.id}/cohosts/#{cohost.id}"
 
       follow_redirect!
       expect(inertia).to have_flash(notice: "Co-host eliminado.")

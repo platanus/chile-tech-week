@@ -13,8 +13,17 @@ export type CurrentUser = {
   fullName: string;
 };
 
+// The Chile Tech Week a page is about (Admin::BaseController `inertia_share`), on the admin
+// pages only: `slug` is the "26" in /admin/26.
+export type AdminWeek = {
+  slug: string;
+  year: number;
+};
+
 // Props shared with every Inertia page (see ApplicationController `inertia_share`).
 export type SharedProps = {
   flash: FlashData;
   currentUser?: CurrentUser | null;
+  week?: AdminWeek | null;
+  weeks?: AdminWeek[];
 };

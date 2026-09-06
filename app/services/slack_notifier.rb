@@ -5,7 +5,7 @@ module SlackNotifier
 
   def new_submission(event)
     cohosts = event.cohosts.map(&:company_name).presence&.join(", ") || "ninguno"
-    admin_url = Rails.application.routes.url_helpers.admin_event_url(event, host: AppConfig.instance.site_url)
+    admin_url = Rails.application.routes.url_helpers.admin_event_url(event.week, event, host: AppConfig.instance.site_url)
     post(<<~TEXT)
       🎉 *NUEVO EVENTO ENVIADO*
 

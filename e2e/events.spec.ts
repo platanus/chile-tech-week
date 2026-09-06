@@ -46,7 +46,7 @@ test.describe('the status page', () => {
   let waitingId: string;
   test.beforeAll(() => {
     waitingId = execSync(
-      `bin/rails runner 'puts Event.for_edition(Edition::YEAR).find_by!(state: "waiting_luma_edit").id'`,
+      `bin/rails runner 'puts Week.current.events.find_by!(state: "waiting_luma_edit").id'`,
       { encoding: 'utf8' },
     ).trim();
   });

@@ -1,5 +1,8 @@
 # Idempotent; safe in every environment. The deploy runs it after db:prepare.
 
+# The editions themselves: without them nothing can point at a Tech Week (Week::KNOWN).
+Week.seed!
+
 # The catalogue every submission picks from: the 2025 site's themes and audiences.
 THEMES = {
   "AI" => "ai", "AR / VR" => "ar-vr", "B2B" => "b2b", "B2C / Consumer" => "b2c-consumer",
@@ -33,12 +36,13 @@ if Rails.env.development?
     user.notifications_enabled_at = Time.current
   end
 
-  if Event.for_edition(Edition::YEAR).none?
+  week = Week.current
+  if week.events.none?
     logos = Rails.public_path.join("25/logos").glob("*.{png,jpg,webp}").map { |path| "/25/logos/#{path.basename}" }
     covers = ["/opengraph.png", "/25/opengraph.png"].select { |path| Rails.public_path.join(path.delete_prefix("/")).exist? }
     themes = Theme.all.to_a
     audiences = Audience.all.to_a
-    zone = ActiveSupport::TimeZone[Edition::TIME_ZONE]
+    zone = ActiveSupport::TimeZone[Week::TIME_ZONE]
     samples = [
       ["Fintual Open Office para founders", "Fintual", "breakfast_brunch_lunch", 0, 10, 3, "Providencia", "published"],
       ["Female Founders Summit", "fEN ventures", "panel_fireside_chat", 0, 9, 3.5, "Las Condes", "published"],
@@ -55,9 +59,9 @@ if Rails.env.development?
       ["Experiencia: laboratorio de hardware", "Cornershop", "experiential", 6, 11, 4, "Ñuñoa", "submitted"]
     ]
     samples.each_with_index do |(title, company, format, day, hour, hours, commune, state), i|
-      starts_at = zone.local(Edition::STARTS_ON.year, Edition::STARTS_ON.month, Edition::STARTS_ON.day + day, hour.floor, ((hour % 1) * 60).round)
-      event = Event.create!(
-        edition: Edition::YEAR, title: title, description: "#{title}: una instancia para conocer a la comunidad, compartir aprendizajes y conectar con quienes están construyendo en Chile.",
+      starts_at = zone.local(week.starts_on.year, week.starts_on.month, week.starts_on.day + day, hour.floor, ((hour % 1) * 60).round)
+      event = week.events.create!(
+        title: title, description: "#{title}: una instancia para conocer a la comunidad, compartir aprendizajes y conectar con quienes están construyendo en Chile.",
         company_name: company, company_website: "https://#{company.parameterize}.cl", company_logo_url: logos[i % logos.size] || "/25/opengraph.png",
         author_name: "Contacto #{company}", author_email: "contacto#{i}@example.com", author_phone_number: "+56 9 8765 43#{i.to_s.rjust(2, "0")}",
         starts_at: starts_at, ends_at: starts_at + hours.hours, commune: commune, format: format, capacity: [30, 50, 80, 120, 200][i % 5],

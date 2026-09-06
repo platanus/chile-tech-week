@@ -1,10 +1,6 @@
-# The current edition's events, public side: the programme, the submission form and each
+# The current Tech Week's events, public side: the programme, the submission form and each
 # event's status page (its uuid is what the host receives by email).
 class EventsController < InertiaController
-  TITLE = "Eventos · Chile Tech Week 2026"
-  DESCRIPTION = "El programa de Chile Tech Week 2026: los eventos tech de la semana, " \
-    "del #{Edition.dates_label}, en todo Chile."
-
   EVENT_PARAMS = [
     :title, :description, :author_name, :author_email, :author_phone_number, :company_name,
     :company_website, :starts_at, :ends_at, :commune, :format, :capacity, :logo_upload
@@ -14,18 +10,21 @@ class EventsController < InertiaController
     :primary_contact_phone_number, :primary_contact_website, :primary_contact_linkedin
   ].freeze
 
+  before_action :set_week
+
   def index
-    @title = TITLE
-    @description = DESCRIPTION
+    @title = "Eventos · #{week_name}"
+    @description = "El programa de #{week_name}: los eventos tech de la semana, " \
+      "del #{@week.dates_label}, en todo Chile."
     @events = published_events.includes(:themes, :audiences, :cohosts).with_attached_cover
     @days = week_days
   end
 
   def new
-    @title = "Organiza un evento · Chile Tech Week 2026"
-    @description = "Inscribe tu evento en el programa de Chile Tech Week 2026."
+    @title = "Organiza un evento · #{week_name}"
+    @description = "Inscribe tu evento en el programa de #{week_name}."
     @days = week_days
-    @week = {from: Edition::STARTS_ON.iso8601, to: Edition::ENDS_ON.iso8601}
+    @week_dates = {from: @week.starts_on.iso8601, to: @week.ends_on.iso8601}
     @communes = Communes::ALL
     @formats = Event::FORMATS
     @themes = Theme.order(:name)
@@ -34,7 +33,7 @@ class EventsController < InertiaController
   end
 
   def create
-    event = Event.new(event_params.merge(edition: Edition::YEAR))
+    event = @week.events.new(event_params)
     event.themes = Theme.where(id: ids_param(:theme_ids))
     event.audiences = Audience.where(id: ids_param(:audience_ids))
 
@@ -49,21 +48,30 @@ class EventsController < InertiaController
 
   def show
     @event = Event.includes(:themes, :audiences, :cohosts).with_attached_cover.find(params[:id])
-    @title = "#{@event.title} · Chile Tech Week 2026"
-    @description = "El estado de tu evento en Chile Tech Week 2026."
+    @title = "#{@event.title} · Chile Tech Week #{@event.edition}"
+    @description = "El estado de tu evento en Chile Tech Week #{@event.edition}."
     @open_publish = params[:publish] == "true" && @event.step == 3
   end
 
   private
 
+  # The week the public site is about: the one running, or the nearest to today.
+  def set_week
+    @week = Week.current
+  end
+
+  def week_name
+    "Chile Tech Week #{@week.year}"
+  end
+
   def published_events
-    Event.for_edition(Edition::YEAR).published.chronological
+    @week.events.published.chronological
   end
 
   # The week's days with how many published events each already has.
   def week_days
-    counts = published_events.unscope(:order).group("(starts_at AT TIME ZONE '#{Edition::TIME_ZONE}')::date").count
-    Edition.days.map { |day| {date: day.date, label: day.label, count: counts.fetch(Date.parse(day.date), 0)} }
+    counts = published_events.unscope(:order).group("(starts_at AT TIME ZONE '#{Week::TIME_ZONE}')::date").count
+    @week.days.map { |day| {date: day.date, label: day.label, count: counts.fetch(Date.parse(day.date), 0)} }
   end
 
   def event_params
