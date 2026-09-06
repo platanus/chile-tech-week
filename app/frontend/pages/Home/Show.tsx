@@ -130,8 +130,8 @@ export default function Show({ title, description }: HomeShow) {
           <b>Esc</b> salir
           <div className="hud" id="hud" />
           <div className="credit">
-            Relieve: SRTM (AWS Terrain Tiles) · Cumbres: © OpenStreetMap contributors · Edificios:
-            Overture Maps · Mapa: Natural Earth
+            Relieve: SRTM (AWS Terrain Tiles) · Cumbres: © OpenStreetMap contributors · Edificios y
+            agua: Overture Maps · Mapa: Natural Earth
           </div>
         </div>
         <canvas id="minimap" aria-label="Mapa de Chile: clic para volar allí" title="Clic para volar allí" />

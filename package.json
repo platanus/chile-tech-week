@@ -13,7 +13,8 @@
     "terrain:spikes": "node --experimental-strip-types scripts/terrain/find-spikes.ts",
     "terrain:despike": "node --experimental-strip-types scripts/terrain/despike.ts",
     "outline:fetch": "node --experimental-strip-types scripts/terrain/fetch-outline.ts",
-    "peaks:index": "node --experimental-strip-types scripts/terrain/index-peaks.ts"
+    "peaks:index": "node --experimental-strip-types scripts/terrain/index-peaks.ts",
+    "water:fetch": "node --experimental-strip-types scripts/terrain/fetch-water.ts"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.5-r.4",

@@ -64,6 +64,16 @@ const DEFAULTS = {
   landmarkScale: 1.5,
   landmarkFootprint: 3.5,  // footprints are widened so a 300 m tower is a tower, not a needle
   landmarkWire: '#ffffff',
+  // water: the water layer (Overture lakes rasterized to 250 m cells, river centrelines) draws
+  // lakes as planes at their real level in the sea's dark palette and rivers as draped lines.
+  showWater: true,
+  lakeColor: '#02060c',
+  lakeWire: '#4f7fa8',
+  riverColor: '#5f9ad6',
+  riverOpacity: 0.9,
+  riverLift: 0.25,         // units above the mesh faces, so a line never sinks into a slope
+  lakeLabels: true,
+  lakeLabelKm2: 1,         // named lakes at least this big get a pin (size ranks them against the summits)
   // mesh & streaming: square chunks of chunkSize units around the camera, cellSize per vertex.
   // lod (off: the density change as chunks approach is visible) doubles the cell past lodNear
   // and again past lodFar; at constant resolution the whole view is ~200k vertices, which is cheap.
@@ -313,12 +323,18 @@ function makeRealHeightFn(P) {
       return out;
     },
     height(x, z) {
-      const m = real.sample(x / upk, zKm(z));
+      const kz = zKm(z);
+      // a lake is one plane at its surface level (SRTM is noisy over water; a lake cell the relief
+      // has at sea level is a void, not sea, and comes up to the lake too)
+      if (P.showWater) { const w = real.water(x / upk, kz); if (w && w.level > 0) return P.landBase + w.level * vs; }
+      const m = real.sample(x / upk, kz);
       // sea cells go straight to the sea floor, under the animated plane; land starts above the
       // wave crests so beaches and river mouths never interleave with the water
       if (m <= 0) return -P.seaDepth;
       return P.landBase + m * vs;
     },
+    /** is the 250 m cell under a world point a lake, reservoir or river bed */
+    wet(x, z) { return P.showWater && real.water(x / upk, zKm(z)) !== null; },
     // roof height of whatever the city builder draws at (x, z), or -Infinity: the same inset block
     // of the mesh cell the point is in, and the footprint boxes of the named towers
     obstacle(x, z) {
@@ -487,6 +503,11 @@ function sunDir() {
 // wire color lives in the vertex colors (red low, white snow high); the material color is a plain multiplier
 const wireMat = new THREE.LineBasicMaterial({
   color: 0xffffff, vertexColors: true, transparent: true, opacity: P.wireOpacity,
+  blending: THREE.AdditiveBlending, depthWrite: false,
+});
+// rivers: one colour, drawn like the wire (additive, no depth write) so they glow the same way
+const riverMat = new THREE.LineBasicMaterial({
+  color: new THREE.Color(P.riverColor), transparent: true, opacity: P.riverOpacity,
   blending: THREE.AdditiveBlending, depthWrite: false,
 });
 
@@ -678,11 +699,16 @@ function buildChunk(i, k, lod) {
   // the sea floor is never seen: whatever lies entirely below the deepest wave trough is left out
   // (faces and wire), so there is no mesh under the water for it to show through
   const sunk = (v) => pos[v * 3 + 1] <= -P.waveAmp;
+  // water cells: a wire vertex on one takes the lake wire colour, a face whose centre is on one the lake face colour
+  const water = H.real && H.wet && P.showWater;
+  const wet = water ? new Uint8Array(w * rows) : null;
+  if (wet) for (let v = 0; v < w * rows; v++) wet[v] = H.wet(pos[v * 3], pos[v * 3 + 2]) ? 1 : 0;
+  const lakeWire = _wc.set(P.lakeWire).clone(), lakeFace = _fc.set(P.lakeColor).clone();
 
   // wire grid (rows + columns, optional diagonals)
   const lp = [], lc = [];
   const range = Math.max(grid.cMax - grid.cMin, 1e-6);
-  const tint = (v) => { const c = wireColorAt(clamp((pos[v * 3 + 1] - grid.cMin) / range, 0, 1)); lc.push(c.r, c.g, c.b); };
+  const tint = (v) => { const c = wet && wet[v] ? lakeWire : wireColorAt(clamp((pos[v * 3 + 1] - grid.cMin) / range, 0, 1)); lc.push(c.r, c.g, c.b); };
   const push = (a, b) => { if (sunk(a) && sunk(b)) return; lp.push(pos[a * 3], pos[a * 3 + 1], pos[a * 3 + 2], pos[b * 3], pos[b * 3 + 1], pos[b * 3 + 2]); tint(a); tint(b); };
   for (let j = 0; j < rows; j++) for (let ii = 0; ii < w; ii++) {
     const a = idx(ii, j);
@@ -719,7 +745,9 @@ function buildChunk(i, k, lod) {
   const L = sunDir(), N = new THREE.Vector3();
   for (let f = 0; f < fp.count; f += 3) {
     const y = (fp.getY(f) + fp.getY(f + 1) + fp.getY(f + 2)) / 3;
-    const c = gradientColor(clamp((y - grid.cMin) / range, 0, 1));
+    const c = water && H.wet((fp.getX(f) + fp.getX(f + 1) + fp.getX(f + 2)) / 3, (fp.getZ(f) + fp.getZ(f + 1) + fp.getZ(f + 2)) / 3)
+      ? _gc.copy(lakeFace)
+      : gradientColor(clamp((y - grid.cMin) / range, 0, 1));
     // baked shade: faces toward the sun are full, faces away keep a floor so nothing goes black
     N.set(fn.getX(f), fn.getY(f), fn.getZ(f));
     c.multiplyScalar(P.faceShadeFloor + (1 - P.faceShadeFloor) * Math.max(0, N.dot(L)));
@@ -740,7 +768,63 @@ function buildChunk(i, k, lod) {
   const g = new THREE.Group();
   g.add(new THREE.Mesh(faces, terrainMat));
   g.add(new THREE.LineSegments(lineGeo, wireMat));
+  if (water) {
+    const rp = buildRivers(gi0, gi1, gj0, S, lod, pos, w, rows);
+    if (rp.length) {
+      const riverGeo = new THREE.BufferGeometry();
+      riverGeo.setAttribute('position', new THREE.Float32BufferAttribute(rp, 3));
+      g.add(new THREE.LineSegments(riverGeo, riverMat));
+    }
+  }
   return g;
+}
+
+// ---------------------------------------------------------------- rivers
+// The river pieces of the loaded tiles (km polylines) that cross this chunk, in every strip copy,
+// draped on the chunk's own lattice (bilinear over its vertices, so the line follows the faces at
+// this LOD) and lifted a little. Segments are cut at STEP so the drape follows the relief between
+// two far-apart points; a sub-segment belongs to the chunk its midpoint is in, so chunks neither
+// overlap nor leave gaps. Nothing is drawn where the lattice is under the sea.
+function buildRivers(gi0, gi1, gj0, S, lod, pos, w, rows) {
+  const { cell } = grid, upk = H.upk, L2 = 2 * H.L;
+  const xA = gi0 * cell, xB = gi1 * cell, zA = gj0 * cell, zB = (gj0 + S) * cell;
+  const STEP = cell * lod * 0.5, lift = P.riverLift, sea = -P.waveAmp;
+  const out = [];
+  const latticeY = (x, z) => {
+    const fx = clamp((x / cell - gi0) / lod, 0, w - 1), fz = clamp((z / cell - gj0) / lod, 0, rows - 1);
+    const i0 = Math.floor(fx), j0 = Math.floor(fz), i1 = Math.min(i0 + 1, w - 1), j1 = Math.min(j0 + 1, rows - 1);
+    const tx = fx - i0, tz = fz - j0;
+    const y = (ii, j) => pos[(j * w + ii) * 3 + 1];
+    return (y(i0, j0) * (1 - tx) + y(i1, j0) * tx) * (1 - tz) + (y(i0, j1) * (1 - tx) + y(i1, j1) * tx) * tz;
+  };
+  for (const r of real.rivers) {
+    if (r.x1 * upk < xA || r.x0 * upk > xB) continue;
+    // strip copies: forward (z = kmZ * upk + 2Ln) and mirrored (z = 2Ln - kmZ * upk)
+    for (let n = Math.floor(zA / L2) - 1; n <= Math.ceil(zB / L2); n++) {
+      for (const sgn of [1, -1]) {
+        const off = L2 * n;
+        const rz0 = Math.min(sgn * r.z0 * upk, sgn * r.z1 * upk) + off, rz1 = Math.max(sgn * r.z0 * upk, sgn * r.z1 * upk) + off;
+        if (rz1 < zA || rz0 > zB) continue;
+        const p = r.pts;
+        for (let s = 0; s + 3 < p.length; s += 2) {
+          const ax = p[s] * upk, az = sgn * p[s + 1] * upk + off, bx = p[s + 2] * upk, bz = sgn * p[s + 3] * upk + off;
+          if (Math.max(ax, bx) < xA || Math.min(ax, bx) > xB || Math.max(az, bz) < zA || Math.min(az, bz) > zB) continue;
+          const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / STEP));
+          let px = ax, pz = az;
+          for (let k = 1; k <= steps; k++) {
+            const t = k / steps, qx = ax + (bx - ax) * t, qz = az + (bz - az) * t;
+            const mx = (px + qx) / 2, mz = (pz + qz) / 2;
+            if (mx >= xA && mx < xB && mz >= zA && mz < zB) {
+              const py = latticeY(px, pz), qy = latticeY(qx, qz);
+              if (py > sea || qy > sea) out.push(px, Math.max(py, sea) + lift, pz, qx, Math.max(qy, sea) + lift, qz);
+            }
+            px = qx; pz = qz;
+          }
+        }
+      }
+    }
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------- city
@@ -960,6 +1044,8 @@ function applyAtmosphere() {
   const pr = Math.min(devicePixelRatio, quality.dprCap) * P.renderScale;
   if (renderer.getPixelRatio() !== pr) { renderer.setPixelRatio(pr); composer.setPixelRatio(pr); composer.setSize(innerWidth, innerHeight); }
   wireMat.opacity = P.wireOpacity;
+  riverMat.color.set(P.riverColor);
+  riverMat.opacity = P.riverOpacity;
   seaUniforms.uAmp.value = P.waveAmp;
   seaUniforms.uFreq.value = P.waveFreq;
   seaUniforms.uDeep.value.set(P.seaDeep);
@@ -1391,7 +1477,8 @@ function landBeside() {
 // the crash fade, then it lands there level on its current heading, and the fade lifts once the
 // relief has streamed. It stays in the same mirrored copy of the strip, so north keeps its
 // direction on screen
-function teleport(kmX, kmZ) {
+// `label` names the destination in the toast (a search pick); otherwise the nearest city, or the coordinates
+function teleport(kmX, kmZ, label = null) {
   if (!H?.real || mode !== 'game' || crash.state !== 'none') return;
   const halfKm = (grid.width / 2 - P.boundsMargin) / H.upk - 2;
   kmX = clamp(kmX, -halfKm, halfKm);
@@ -1402,7 +1489,7 @@ function teleport(kmX, kmZ) {
   fadeEl.style.opacity = 1;
   const near = real.cities.filter((c) => Math.hypot(c.kmX - kmX, c.kmZ - kmZ) < 40).sort((a, b) => b.pop - a.pop)[0];
   const { lat, lon } = real.toLatLon(kmX, kmZ);
-  toast(near ? `→ ${near.name}` : `→ ${Math.abs(lat).toFixed(2)}° S · ${Math.abs(lon).toFixed(2)}° O`);
+  toast(label ? `→ ${label}` : near ? `→ ${near.name}` : `→ ${Math.abs(lat).toFixed(2)}° S · ${Math.abs(lon).toFixed(2)}° O`);
 }
 // the same fade toward another condor (the flock, app/frontend/flock/visit.ts): `at()` gives the
 // landing (world units, local copy, with a heading) once the screen is black, since the target
@@ -1578,6 +1665,16 @@ fCity.add(P, 'landmarkScale', 0.5, 4, 0.1).name('tower height x');
 fCity.add(P, 'landmarkFootprint', 1, 8, 0.1).name('tower footprint x');
 fCity.addColor(P, 'landmarkWire').name('tower wire');
 fCity.onChange(scheduleRebuild);
+const fWater = gui.addFolder('Water');
+fWater.add(P, 'showWater').name('lakes & rivers');
+fWater.addColor(P, 'lakeColor').name('lake faces');
+fWater.addColor(P, 'lakeWire').name('lake wire');
+fWater.add(P, 'riverLift', 0, 2, 0.05).name('river lift');
+fWater.add(P, 'lakeLabels').name('lake names');
+fWater.add(P, 'lakeLabelKm2', 0.5, 100, 0.5).name('min lake km²');
+fWater.onChange(scheduleRebuild);
+fWater.addColor(P, 'riverColor').name('river color').onChange(applyAtmosphere);
+fWater.add(P, 'riverOpacity', 0, 1, 0.01).name('river opacity').onChange(applyAtmosphere);
 const fCities = gui.addFolder('City names');
 fCities.add(P, 'cityLabels').name('waypoints');
 fCities.add(P, 'cityLabelCount', 1, 8, 1).name('max cities');
@@ -1940,6 +2037,26 @@ function updatePeakLabels() {
     };
     for (const p of real.peaks) for (const z of H.zCopies(p.kmZ, c.z - range, c.z + range)) consider('p:' + p.name + '@' + p.ele, p.name, p.ele, peakVertex(p, z), 1);
     for (const l of real.landmarks) for (const z of H.zCopies(l.kmZ, c.z - range, c.z + range)) consider('l:' + l.name, l.name, l.h, landmarkTop(l, z), 6);
+    // lakes: pinned to their surface at the centre of the body; size, not height, is what earns
+    // the label (a body across several tiles is listed once per tile, so ids are deduplicated)
+    if (P.showWater && P.lakeLabels) {
+      const seen = new Set();
+      for (const l of real.lakes) {
+        if (!l.name || l.level <= 0 || l.areaKm2 < P.lakeLabelKm2 || seen.has(l.name)) continue;
+        seen.add(l.name);
+        const id = 'w:' + l.name, active = labels.has(id), x = H.kmX(l.kmX), y = P.landBase + l.level * H.vs;
+        for (const z of H.zCopies(l.kmZ, c.z - range, c.z + range)) {
+          const dx = x - c.x, dy = y - c.y, dz = z - c.z;
+          const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+          if (d > range * (active ? 1.15 : 1) || d < 3 || dx * _pd.x + dy * _pd.y + dz * _pd.z <= 0) continue;
+          _pv.set(x, y, z).project(camera);
+          const sx = ((_pv.x + 1) / 2) * W, sy = ((1 - _pv.y) / 2) * Hh;
+          if (!onScreen(sx, sy, active)) continue;
+          const km = d / H.upk, area = l.areaKm2 >= 10 ? l.areaKm2.toFixed(0) : l.areaKm2.toFixed(1);
+          cands.push({ id, kind: 'peak', name: l.name, sub: `${area} km² · ${Math.max(1, km).toFixed(0)} km`, score: (Math.sqrt(l.areaKm2) * 400) / (km + 5), sx, sy, d, occ: occluded({ x, y, z }, d), opacity: Math.max(0.35, 1 - 0.65 * (d / range)) });
+        }
+      }
+    }
   }
   cands.sort((a, b) => b.score - a.score);
 
@@ -2098,10 +2215,11 @@ const search = {
 };
 async function searchItems() {
   if (!search.items) {
-    const summits = H?.real ? await real.loadSummits() : [];
+    const [summits, lakes] = H?.real ? await Promise.all([real.loadSummits(), real.loadLakes()]) : [[], []];
     const cities = real.cities.map((c) => ({ name: c.name, kind: 'ciudad', sub: c.pop >= 1000 ? `${Math.round(c.pop / 1000)} k hab.` : `${c.pop} hab.`, kmX: c.kmX, kmZ: c.kmZ }));
     const peaks = summits.map((p) => ({ name: p.name, kind: 'cumbre', sub: `${p.ele} m`, kmX: p.kmX, kmZ: p.kmZ }));
-    search.items = [...cities, ...peaks].map((it) => ({ ...it, key: fold(it.name) }));
+    const water = lakes.map((l) => ({ name: l.name, kind: /embalse|tranque|represa/i.test(l.name) ? 'embalse' : 'lago', sub: `${l.areaKm2 >= 10 ? l.areaKm2.toFixed(0) : l.areaKm2.toFixed(1)} km² · ${l.level} m`, kmX: l.kmX, kmZ: l.kmZ }));
+    search.items = [...cities, ...peaks, ...water].map((it) => ({ ...it, key: fold(it.name) }));
   }
   return search.items;
 }
@@ -2151,7 +2269,7 @@ function renderResults(results, q) {
 }
 function pickResult(item) {
   closeSearch();
-  teleport(item.kmX, item.kmZ);
+  teleport(item.kmX, item.kmZ, item.name);
 }
 search.btn.addEventListener('click', () => (search.panel.hidden ? openSearch() : closeSearch()));
 search.input.addEventListener('input', runSearch);

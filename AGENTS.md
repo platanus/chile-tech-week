@@ -179,7 +179,7 @@ settings JSON" prints it.
 
 The terrain the scene streams is `public/terrain/cl-<hash>/` (committed, ~14 MB,
 immutable-by-path). `scripts/terrain/*.ts` rebuild it (`npm run terrain:fetch`,
-`buildings:fetch`, `places:fetch`; raw downloads cache under `scripts/terrain/.cache`) and
+`buildings:fetch`, `places:fetch`, `water:fetch`; raw downloads cache under `scripts/terrain/.cache`) and
 publish a new `cl-<hash>` directory, writing it into `app/frontend/terrain/terrain-url.ts`.
 `TerrainAssets` (Ruby) reads that same file for the layout's `<link rel=preload>` tags, so
 a dataset swap is one generated file plus the directory — nothing to update by hand.

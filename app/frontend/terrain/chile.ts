@@ -23,7 +23,13 @@ type Index = {
   outline?: [number, number][][]
   /** size of peaks.json (every summit, for the search), when it exists */
   peaksBytes?: number
+  /** bytes of the water layer per tile (0 = none), when scripts/fetch-water.ts has run */
+  water?: number[]
+  /** size of lakes.json (every named lake, for the search), when it exists */
+  lakesBytes?: number
 }
+/** a named lake or reservoir from lakes.json: centre, area and surface level */
+export type NamedLake = { name: string; kmX: number; kmZ: number; areaKm2: number; level: number }
 export type Summit = { name: string; kmX: number; kmZ: number; ele: number }
 export type City = { name: string; kmX: number; kmZ: number; pop: number; always: boolean }
 export type Peak = { name: string; kmX: number; kmZ: number; ele: number; tile: string }
@@ -32,7 +38,13 @@ export type Landmark = { name: string; kmX: number; kmZ: number; h: number; w: n
 type Grid = { cols: number; rows: number; data: Int16Array }
 /** buildings layer: per 250 m cell, built-up fraction (0..255) and max height in 2 m units */
 type Built = { n: number; data: Uint8Array; landmarks: Landmark[] }
-type Tile = Grid & { tx: number; ty: number; peaks: Peak[]; built: Built | null; used: number }
+/** a lake or reservoir: its surface level in metres (0 for a river polygon, which slopes) and where its cells are */
+export type Lake = { name: string; level: number; cls: string; kmX: number; kmZ: number; areaKm2: number; salt: boolean; tile: string }
+/** a river centreline piece inside one tile: [kmX, kmZ, kmX, kmZ, ...] and its km bounding box */
+export type River = { name: string; pts: Float32Array; x0: number; z0: number; x1: number; z1: number; tile: string }
+/** water layer: per 250 m cell the tile-local id (1-based) of the water body covering it, plus the rivers */
+type Water = { n: number; ids: Uint16Array; lakes: Lake[]; rivers: River[] }
+type Tile = Grid & { tx: number; ty: number; peaks: Peak[]; built: Built | null; water: Water | null; used: number }
 
 const rad = (d: number) => (d * Math.PI) / 180
 
@@ -77,6 +89,10 @@ export class ChileTerrain {
   peaks: Peak[] = []
   /** every named tall building of the loaded tiles */
   landmarks: Landmark[] = []
+  /** every lake and reservoir of the loaded tiles (a body spanning tiles is listed once per tile) */
+  lakes: Lake[] = []
+  /** every river piece of the loaded tiles */
+  rivers: River[] = []
   /** every populated place of the country, most populous first (known before any tile loads) */
   cities: City[] = []
   /** resolves once the index and the overview are in (preloaded from the HTML, ~100 KB) */
@@ -110,6 +126,15 @@ export class ChileTerrain {
       .then((rows) => rows.map(([name, kmX, kmZ, ele]) => ({ name, kmX, kmZ, ele })))
       .catch(() => [])
     return this.summits
+  }
+  private namedLakes: Promise<NamedLake[]> | null = null
+  /** every named lake and reservoir of the country, largest first: lakes.json, fetched once on demand */
+  loadLakes(): Promise<NamedLake[]> {
+    this.namedLakes ??= (this.index?.lakesBytes ? fetch(`${base}/lakes.json`) : Promise.reject(new Error('no lakes.json')))
+      .then((r) => (r.ok ? (r.json() as Promise<[string, number, number, number, number][]>) : []))
+      .then((rows) => rows.map(([name, kmX, kmZ, areaKm2, level]) => ({ name, kmX, kmZ, areaKm2, level })))
+      .catch(() => [])
+    return this.namedLakes
   }
 
   get tileKm() { return this.index!.tile * this.index!.kmPerSample }
@@ -152,30 +177,64 @@ export class ChileTerrain {
     const I = this.index!
     return I.buildings?.[ty * I.tilesX + tx] ?? 0
   }
+  private waterSize(tx: number, ty: number) {
+    const I = this.index!
+    return I.water?.[ty * I.tilesX + tx] ?? 0
+  }
   private refreshLists() {
     const tiles = [...this.tiles.values()]
     this.peaks = tiles.flatMap((t) => t.peaks)
     this.landmarks = tiles.flatMap((t) => t.built?.landmarks ?? [])
+    this.lakes = tiles.flatMap((t) => t.water?.lakes ?? [])
+    this.rivers = tiles.flatMap((t) => t.water?.rivers ?? [])
+  }
+  /** the water file of a tile: the body-id grid, then every river as zigzag varint deltas in 1/q cells */
+  private decodeWater(tx: number, ty: number, key: string, header: any, raw: ArrayBuffer): Water {
+    const n: number = header.n, q: number = header.q
+    const ids = new Uint16Array(raw, 0, n * n)
+    const lakes: Lake[] = (header.lakes as [string, number, string, number, number, number, number][]).map(([name, level, cls, kmX, kmZ, areaKm2, flags]) => ({ name, level, cls, kmX, kmZ, areaKm2, salt: !!(flags & 1), tile: key }))
+    const R = this.tileRect(tx, ty), unit = this.index!.kmPerSample / q
+    const b = new Uint8Array(raw, n * n * 2)
+    let pos = 0
+    const varint = () => {
+      let v = 0, shift = 0, byte: number
+      do { byte = b[pos++]; v |= (byte & 0x7f) << shift; shift += 7 } while (byte & 0x80)
+      return (v >>> 1) ^ -(v & 1)
+    }
+    const rivers: River[] = (header.rivers as [string, number][]).map(([name, count]) => {
+      const pts = new Float32Array(count * 2)
+      let u = 0, v = 0, x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity
+      for (let i = 0; i < count; i++) {
+        u += varint(); v += varint()
+        const x = R.x0 + u * unit, z = R.z0 + v * unit
+        pts[i * 2] = x; pts[i * 2 + 1] = z
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z
+      }
+      return { name, pts, x0, z0, x1, z1, tile: key }
+    })
+    return { n, ids, lakes, rivers }
   }
   private fetchTile(tx: number, ty: number) {
     const key = this.key(tx, ty)
     if (this.tiles.has(key) || this.loading.has(key)) return
+    const layer = (dir: string) => fetch(`${base}/${dir}/${key}.bin`).then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.arrayBuffer() }).then(unpackRaw)
     const p = (async () => {
       try {
-        // relief and, where the index says a city is there, the buildings layer, together
-        const [rel, bld] = await Promise.all([
+        // relief and, where the index says a city is there, the buildings layer, together; the
+        // water layer too, but land never waits for water: without it the tile is just dry
+        const [rel, bld, wat] = await Promise.all([
           fetch(`${base}/t/${key}.bin`).then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.arrayBuffer() }).then(unpack),
-          this.builtSize(tx, ty) > 0
-            ? fetch(`${base}/b/${key}.bin`).then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.arrayBuffer() }).then(unpackRaw)
-            : Promise.resolve(null),
+          this.builtSize(tx, ty) > 0 ? layer('b') : Promise.resolve(null),
+          this.waterSize(tx, ty) > 0 ? layer('w').catch((e) => { console.warn('water tile', key, e); return null }) : Promise.resolve(null),
         ])
         const { header, data } = rel
         const peaks: Peak[] = (header.peaks as [string, number, number, number][]).map(([name, kmX, kmZ, ele]) => ({ name, kmX, kmZ, ele, tile: key }))
         const built: Built | null = bld
           ? { n: bld.header.n, data: new Uint8Array(bld.raw), landmarks: (bld.header.landmarks as [string, number, number, number, number, number][]).map(([name, kmX, kmZ, h, w, d]) => ({ name, kmX, kmZ, h, w, d, tile: key })) }
           : null
-        this.tiles.set(key, { tx, ty, cols: header.n, rows: header.n, data, peaks, built, used: this.tick })
-        this.bytes += this.size(tx, ty) + this.builtSize(tx, ty)
+        const water = wat ? this.decodeWater(tx, ty, key, wat.header, wat.raw) : null
+        this.tiles.set(key, { tx, ty, cols: header.n, rows: header.n, data, peaks, built, water, used: this.tick })
+        this.bytes += this.size(tx, ty) + this.builtSize(tx, ty) + (water ? this.waterSize(tx, ty) : 0)
         this.refreshLists()
         this.onTile(tx, ty)
         const w = this.waiters; this.waiters = []; w.forEach((f) => f())
@@ -237,6 +296,20 @@ export class ChileTerrain {
       this.tiles.delete(key); dirty = true
     }
     if (dirty) this.refreshLists()
+  }
+
+  /** The lake, reservoir or river polygon covering the 250 m cell at world km, or null. */
+  water(kmX: number, kmZ: number): Lake | null {
+    const I = this.index
+    if (!I) return null
+    const { tx, ty } = this.tileOf(kmX, kmZ)
+    const tile = this.tiles.get(this.key(tx, ty))
+    if (!tile?.water) return null
+    const R = this.tileRect(tx, ty), n = tile.water.n
+    const cx = Math.floor((kmX - R.x0) / I.kmPerSample), cz = Math.floor((kmZ - R.z0) / I.kmPerSample)
+    if (cx < 0 || cz < 0 || cx >= n || cz >= n) return null
+    const id = tile.water.ids[cz * n + cx]
+    return id ? tile.water.lakes[id - 1] : null
   }
 
   /** Built-up fraction (0..1) and max building height (m) of the 250 m cell at world km, or null. */
