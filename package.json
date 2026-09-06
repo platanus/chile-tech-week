@@ -8,6 +8,7 @@
     "terrain:fetch": "node --experimental-strip-types scripts/terrain/fetch-terrain.ts",
     "buildings:fetch": "node --experimental-strip-types scripts/terrain/fetch-buildings.ts",
     "places:fetch": "node --experimental-strip-types scripts/terrain/fetch-places.ts",
+    "brand:marks": "node --experimental-strip-types scripts/brand/build-marks.ts",
     "terrain:spikes": "node --experimental-strip-types scripts/terrain/find-spikes.ts",
     "terrain:despike": "node --experimental-strip-types scripts/terrain/despike.ts",
     "outline:fetch": "node --experimental-strip-types scripts/terrain/fetch-outline.ts",
@@ -15,7 +16,9 @@
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.5-r.4",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.20.1",
+    "opentype.js": "^2.0.0",
     "vite": "^8.2.2",
     "vite-plugin-ruby": "^5.2.3",
     "vitest": "^4.1.11"

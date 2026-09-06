@@ -58,6 +58,7 @@ node_modules/.tmp/
 
 # Raw terrain tiles + Overpass/Overture responses (re-run npm run terrain:fetch to refill).
 /scripts/terrain/.cache/
+/scripts/brand/.cache/
 
 # Bundler local config (written by `bundle config --local`).
 /.bundle/

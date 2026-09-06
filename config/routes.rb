@@ -5,6 +5,12 @@ Rails.application.routes.draw do
 
   root "home#show"
 
+  # The 2026 brand kit (public/brand, built by npm run brand:marks), the icon page and the
+  # wireframe generator.
+  get "brand", to: "brand#show", as: :brand
+  get "brand/icon", to: "brand#icon", as: :brand_icon
+  get "brand/wireframe-gen", to: "brand#wireframe", as: :brand_wireframe
+
   # The 2025 edition, kept as it ran on the old site: its landing, its programme and its
   # brand kit (Edition2025::*Controller, pages/Edition2025/*).
   namespace :edition2025, path: "25" do
