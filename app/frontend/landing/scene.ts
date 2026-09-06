@@ -83,10 +83,11 @@ const DEFAULTS = {
   // mesh & streaming: square chunks of chunkSize units around the camera, cellSize per vertex.
   // lod (off: the density change as chunks approach is visible) doubles the cell past lodNear
   // and again past lodFar; at constant resolution the whole view is ~200k vertices, which is cheap.
-  // quality: 'auto' guesses a tier from the device (GPU class, screen pixels, cores, memory),
-  // confirms it against frame times in the first seconds (at most one step down), then locks it
-  // for the session: nothing changes in flight. A tier sets viewDistance, fog (2.5 / viewDistance:
-  // 8 % visibility at the edge, so nothing invisible is drawn), and the pixel-ratio cap. Lighting and bloom stay the same across tiers.
+  // quality: 'auto' starts from the GPU's name (a rung of the LADDER below), then measures what a
+  // frame really costs and climbs or drops one rung at a time until it fits the display's period,
+  // and remembers where it stopped in localStorage: the next visit starts there and never measures.
+  // A tier sets viewDistance, fog (2.5 / viewDistance: 8 % visibility at the edge, so nothing
+  // invisible is drawn), and the pixel-ratio cap. Lighting and bloom stay the same across tiers.
   quality: 'auto',
   fogAuto: true,
   cellSize: 8,
@@ -1133,167 +1134,221 @@ function applySky() {
 // Chunks grow with the square of the view distance: 55 at 2000 units, 108 at 2800, 178 at 3600.
 // Fill cost is the bloom (about six passes) and scales with pixels, hence the pixel-ratio cap.
 const QUALITY = [
-  { name: 'low',    viewDistance: 1400, dprCap: 1.0 }, // ~27 chunks, 0.14 M tris
-  { name: 'medium', viewDistance: 2000, dprCap: 1.5 },  // ~55 chunks, 0.28 M tris
-  { name: 'high',   viewDistance: 2800, dprCap: 1.5 },  // ~108 chunks, 0.54 M tris
-  { name: 'ultra',  viewDistance: 3600, dprCap: 2.0 },  // ~178 chunks, 0.9 M tris, ~100 MB
+  { name: 'low',    viewDistance: 1400 }, // ~27 chunks, 0.14 M tris
+  { name: 'medium', viewDistance: 2000 }, // ~55 chunks, 0.28 M tris
+  { name: 'high',   viewDistance: 2800 }, // ~108 chunks, 0.54 M tris
+  { name: 'ultra',  viewDistance: 3600 }, // ~178 chunks, 0.9 M tris, ~100 MB
 ];
-const quality = { tier: 1, target: 1, gpu: '', dprCap: 1.5, dprLimit: 2, fogTarget: P.fogDensity, pendingView: null, pendingFog: null, displayMs: 16.7, frames: [], lastChange: 0, since: 0, locked: false, verdict: '' };
-// The guess. GPU class from the renderer string when the browser shows one, else a fill-rate
-// probe (Brave with shields, Firefox resisting fingerprinting and Safari all mask the string).
-// Each class has a rough fill budget: the bloom is about six passes, so a frame costs ~3.2 x
-// the canvas pixels, and the budget is what fits at 60 fps. Classes and budgets follow 3DMark
-// Wild Life Extreme, with the M1 Pro (16 cores) as 1.0: discrete and M-series Pro/Max 0.7+ are
-// ultra at 30 Mpx; the M-series base, Radeon 7x0M, Arc iGPUs and the fastest phones at ~0.45
-// high at 16; Iris Xe (0.27), Vega 8 (0.13) and UHD 620 (0.07) medium at 8; below 0.05 (a
-// mid-range phone, a software renderer) low at 4 or less. Phones and tablets are capped
-// anyway. Too many pixels lowers the pixel-ratio cap first (cheaper than losing distance), then
-// the tier. Cores and memory nudge, only when the browser is honest about them.
-// What earlier visits learnt, in localStorage for 90 days: the probe's rate and, once the frame times
-// confirmed or lowered a tier, that tier. Each against the renderer string, so a new GPU measures again.
+// The ladder auto mode walks. A step changes one thing only — the ring of terrain or the
+// resolution, never both — so no step is a jump, and pixels go before distance: a slightly softer
+// image is easier to miss than a horizon that moves.
+const LADDER = [
+  { tier: 0, dpr: 0.75 }, { tier: 0, dpr: 1 },
+  { tier: 1, dpr: 1 }, { tier: 1, dpr: 1.25 }, { tier: 1, dpr: 1.5 },
+  { tier: 2, dpr: 1.5 },
+  { tier: 3, dpr: 1.5 }, { tier: 3, dpr: 2 },
+];
+const TOP = [1, 4, 5, 7]; // where a hand-picked tier sits on the ladder (its best-looking step)
+const stepName = (l) => `${QUALITY[LADDER[l].tier].name} @${LADDER[l].dpr}x`;
+const quality = {
+  level: TOP[1], want: TOP[1], tier: 1, dprCap: 1.5, ceiling: LADDER.length - 1, steps: 0,
+  gpu: '', label: '', verdict: '', source: 'guess', locked: false, calibrating: false, started: 0,
+  fogTarget: P.fogDensity, pendingView: null, pendingFog: null,
+  displayMs: 16.7, budget: 16.7, cost: 0, since: 0, last: 0, costs: [], gaps: [],
+};
+const say = (msg) => { quality.verdict = quality.label ? `${quality.label} · ${msg}` : msg; };
+
+// What an earlier visit settled on, in localStorage for 90 days, against the GPU string and the
+// window's pixel count: a device that comes back to a screen of about the same size starts where
+// it left off and never measures again.
+const STORE = 'condor.quality.v2';
+const winPx = () => innerWidth * innerHeight * devicePixelRatio ** 2;
 const remembered = (() => {
-  const out = {};
-  for (const k of ['probe', 'tier']) {
-    try { const v = JSON.parse(localStorage.getItem(`condor.quality.${k}`)); if (v && Date.now() - v.at < 90 * 864e5) out[k] = v; } catch {}
-  }
-  return out;
+  try { const v = JSON.parse(localStorage.getItem(STORE)); return v && Date.now() - v.at < 90 * 864e5 ? v : null; } catch { return null; }
 })();
-function remember(k, v) {
-  try { localStorage.setItem(`condor.quality.${k}`, JSON.stringify({ ...v, at: Date.now() })); } catch {}
-  return v;
+function remember() {
+  try { localStorage.setItem(STORE, JSON.stringify({ gpu: quality.gpu, px: Math.round(winPx()), level: quality.level, at: Date.now() })); } catch {}
 }
-const PROBE_REF = 14000; // Mpx/s of probeFill's shader on an M1 Pro (16 cores; Chromium on Metal measures 14,000–14,600): the 1.0 of the scale above
-function guessTier() {
+function forget() {
+  try { localStorage.removeItem(STORE); } catch {}
+}
+
+// The first line: the GPU's own name, which places most devices within a step of where they
+// belong. Classes follow 3DMark Wild Life Extreme with the M1 Pro as 1.0 — discrete cards and the
+// M-series Pro/Max at the top, the M-series base and the good integrated parts one below, Iris Xe
+// and Vega in the middle, phones near the bottom. It is only the starting rung: browsers that mask
+// the string (Brave with shields, Firefox resisting fingerprinting, Safari) start in the middle
+// and the frame times below take it from there, which is also what corrects a wrong guess.
+function guessLevel() {
   const gl = renderer.getContext();
   const ext = gl.getExtension('WEBGL_debug_renderer_info');
   const gpu = String((ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)) || '');
   const mobile = navigator.userAgentData?.mobile || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1100);
   const touchOnly = navigator.maxTouchPoints > 1 && matchMedia('(hover: none)').matches; // a tablet in landscape: throttles, so high at most
-  let t = 1, mpxBudget = 8, named = true, verdict = gpu.replace(/^ANGLE \((.*)\)$/, '$1').slice(0, 48);
-  if (/swiftshader|llvmpipe|softpipe|software/i.test(gpu)) { t = 0; mpxBudget = 1; }
-  else if (/apple m\d/i.test(gpu)) { t = /m\d+ (pro|max|ultra)/i.test(gpu) ? 3 : 2; mpxBudget = /m\d+ (pro|max|ultra)/i.test(gpu) ? 30 : 16; }
-  else if (/radeon (rx )?vega|radeon graphics|radeon \d{3}m\b|\bvega\b|geforce mx|\barc(?:\(tm\))?(?![a-z(])(?! [ab]\d{3})|iris(?:\(r\))? xe/i.test(gpu)) { // integrated (not the Arc A/B cards): Vega and Iris Xe medium, the rest high
-    const mid = /vega|iris(?:\(r\))? xe/i.test(gpu); t = mid ? 1 : 2; mpxBudget = mid ? 8 : 16;
-  }
-  else if (/nvidia|geforce|rtx|gtx|radeon|amd|arc(?:\(tm\))? [ab]\d{3}/i.test(gpu)) { t = 3; mpxBudget = 30; }
-  else if (/adreno [78]\d\d|immortalis|mali-g[67]1\d|mali-g7[68]|apple a1[5-9]|apple a[2-9]\d/i.test(gpu)) { t = 1; mpxBudget = 4; } // the phones that keep up with an Iris Xe
-  else if (/mali|adreno|powervr|apple a\d|xclipse/i.test(gpu)) { t = 0; mpxBudget = 4; }
-  else if (/intel|iris|uhd/i.test(gpu)) { t = 1; mpxBudget = 8; }
-  else { // masked ("WebKit WebGL", "Apple GPU", "Mozilla"...): measure
-    named = false;
-    const ratio = (remembered.probe?.gpu === gpu ? remembered.probe.rate : remember('probe', { gpu, rate: probeFill() }).rate) / PROBE_REF;
-    mpxBudget = clamp(30 * ratio ** 0.63, 1, 30); // 0.7 → 24, 0.35 → 15, 0.07 → 5.6, 0.01 → 1.7
-    t = ratio >= 0.7 ? 3 : ratio >= 0.35 ? 2 : ratio >= 0.05 ? 1 : 0;
-    verdict = `${verdict || 'unnamed gpu'} · probe ${(ratio * 100).toFixed(0)}% of M1 Pro`;
-  }
-  const px = innerWidth * innerHeight * devicePixelRatio ** 2;
-  if (remembered.tier?.gpu === gpu && remembered.tier.tier < t && px >= remembered.tier.px * 0.8) { t = remembered.tier.tier; verdict += ' · remembered'; } // an earlier visit on this screen (or a smaller one) stepped down
-  if (mobile) { t = Math.min(t, 1); mpxBudget = Math.min(mpxBudget, 4); }
-  else if (touchOnly) { t = Math.min(t, 2); mpxBudget = Math.min(mpxBudget, 12); }
-  if (named) { // a browser that hides the GPU fakes these too (Brave draws the core count at random)
-    if ((navigator.hardwareConcurrency || 8) <= 4) t = Math.max(0, t - 1);
-    if (navigator.deviceMemory && navigator.deviceMemory <= 4) t = Math.max(0, t - 1);
-  }
-  // fill: find the largest pixel-ratio cap whose frame fits the budget, dropping the tier if even 1x does not
-  let dprLimit = 2;
-  const mpx = (cap) => (innerWidth * innerHeight * Math.min(devicePixelRatio, cap) ** 2 * 3.2) / 1e6;
-  while (dprLimit > 1 && mpx(dprLimit) > mpxBudget) dprLimit -= 0.25;
-  if (mpx(1) > mpxBudget * 1.3) t = Math.max(0, t - 1);
   quality.gpu = gpu;
-  quality.dprLimit = dprLimit;
-  quality.verdict = `${verdict} · ${mpx(dprLimit).toFixed(0)} Mpx/frame`;
-  return t;
-}
-// Fill-rate probe: a full-screen quad with a fragment shader shaped like the bloom's (eight
-// texture taps and a short chain of multiply-adds), drawn into an offscreen target and read back
-// (the one-pixel readback waits for the GPU). The batches grow, 256² to 2048² and then more
-// passes, until one takes over 8 ms, so a weak device stops early and a strong one measures a
-// 2048² batch of many passes: some tens of ms either way. Runs once per browser: the result is
-// remembered in localStorage against the renderer string. Returns Mpx/s.
-function probeFill() {
-  const noise = new Uint8Array(64 * 64 * 4);
-  for (let i = 0; i < noise.length; i++) noise[i] = (i * 2654435761) >>> 24;
-  const tex = new THREE.DataTexture(noise, 64, 64, THREE.RGBAFormat);
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.magFilter = tex.minFilter = THREE.LinearFilter; tex.needsUpdate = true;
-  const mat = new THREE.ShaderMaterial({
-    uniforms: { uTex: { value: tex }, uSeed: { value: 0 } },
-    vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: 'uniform sampler2D uTex; uniform float uSeed; void main() { vec2 p = gl_FragCoord.xy * (1.0 / 256.0); vec4 c = vec4(0.0); for (int i = 0; i < 8; i++) { float f = float(i) - 3.5; c += texture2D(uTex, p + vec2(f, -f) * (0.004 + uSeed * 0.0001)); } float a = c.x * 0.125; for (int i = 0; i < 16; i++) a = a * (1.02 - a) * 3.7 + uSeed * 0.001; gl_FragColor = vec4(a, c.y * 0.125, c.z * 0.125, 1.0); }',
-  });
-  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat), sc = new THREE.Scene().add(quad), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  const px = new Uint8Array(4);
-  let rate = 0, rt = null;
-  for (const [size, passes] of [[256, 8], [512, 8], [1024, 8], [2048, 8], [2048, 16], [2048, 32], [2048, 64]]) {
-    if (!rt || rt.width !== size) { rt?.dispose(); rt = new THREE.WebGLRenderTarget(size, size, { depthBuffer: false }); }
-    const draw = (seed) => { mat.uniforms.uSeed.value = seed; renderer.setRenderTarget(rt); renderer.render(sc, cam); };
-    const sync = () => renderer.readRenderTargetPixels(rt, 0, 0, 1, 1, px); // ~1 ms round trip, so once per batch
-    draw(0); sync(); // warm-up: the shader compile at the first size, the allocation at the others
-    const times = []; // best of three batches, and more while the two best disagree: the first Metal command
-    while (times.length < 6) { // buffers, the GPU clock ramp and a busy neighbour tab all stall at random
-      const t0 = performance.now();
-      for (let i = 1; i <= passes; i++) draw(i + times.length * passes);
-      sync();
-      times.push(performance.now() - t0);
-      if (times.length >= 3 && [...times].sort((a, b) => a - b)[1] < Math.min(...times) * 1.3) break;
-    }
-    const best = Math.min(...times);
-    rate = Math.max(rate, (size * size * passes) / (best * 1e3)); // short batches are sync-bound, so the longest wins
-    if (best >= 8) break;
+  quality.label = gpu.replace(/^ANGLE \((.*)\)$/, '$1').slice(0, 48) || 'unnamed gpu';
+  let l = TOP[1], named = true;
+  if (/swiftshader|llvmpipe|softpipe|software/i.test(gpu)) l = 0;
+  else if (/apple m\d/i.test(gpu)) l = /m\d+ (pro|max|ultra)/i.test(gpu) ? 7 : 5;
+  else if (/radeon (rx )?vega|radeon graphics|radeon \d{3}m\b|\bvega\b|geforce mx|\barc(?:\(tm\))?(?![a-z(])(?! [ab]\d{3})|iris(?:\(r\))? xe/i.test(gpu)) { // integrated (not the Arc A/B cards)
+    l = /vega|iris(?:\(r\))? xe/i.test(gpu) ? 4 : 5;
   }
-  rt.dispose();
-  renderer.setRenderTarget(null); mat.dispose(); quad.geometry.dispose(); tex.dispose();
-  return rate;
+  else if (/nvidia|geforce|rtx|gtx|radeon|amd|arc(?:\(tm\))? [ab]\d{3}/i.test(gpu)) l = 7;
+  else if (/adreno [78]\d\d|immortalis|mali-g[67]1\d|mali-g7[68]|apple a1[5-9]|apple a[2-9]\d/i.test(gpu)) l = 3; // the phones that keep up with an Iris Xe
+  else if (/mali|adreno|powervr|apple a\d|xclipse/i.test(gpu)) l = 1;
+  else if (/intel|iris|uhd/i.test(gpu)) l = 4;
+  else named = false; // masked ("WebKit WebGL", "Apple GPU", "Mozilla"…): start in the middle and measure
+  if (mobile) l = Math.min(l, 3);
+  else if (touchOnly) l = Math.min(l, 5);
+  if (named) { // a browser that hides the GPU fakes these too (Brave draws the core count at random)
+    if ((navigator.hardwareConcurrency || 8) <= 4) l -= 1;
+    if (navigator.deviceMemory && navigator.deviceMemory <= 4) l -= 1;
+  }
+  const px = winPx();
+  if (px > 9e6) l -= 2; else if (px > 4.5e6) l -= 1; // a 4K or retina window costs about what a rung does
+  l = clamp(l, 0, LADDER.length - 1);
+  if (remembered && remembered.gpu === gpu && px < remembered.px * 1.25 && px > remembered.px * 0.6) {
+    quality.source = 'remembered';
+    l = clamp(remembered.level, 0, LADDER.length - 1);
+    say(`remembered ${stepName(l)}`);
+  } else say(`${named ? 'guessed' : 'unnamed, starting at'} ${stepName(l)}`);
+  return l;
 }
-// Apply a tier. Going up, the view distance grows at once (new chunks appear inside the fog) and
-// the fog thins over a second. Going down, the fog thickens first and the far chunks are evicted
-// only once they are hidden. The pixel ratio changes at once (a resolution step, kept rare).
-function setTier(t, immediate = false) {
-  t = clamp(Math.round(t), 0, QUALITY.length - 1);
-  const q = QUALITY[t];
-  quality.tier = t;
-  quality.dprCap = Math.min(q.dprCap, quality.dprLimit);
+
+// Apply a ladder step. Going up, the view distance grows at once — the new ring builds inside the
+// fog, where it cannot be seen — and the fog only thins once every chunk of it is there; going
+// down, the fog thickens first and the far chunks are evicted after it hides them. So a step
+// changes what has not been drawn yet, and what is on screen keeps drifting. The pixel ratio is
+// the one change that lands on the whole frame at once, which is why the ladder trims it in bites.
+function setLevel(l, immediate = false) {
+  l = clamp(Math.round(l), 0, LADDER.length - 1);
+  const step = LADDER[l], q = QUALITY[step.tier];
+  quality.level = l;
+  quality.tier = step.tier;
+  quality.dprCap = step.dpr;
   const fog = P.fogAuto ? 2.5 / q.viewDistance : P.fogDensity;
   if (immediate || q.viewDistance >= P.viewDistance) {
     P.viewDistance = q.viewDistance; quality.pendingView = null;
-    // going up: the new ring is built under the thick fog first, then the fog thins (see adaptQuality)
+    // going up: the new ring is built under the current fog first, then the fog thins (see adaptQuality)
     if (immediate) { P.fogDensity = fog; quality.fogTarget = fog; quality.pendingFog = null; }
     else { quality.pendingFog = fog; quality.fogTarget = P.fogDensity; lastPending = Infinity; } // unknown until the next chunk pass
   } else { quality.pendingView = q.viewDistance; quality.fogTarget = fog; quality.pendingFog = null; }
-  quality.lastChange = performance.now();
   quality.since = performance.now();
+  quality.costs.length = 0; quality.gaps.length = 0;
   applyAtmosphere();
   refreshGui();
 }
-// per frame: ease the fog, apply a pending view distance once the fog hides the edge, and in
-// auto mode confirm the tier once: 3 to 8 s after the ramp, frame times clearly over the display's
-// budget step it down one tier (fog first, so it is not seen); either way it then locks for good
+
+// Start the ladder over from a rung (the panel's button, and the tests).
+function calibrate(from) {
+  if (from != null) setLevel(from);
+  quality.ceiling = LADDER.length - 1;
+  quality.steps = 0;
+  quality.locked = false;
+  quality.calibrating = true;
+  quality.started = performance.now();
+  quality.source = 'measured';
+  say('measuring');
+}
+// hand-picked, from the panel or a test: stay there, measure nothing
+function pickLevel(l) {
+  quality.calibrating = false;
+  quality.locked = true;
+  setLevel(l);
+  say(`picked ${stepName(quality.level)}`);
+}
+function stepQuality(d, why) {
+  if (d < 0) quality.ceiling = Math.max(0, quality.level - 1); // this rung was too much: never climb back to it
+  const before = stepName(quality.level);
+  setLevel(quality.level + d);
+  quality.steps++;
+  say(`${before} ${why} → ${stepName(quality.level)}`);
+  if (quality.steps >= 6) settleQuality(); // a device this hard to place is not going to be placed by more steps
+}
+function settleQuality() {
+  quality.calibrating = false;
+  quality.locked = true;
+  quality.want = quality.level;
+  say(quality.cost ? `${stepName(quality.level)} at ${quality.cost.toFixed(1)} ms of ${quality.budget.toFixed(1)}` : `${stepName(quality.level)}, not measured`);
+  remember();
+}
+
+// What drawing this frame cost, in milliseconds. Reading one pixel back from the canvas waits for
+// the GPU, so the time around the render call is the drawing itself — the thing the rungs change —
+// instead of the gap between frames, which vsync and the ambient cap quantise into uselessness: a
+// device that needs 3 ms and one that needs 30 both report 33 at 30 fps, which is why the old
+// check confirmed every device it ever ran on. Everything else the frame does (streaming, labels,
+// the flock) is left out: it costs the same at every rung and only adds noise. The readback stalls
+// the pipeline, so it runs only while the ladder is measuring.
+const probePx = new Uint8Array(4);
+function measureFrame(t0) {
+  if (!quality.calibrating || busyFrame()) return;
+  const gl = renderer.getContext();
+  renderer.setRenderTarget(null);
+  gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, probePx);
+  const now = performance.now(), ms = now - t0;
+  if (ms > 0 && ms < 5000) quality.costs.push([now, ms]);
+  while (quality.costs.length && now - quality.costs[0][0] > 3000) quality.costs.shift();
+}
+// A frame nobody should be judged on: terrain still building, a tier change still landing, or the
+// last change too fresh for the shaders and the chunk ring to have caught up.
+const busyFrame = () => lastPending !== 0 || quality.pendingFog !== null || quality.pendingView !== null || performance.now() - quality.since < 700;
+// what the next rung up costs relative to this one: fill goes with the square of the pixel ratio,
+// geometry with the square of the view distance (the ring is a disc), and a frame is about half of
+// each — so a rung is only climbed when the frame it would make still fits the budget.
+const costOfNextRung = (l) => (l + 1 >= LADDER.length ? Infinity : 0.5 * (LADDER[l + 1].dpr / LADDER[l].dpr) ** 2 + 0.5 * (QUALITY[LADDER[l + 1].tier].viewDistance / QUALITY[LADDER[l].tier].viewDistance) ** 2);
+const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[s.length >> 1]; };
+
+// Per frame: ease the fog, apply a pending view distance once the fog hides the edge, and in auto
+// mode run the ladder — measure a rung, and step up while frames fit the display's period with
+// room to spare, down while they do not, then lock and remember it. Once settled, the gaps between
+// frames are still watched: a device that stops keeping up (hot, on battery, a window that grew,
+// another tab) re-opens the ladder, which can then only go down.
 function adaptQuality(dt, rendered) {
+  const now = performance.now();
   if (quality.pendingFog !== null && lastPending === 0) { quality.fogTarget = quality.pendingFog; quality.pendingFog = null; }
   if (Math.abs(P.fogDensity - quality.fogTarget) > 1e-7) {
     P.fogDensity += (quality.fogTarget - P.fogDensity) * Math.min(1, dt * 1.5);
     if (Math.abs(P.fogDensity - quality.fogTarget) < quality.fogTarget * 0.02) P.fogDensity = quality.fogTarget;
     scene.fog.density = P.fogDensity;
-  } else if (quality.pendingView !== null) { P.viewDistance = quality.pendingView; quality.pendingView = null; refreshGui(); }
-  if (P.quality !== 'auto' || !rendered || quality.locked || quality.tier !== quality.target || quality.pendingFog !== null) return;
-  const now = performance.now();
-  const budget = mode === 'game' ? quality.displayMs : Math.max(quality.displayMs, 1000 / P.ambientFps);
-  quality.frames.push([now, dt * 1000]);
-  while (quality.frames.length && now - quality.frames[0][0] > 3000) quality.frames.shift();
-  const settled = now - quality.since;
-  if (settled < 3000 || quality.frames.length < 8) return; // let the ramp and the shader warm-up pass (a slow device has few frames per window)
-  const ms = quality.frames.map((f) => f[1]);
-  const avg = ms.reduce((a, b) => a + b, 0) / ms.length;
-  const slow = ms.filter((m) => m > budget * 1.6).length / ms.length;
-  if ((avg > budget * 1.4 || slow > 0.3) && quality.tier > 0) {
-    quality.verdict += ` · ${avg.toFixed(1)} ms vs ${budget.toFixed(1)}: stepped down`;
-    quality.target = quality.tier - 1;
-    setTier(quality.target);
-    quality.locked = true;
-    remember('tier', { gpu: quality.gpu, tier: quality.tier, px: innerWidth * innerHeight * devicePixelRatio ** 2 });
-  } else if (settled > 8000) {
-    quality.verdict += ` · ${avg.toFixed(1)} ms vs ${budget.toFixed(1)}: confirmed`;
-    quality.locked = true;
-    remember('tier', { gpu: quality.gpu, tier: quality.tier, px: innerWidth * innerHeight * devicePixelRatio ** 2 });
+  } else if (quality.pendingView !== null) { P.viewDistance = quality.pendingView; quality.pendingView = null; quality.since = now; refreshGui(); } // the ring shrinks now; give it a moment before judging it
+  const gap = quality.last ? now - quality.last : 0; // 0 across a pause: the hero scrolled away, the tab came back
+  quality.last = now;
+  if (P.quality !== 'auto' || !rendered) return;
+  // what a frame has to fit in: the display's own period, floored at 60 fps so a 120 Hz screen is
+  // not asked for 120. The gaps between frames are held to the looser of that and the ambient cap,
+  // which is all the backdrop is being asked for.
+  const period = Math.max(quality.displayMs, 15.5);
+  quality.budget = period;
+  const gapBudget = mode === 'game' ? period : Math.max(period, 1000 / P.ambientFps);
+  if (gap > 0 && gap < 5000) quality.gaps.push([now, gap]);
+  while (quality.gaps.length && now - quality.gaps[0][0] > 4000) quality.gaps.shift();
+  const slow = quality.gaps.length >= 20 && median(quality.gaps.map((g) => g[1])) > gapBudget * 1.35;
+  // a rung that has not gone quiet in five seconds is not going to: a ring of terrain it cannot
+  // finish building is itself the answer, and the gaps between frames say which way
+  const stalled = now - quality.since > 5000;
+  if (busyFrame() && !stalled) { while (quality.costs.length && quality.costs[0][0] < quality.since) quality.costs.shift(); return; }
+  if (quality.calibrating) {
+    const measured = quality.costs.length >= 16 && now - quality.costs[0][0] >= 700;
+    if (!measured && !stalled) return;
+    if (now - quality.started > 25000) return settleQuality(); // nothing about this device is settling down
+    if (!measured) return slow && quality.level > 0 ? stepQuality(-1, 'never drew a quiet frame') : settleQuality();
+    const cost = quality.cost = median(quality.costs.map((c) => c[1]));
+    const worst = [...quality.costs].sort((a, b) => a[1] - b[1])[Math.floor(quality.costs.length * 0.9)][1];
+    const up = costOfNextRung(quality.level); // what the rung above is expected to cost, relative to this one
+    const spent = `drew in ${cost.toFixed(1)} ms of ${quality.budget.toFixed(1)}`;
+    if (cost > quality.budget * 0.9 && quality.level > 0) stepQuality(-1, spent); // the drawing alone all but fills the frame
+    else if (cost * up < quality.budget * 0.8 && worst * up < quality.budget * 1.2 && quality.level < quality.ceiling) stepQuality(1, spent); // and the rung above would still leave the rest of the frame a fifth of the period
+    else settleQuality();
+    return;
+  }
+  // settled: a device that stops keeping up (hot, on battery, a window that grew, another tab)
+  // re-opens the ladder, which from here can only go down
+  if (quality.level > 0 && slow && lastPending === 0 && now - quality.since > 6000) { // not merely a ring still streaming in
+    const ceiling = quality.level;
+    calibrate();
+    quality.ceiling = ceiling;
+    say('slowed down, measuring again');
   }
 }
 // the display's frame interval: the shortest steady rAF delta seen early on (60 / 75 / 120 Hz...)
@@ -1610,7 +1665,7 @@ const flockHooks = {
   },
   mode() { return mode; },
 };
-window.condorScene = { setMode, teleport, setThrottle(v) { throttle = clamp(v, 0, 1); }, get mode() { return mode; }, flock: flockHooks, bird() { return { x: condor.pos.x, y: condor.pos.y, z: condor.pos.z, yaw: condor.yaw, crash: crash.state, to: crash.to }; }, probe(x, z) { return { terrain: H.height(x, z), obstacle: H.obstacle ? H.obstacle(x, z) : null }; }, cityCands() { return lastCityCands; }, quality() { return { tier: quality.tier, target: quality.target, locked: quality.locked, verdict: quality.verdict, dprLimit: quality.dprLimit, pendingFog: quality.pendingFog, pending: lastPending, fadingChunks: fading.length, name: QUALITY[quality.tier].name, gpu: quality.gpu, displayMs: quality.displayMs, viewDistance: P.viewDistance, fog: P.fogDensity, dprCap: quality.dprCap, bloom: P.bloom, frames: quality.frames.length }; }, stats() { const byLod = {}; for (const c of chunks.values()) byLod[c.lod] = (byLod[c.lod] || 0) + 1; return { chunks: chunks.size, byLod, tiles: real.tiles.size, tileBytes: real.bytes, peaks: real.peaks.length, slowestBuilds: [...buildTimes].sort((a, b) => b[1] - a[1]).slice(0, 6), buildTotalMs: buildTimes.reduce((a, b) => a + b[1], 0) }; } }; // tiny API for the host page (and tests)
+window.condorScene = { setMode, teleport, setThrottle(v) { throttle = clamp(v, 0, 1); }, get mode() { return mode; }, flock: flockHooks, bird() { return { x: condor.pos.x, y: condor.pos.y, z: condor.pos.z, yaw: condor.yaw, crash: crash.state, to: crash.to }; }, probe(x, z) { return { terrain: H.height(x, z), obstacle: H.obstacle ? H.obstacle(x, z) : null }; }, cityCands() { return lastCityCands; }, quality() { return { level: quality.level, tier: quality.tier, name: QUALITY[quality.tier].name, step: stepName(quality.level), source: quality.source, locked: quality.locked, calibrating: quality.calibrating, ceiling: quality.ceiling, steps: quality.steps, verdict: quality.verdict, gpu: quality.gpu, cost: quality.cost, budget: quality.budget, displayMs: quality.displayMs, dprCap: quality.dprCap, pixelRatio: renderer.getPixelRatio(), viewDistance: P.viewDistance, fog: P.fogDensity, pendingFog: quality.pendingFog, pendingView: quality.pendingView, pending: lastPending, fadingChunks: fading.length, samples: quality.costs.length }; }, calibrate, pick: pickLevel, forget, stats() { const byLod = {}; for (const c of chunks.values()) byLod[c.lod] = (byLod[c.lod] || 0) + 1; return { chunks: chunks.size, byLod, tiles: real.tiles.size, tileBytes: real.bytes, peaks: real.peaks.length, slowestBuilds: [...buildTimes].sort((a, b) => b[1] - a[1]).slice(0, 6), buildTotalMs: buildTimes.reduce((a, b) => a + b[1], 0) }; } }; // tiny API for the host page (and tests)
 
 function ambientInputs(dt) {
   // autopilot: hold a lane beside the coast, cruise altitude, and a slow lazy sway
@@ -1757,9 +1812,13 @@ fPeaks.add(P, 'peakLabelCount', 1, 30, 1).name('max labels');
 fPeaks.add(P, 'peakLabelRange', 100, 2500, 10).name('label range');
 
 const fQuality = gui.addFolder('Quality');
-fQuality.add(P, 'quality', { 'Auto (device + frame times)': 'auto', Low: 0, Medium: 1, High: 2, Ultra: 3 }).name('tier').onChange((v) => { if (v !== 'auto') setTier(v); });
-fQuality.add(P, 'fogAuto').name('fog follows view distance').onChange(() => setTier(quality.tier));
-fQuality.add({ get info() { return `${QUALITY[quality.tier].name}${quality.locked ? ' (locked)' : ''} · ${quality.verdict}`; } }, 'info').name('running').listen().disable();
+fQuality.add(P, 'quality', { 'Auto (measured)': 'auto', Low: 0, Medium: 1, High: 2, Ultra: 3 }).name('tier').onChange((v) => {
+  if (v === 'auto') calibrate();
+  else pickLevel(TOP[clamp(Math.round(v), 0, QUALITY.length - 1)]);
+});
+fQuality.add(P, 'fogAuto').name('fog follows view distance').onChange(() => setLevel(quality.level));
+fQuality.add({ again() { forget(); P.quality = 'auto'; refreshGui(); calibrate(TOP[1]); } }, 'again').name('measure again');
+fQuality.add({ get info() { return `${stepName(quality.level)}${quality.calibrating ? ' (measuring)' : quality.locked ? ' (locked)' : ''} · ${quality.verdict}`; } }, 'info').name('running').listen().disable();
 
 const fMesh = gui.addFolder('Mesh & streaming');
 fMesh.add(P, 'cellSize', 1, 40, 0.5).name('cell size');
@@ -1965,9 +2024,11 @@ applySky();
 applyAtmosphere();
 buildCondor();
 performance.mark('boot:scene');
-// the tier the device deserves; the boot reveals at medium at most and ramps up afterwards
-quality.target = P.quality === 'auto' ? (fromHash ? 1 : guessTier()) : Number(P.quality);
-setTier(Math.min(quality.target, 1), true);
+// the rung the device deserves; the boot reveals at medium at most and ramps up afterwards
+const guessed = guessLevel();
+quality.want = P.quality === 'auto' ? (fromHash ? TOP[1] : guessed) : TOP[Number(P.quality)];
+quality.locked = P.quality !== 'auto' || fromHash || quality.source === 'remembered';
+setLevel(Math.min(quality.want, TOP[1]), true);
 if (P.terrain === 'chile') await real.ready; // index + overview, preloaded from the HTML
 performance.mark('boot:index');
 if (!fromHash) { condor.pos.set(P.terrain === 'chile' ? P.laneKm * P.unitsPerKm : P.coastOffset + P.startOffset, P.startAltitude, homeZ()); }
@@ -2396,11 +2457,11 @@ function frame() {
   requestAnimationFrame(frame);
   const ambient = mode !== 'game';
   // paused while the hero is scrolled away (the tab being hidden already stops rAF)
-  if (ambient && !heroVisible) { clock.getDelta(); return; }
+  if (ambient && !heroVisible) { clock.getDelta(); quality.last = 0; return; }
   let dt = Math.min(clock.getDelta(), 0.1);
-  if (ambient) { // frame-rate cap for the background
-    ambientAcc += dt;
-    if (ambientAcc < 1 / P.ambientFps) return;
+  if (ambient) { // frame-rate cap for the background, with half a vsync of tolerance: two 16.67 ms
+    ambientAcc += dt; // frames land a hair under 1/30, and without it every other frame waits a third
+    if (ambientAcc < 1 / P.ambientFps - quality.displayMs / 2000) return;
     dt = Math.min(ambientAcc, 0.1); ambientAcc = 0;
   }
   skyUniforms.uTime.value += dt;
@@ -2416,12 +2477,18 @@ function frame() {
   if (!ambient) drawMinimap();
   sky.position.copy(camera.position);
   bloomPass.strength = ambient ? P.ambientBloom : P.bloomStrength;
+  const renderT0 = performance.now();
   composer.render();
+  measureFrame(renderT0);
   if (!revealed) {
     revealed = true; performance.mark('boot:frame');
     requestAnimationFrame(() => renderer.domElement.classList.add('ready'));
     // once the fade is over, ramp to the device's tier: the wider ring builds under the current fog
-    if (quality.target > quality.tier) setTimeout(() => { if (P.quality === 'auto' || Number(P.quality) === quality.target) setTier(quality.target); }, 1500);
+    setTimeout(() => {
+      if (P.quality !== 'auto' && TOP[Number(P.quality)] !== quality.want) return; // the panel picked something else meanwhile
+      if (quality.want > quality.level) setLevel(quality.want);
+      if (P.quality === 'auto' && !quality.locked) calibrate(); // the guess was only a guess: measure from here
+    }, 1500);
   }
   fpsAcc += dt; fpsN++;
   if ((hudTick++ & 15) === 0) {
