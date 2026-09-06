@@ -68,7 +68,7 @@ declare global {
     /** scene.ts installs this synchronously in startScene(); `flock` is the surface above. */
     condorScene?: {
       flock?: SceneHooks;
-      /** 0…1 from the touch throttle lever (landing/touch.ts): the boost Shift gives, dialled. */
+      /** 0…1 from the touch throttle lever (landing/touch.ts): cruise up to the wheel's top speed. */
       setThrottle?(v: number): void;
     };
     /** startFlock() installs this; scene.ts calls it if present. */

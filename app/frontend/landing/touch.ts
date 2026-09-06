@@ -6,11 +6,11 @@
 // corner (see landing.css and flock/hud.ts).
 //
 // Left of it, under the other thumb, a spring-loaded throttle lever. Pushing it up feeds
-// window.condorScene.setThrottle() the same acceleration Shift gives a keyboard pilot, in
-// proportion to how far it is pushed; lifting the thumb eases it straight back down to cruise.
-// That boost is the whole speed control on touch: the base glide speed (the scroll wheel's job
-// on a desktop) stays where the scene set it, so a thumb can never leave it somewhere it can't
-// be brought back from.
+// window.condorScene.setThrottle() a 0…1 that covers the whole range a desktop pilot scrolls
+// through — cruise with the lever down, the wheel's own top speed with it all the way up —
+// and lifting the thumb eases it straight back down to cruise. It is the whole speed control
+// on touch: the base glide speed the wheel sets stays where the scene left it, so a thumb can
+// never strand it somewhere it can't be brought back from.
 
 /**
  * Lever position — 0 resting at the bottom, 1 pushed to the top — for a thumb at viewport `y`,

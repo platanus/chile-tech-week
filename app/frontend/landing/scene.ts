@@ -22,6 +22,9 @@ import { scatterSpawn } from '@/landing/spawn';
 export async function startScene() {
 
 // ---------------------------------------------------------------- params
+// The fastest the condor glides: where the scroll wheel stops, where the panel's slider ends,
+// and what a fully pushed touch lever asks for. One number so the three cannot drift apart.
+const TOP_SPEED = 300;
 const DEFAULTS = {
   // cordillera: 'chile' is the real relief (src/terrain: SRTM + OSM peaks, streamed in 64 km tiles),
   // 'procedural' the old noise. Real relief reads flat from the air, so it is exaggerated.
@@ -1439,7 +1442,7 @@ cv.addEventListener('pointerup', () => { dragging = false; });
 cv.addEventListener('wheel', (e) => {
   if (mode !== 'game') return; // let the page scroll
   const f = e.deltaY > 0 ? 0.88 : 1.14;
-  if (P.cameraMode === 'condor') P.flightSpeed = clamp(P.flightSpeed * f, 0, 300);
+  if (P.cameraMode === 'condor') P.flightSpeed = clamp(P.flightSpeed * f, 0, TOP_SPEED);
   else P.flySpeed = clamp(P.flySpeed * f, 2, 600);
   refreshGui();
 }, { passive: true });
@@ -1595,8 +1598,12 @@ function updateCondor(dt) {
   else {
     turn = frozen ? 0 : (keys.KeyA || keys.ArrowLeft ? 1 : 0) - (keys.KeyD || keys.ArrowRight ? 1 : 0);
     climb = frozen ? 0 : (keys.KeyW || keys.ArrowUp || keys.Space ? 1 : 0) - (keys.KeyS || keys.ArrowDown || keys.KeyC ? 1 : 0);
-    // Shift is all-or-nothing; the touch lever is the same 2.2x, dialled in by how far it is up
-    boost = frozen ? 1 : Math.max(keys.ShiftLeft || keys.ShiftRight ? 2.2 : 1, 1 + throttle * 1.2);
+    // Shift is all-or-nothing. The touch lever instead walks the range the scroll wheel walks:
+    // each notch there multiplies the speed, so the lever does too, and pushed to the top it
+    // arrives at exactly TOP_SPEED — the ceiling the wheel stops at. A bird already stalled at
+    // zero has no range to walk, and the guard keeps that case finite instead of NaN.
+    const lever = P.flightSpeed > 0 ? (TOP_SPEED / P.flightSpeed) ** throttle : 1;
+    boost = frozen ? 1 : Math.max(keys.ShiftLeft || keys.ShiftRight ? 2.2 : 1, lever);
   }
   if (frozen) dt = 0; // hold still while the screen is black
 
@@ -1618,7 +1625,7 @@ function updateCondor(dt) {
   }
 
   // pose + wing animation (glide flap, faster under boost, wings rise a little when banking)
-  flightTime += dt * (1 + (boost - 1) / 1.2); // twice as fast at full boost, and smooth between
+  flightTime += dt * Math.min(2, 1 + (boost - 1) / 1.2); // up to twice as fast, smooth on the way
   const flap = Math.sin(flightTime * P.flapSpeed) * P.flapAmount + 0.12 + Math.abs(condor.roll) * 0.15;
   condor.wingR.rotation.z = flap;
   condor.wingL.rotation.z = -flap;
@@ -1809,7 +1816,7 @@ fAtm.close();
 
 const fCam = gui.addFolder('Condor & Camera');
 fCam.add(P, 'cameraMode', ['condor', 'free']).name('mode (V)').onChange(onModeChange);
-fCam.add(P, 'flightSpeed', 0, 300, 1).name('glide speed');
+fCam.add(P, 'flightSpeed', 0, TOP_SPEED, 1).name('glide speed');
 fCam.add(P, 'turnRate', 0.1, 3, 0.01).name('turn rate');
 fCam.add(P, 'bankAngle', 0, 1.3, 0.01).name('bank angle');
 fCam.add(P, 'maxPitch', 0, 1.2, 0.01).name('climb angle');
