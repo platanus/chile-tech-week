@@ -13,9 +13,10 @@
 
     <%# The icon (public/, from scripts/brand/favicon.sh): the ICO for tabs, the SVG where it is
         taken, the touch icon for home screens. %>
-    <link rel="icon" href="/favicon.ico" sizes="48x48">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <%# Versioned URLs let browsers replace the long-lived public icon assets after a brand refresh. %>
+    <link rel="icon" href="/favicon.ico?v=squircle-2026" sizes="48x48">
+    <link rel="icon" href="/icon.svg?v=squircle-2026" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=squircle-2026">
 
     <%# The landing's type: Unbounded 800 uppercase for display, Syne for body, Space Mono for labels. %>
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -26,9 +26,9 @@ RSpec.describe "the landing" do
     it "links the favicon set and serves it from public" do
       get "/"
 
-      expect(response.body).to include(%(<link rel="icon" href="/favicon.ico" sizes="48x48">))
-      expect(response.body).to include(%(<link rel="icon" href="/icon.svg" type="image/svg+xml">))
-      expect(response.body).to include(%(<link rel="apple-touch-icon" href="/apple-touch-icon.png">))
+      expect(response.body).to include(%(<link rel="icon" href="/favicon.ico?v=squircle-2026" sizes="48x48">))
+      expect(response.body).to include(%(<link rel="icon" href="/icon.svg?v=squircle-2026" type="image/svg+xml">))
+      expect(response.body).to include(%(<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=squircle-2026">))
 
       ico = Rails.public_path.join("favicon.ico").binread
       expect(ico.byteslice(0, 4)).to eq("\x00\x00\x01\x00".b) # an ICO…
