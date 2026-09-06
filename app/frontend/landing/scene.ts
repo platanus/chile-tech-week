@@ -131,11 +131,21 @@ const DEFAULTS = {
   wireColor: '#ee2b2b',
   wireOpacity: 0.8,
   diagonals: false,
-  // snow: faces and wire fade to white above this normalized height
+  // snow: faces and wire fade to white above this normalized height (the procedural world, and
+  // the fallback for the real one). The real relief instead reads its snow line off the dataset:
+  // scripts/terrain/fetch-snow.ts measures, from ten years of MODIS composites, the altitude
+  // where the ground is white half the year, per 8 km node — ~5,500 m in the Atacama, sea level
+  // in Tierra del Fuego. These knobs only shift and shape what was measured.
   snowColor: '#ffffff',
   snowLine: 0.68,
   snowBlend: 0.12,
   snowFaceTone: 0.62,
+  snowMeasured: true,
+  snowOffsetM: 0,          // raise (+) or lower (-) the measured line everywhere
+  snowBandScale: 1,        // widen (>1) or tighten the measured fade band
+  snowRockDeg: 35,         // real slope (degrees) where a face starts shedding snow to bare rock
+  snowRockBare: 60,        // and where it holds none: cliffs stay red above the line
+  showSalt: true,          // the salars drawn white too — they are, all year, and not from snow
   // sky / sun
   skyTop: '#000000',
   skyHorizon: '#0a0a0a',
@@ -599,7 +609,7 @@ function palette() {
 }
 // both return a shared scratch colour: read it before the next call
 const _gc = new THREE.Color(), _wcol = new THREE.Color();
-function gradientColor(t) {
+function gradientColor(t, snow) {
   const p = palette(), c = _gc;
   const m = clamp(P.midPoint, 0.05, 0.9);
   const hi = m + (1 - m) * 0.6;
@@ -607,11 +617,32 @@ function gradientColor(t) {
   else if (t < hi) c.lerpColors(p.mid, p.high, (t - m) / (hi - m));
   else c.lerpColors(p.high, p.peak, (t - hi) / (1 - hi));
   // faces take a dimmer snow than the wire so the caps read as matte, not glare
-  return c.lerp(p.snowFace, snowAmount(t) * 0.85);
+  return c.lerp(p.snowFace, snow * 0.85);
 }
 // 0 below the snow line, 1 above it, smooth across the blend band
 function snowAmount(t) { return smoothstep(P.snowLine - P.snowBlend, P.snowLine + P.snowBlend, t); }
-function wireColorAt(t) { const p = palette(); return _wcol.copy(p.wire).lerp(p.snow, snowAmount(t)); }
+function wireColorAt(t, snow) { const p = palette(); return _wcol.copy(p.wire).lerp(p.snow, snow); }
+// how white the ground is at a world point. The procedural world (and the real one before
+// snow.bin lands) fades over the colour ramp; the real relief compares the point's true
+// altitude against the measured line for that stretch of the country.
+function snowAt(y, x, z) {
+  const t = clamp((y - grid.cMin) / Math.max(grid.cMax - grid.cMin, 1e-6), 0, 1);
+  if (!(H?.real && P.snowMeasured)) return snowAmount(t);
+  const kx = x / H.upk, kz = H.zKm(z);
+  // the salars are white all year and not because of snow: Uyuni is 10,000 km² of salt
+  if (P.showSalt && real.saltAt(kx, kz)) return 1;
+  const s = real.snowAt(kx, kz);
+  if (!s) return snowAmount(t);
+  const line = s.line + P.snowOffsetM, band = Math.max(20, s.band * P.snowBandScale);
+  return smoothstep(line - band, line + band, (y - P.landBase) / H.vs);
+}
+// A slope holds snow up to a point: past it the face is rock the wind and the sun keep bare.
+// The mesh is exaggerated vertically, so the real slope is the drawn one flattened back.
+function snowHold(nx, ny, nz) {
+  if (!(H?.real && P.snowMeasured)) return 1;
+  const tan = Math.hypot(nx, nz) / Math.max(1e-4, Math.abs(ny)) / P.exaggeration;
+  return 1 - smoothstep(Math.tan((P.snowRockDeg * Math.PI) / 180), Math.tan((P.snowRockBare * Math.PI) / 180), tan);
+}
 
 // Streaming terrain: the world is infinite along z (the flight axis). It is split into
 // chunks of `chunkDepth` units that are generated on demand around the camera from
@@ -706,7 +737,11 @@ function buildChunk(i, k, lod) {
   // wire grid (rows + columns, optional diagonals)
   const lp = [], lc = [];
   const range = Math.max(grid.cMax - grid.cMin, 1e-6);
-  const tint = (v) => { const c = wireColorAt(clamp((pos[v * 3 + 1] - grid.cMin) / range, 0, 1)); lc.push(c.r, c.g, c.b); };
+  const tint = (v) => {
+    const y = pos[v * 3 + 1];
+    const c = wireColorAt(clamp((y - grid.cMin) / range, 0, 1), snowAt(y, pos[v * 3], pos[v * 3 + 2]));
+    lc.push(c.r, c.g, c.b);
+  };
   const push = (a, b) => {
     if (sunk(a) && sunk(b)) return;
     const isWater = water && H.wet((pos[a * 3] + pos[b * 3]) / 2, (pos[a * 3 + 2] + pos[b * 3 + 2]) / 2);
@@ -755,9 +790,10 @@ function buildChunk(i, k, lod) {
   const L = sunDir(), N = new THREE.Vector3();
   for (let f = 0; f < fp.count; f += 3) {
     const y = (fp.getY(f) + fp.getY(f + 1) + fp.getY(f + 2)) / 3;
-    const c = gradientColor(clamp((y - grid.cMin) / range, 0, 1));
-    // baked shade: faces toward the sun are full, faces away keep a floor so nothing goes black
     N.set(fn.getX(f), fn.getY(f), fn.getZ(f));
+    const x = (fp.getX(f) + fp.getX(f + 1) + fp.getX(f + 2)) / 3, z = (fp.getZ(f) + fp.getZ(f + 1) + fp.getZ(f + 2)) / 3;
+    const c = gradientColor(clamp((y - grid.cMin) / range, 0, 1), snowAt(y, x, z) * snowHold(N.x, N.y, N.z));
+    // baked shade: faces toward the sun are full, faces away keep a floor so nothing goes black
     c.multiplyScalar(P.faceShadeFloor + (1 - P.faceShadeFloor) * Math.max(0, N.dot(L)));
     for (let q = 0; q < 3; q++) { colors[(f + q) * 3] = c.r; colors[(f + q) * 3 + 1] = c.g; colors[(f + q) * 3 + 2] = c.b; }
   }
@@ -1680,7 +1716,7 @@ const fReal = gui.addFolder('Cordillera');
 fReal.add(P, 'terrain', { 'Chile (real relief)': 'chile', 'Procedural noise': 'procedural' }).name('terrain');
 fReal.add(P, 'unitsPerKm', 4, 60, 0.5).name('units per km');
 fReal.add(P, 'exaggeration', 1, 8, 0.1).name('vertical exaggeration');
-fReal.add(P, 'snowLineM', 1000, 6500, 50).name('snow line (m)');
+fReal.add(P, 'snowLineM', 1000, 6500, 50).name('colour ramp (m)');
 fReal.add(P, 'landBase', 0, 10, 0.1).name('shore height');
 fReal.onChange(scheduleRebuild);
 const fCity = gui.addFolder('City');
@@ -1776,9 +1812,15 @@ fColors.onChange(scheduleRebuild);
 fColors.addColor(P, 'wireColor').name('wire color').onChange(scheduleRebuild);
 fColors.add(P, 'wireOpacity', 0, 1, 0.01).name('wire opacity').onChange(applyAtmosphere);
 fColors.addColor(P, 'snowColor').name('snow color').onChange(scheduleRebuild);
-fColors.add(P, 'snowLine', 0, 1, 0.01).name('snow line').onChange(scheduleRebuild);
-fColors.add(P, 'snowBlend', 0.01, 0.5, 0.01).name('snow blend').onChange(scheduleRebuild);
+fColors.add(P, 'snowLine', 0, 1, 0.01).name('snow line (ramp)').onChange(scheduleRebuild);
+fColors.add(P, 'snowBlend', 0.01, 0.5, 0.01).name('snow blend (ramp)').onChange(scheduleRebuild);
 fColors.add(P, 'snowFaceTone', 0.2, 1, 0.01).name('snow face tone').onChange(scheduleRebuild);
+fColors.add(P, 'snowMeasured').name('measured snow line').onChange(scheduleRebuild);
+fColors.add(P, 'snowOffsetM', -1500, 1500, 25).name('snow offset (m)').onChange(scheduleRebuild);
+fColors.add(P, 'snowBandScale', 0.2, 3, 0.05).name('snow band ×').onChange(scheduleRebuild);
+fColors.add(P, 'snowRockDeg', 20, 70, 1).name('rock from (°)').onChange(scheduleRebuild);
+fColors.add(P, 'snowRockBare', 30, 89, 1).name('bare rock (°)').onChange(scheduleRebuild);
+fColors.add(P, 'showSalt').name('white salars').onChange(scheduleRebuild);
 fColors.close();
 
 const fSky = gui.addFolder('Sky & Sun');

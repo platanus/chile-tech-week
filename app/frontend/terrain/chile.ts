@@ -27,6 +27,10 @@ type Index = {
   water?: number[]
   /** size of lakes.json (every named lake, for the search), when it exists */
   lakesBytes?: number
+  /** the measured snow line, when scripts/terrain/fetch-snow.ts has run */
+  snow?: { cols: number; rows: number; kmPerSample: number; bytes: number }
+  /** the salars, white all year, from the same run */
+  salt?: { cols: number; rows: number; kmPerSample: number; bytes: number }
 }
 /** a named lake or reservoir from lakes.json: centre, area and surface level */
 export type NamedLake = { name: string; kmX: number; kmZ: number; areaKm2: number; level: number }
@@ -36,6 +40,10 @@ export type Peak = { name: string; kmX: number; kmZ: number; ele: number; tile: 
 /** a named tall building: height and footprint in metres */
 export type Landmark = { name: string; kmX: number; kmZ: number; h: number; w: number; d: number; tile: string }
 type Grid = { cols: number; rows: number; data: Int16Array }
+/** the snow layer: two grids of metres over the whole corridor, the line and its half band */
+type Snow = { line: Grid; band: Grid; kmPerSample: number }
+/** the salt layer: one flag per 1 km cell of the corridor */
+type Salt = Grid & { kmPerSample: number }
 /** buildings layer: per 250 m cell, built-up fraction (0..255) and max height in 2 m units */
 type Built = { n: number; data: Uint8Array; landmarks: Landmark[] }
 /** a lake or reservoir: its surface level in metres (0 for a river polygon, which slopes) and where its cells are */
@@ -84,6 +92,10 @@ function bilinear(g: Grid, fx: number, fy: number): number {
 export class ChileTerrain {
   index: Index | null = null
   overview: Grid | null = null
+  /** where the white starts, measured (fetch-snow.ts); null until snow.bin lands, or without it */
+  snow: Snow | null = null
+  /** the salars, as white as the snow and white all year */
+  salt: Salt | null = null
   readonly tiles = new Map<string, Tile>()
   /** every named peak of the loaded tiles */
   peaks: Peak[] = []
@@ -107,14 +119,20 @@ export class ChileTerrain {
 
   constructor(private onTile: (tx: number, ty: number) => void) {
     this.ready = (async () => {
-      const [idx, ov] = await Promise.all([
+      const [idx, ov, sn, sa] = await Promise.all([
         fetch(`${base}/index.json`).then((r) => r.json() as Promise<Index>),
         fetch(`${base}/overview.bin`).then((r) => r.arrayBuffer()).then(unpack),
+        // the snow line is small and preloaded with the other two, but nothing waits for it:
+        // without it the scene falls back to its own altitude
+        fetch(`${base}/snow.bin`).then((r) => (r.ok ? r.arrayBuffer().then(unpack) : null)).catch(() => null),
+        fetch(`${base}/salt.bin`).then((r) => (r.ok ? r.arrayBuffer().then(unpack) : null)).catch(() => null),
       ])
       this.index = idx
       this.overview = { cols: ov.header.cols, rows: ov.header.rows, data: ov.data }
+      this.snow = sn && this.readSnow(sn.header, sn.data)
+      this.salt = sa && { cols: sa.header.cols, rows: sa.header.rows, data: sa.data, kmPerSample: sa.header.kmPerSample }
       this.cities = (idx.places ?? []).map(([name, kmX, kmZ, pop, always]) => ({ name, kmX, kmZ, pop, always: !!always }))
-      this.bytes += idx.overview.bytes
+      this.bytes += idx.overview.bytes + (idx.snow?.bytes ?? 0) + (idx.salt?.bytes ?? 0)
     })()
   }
 
@@ -345,6 +363,36 @@ export class ChileTerrain {
       const check = () => { if (this.loaded(kmX, kmZ, radiusKm)) { clearTimeout(t); resolve() } else this.waiters.push(check) }
       check()
     })
+  }
+
+  /** snow.bin: the line plane then the half-band plane, both metres / quant */
+  private readSnow(header: any, data: Int16Array): Snow {
+    const cols: number = header.cols, rows: number = header.plane, q: number = header.quant
+    const plane = (n: number) => ({ cols, rows, data: data.subarray(n * cols * rows, (n + 1) * cols * rows) })
+    if (q !== 1) for (let i = 0; i < data.length; i++) data[i] *= q
+    return { line: plane(0), band: plane(1), kmPerSample: header.kmPerSample }
+  }
+  private readonly _snow = { line: 0, band: 0 }
+  /**
+   * The measured snow line at world km: the altitude (metres) above which the ground is white,
+   * and half the altitude the fade takes. Null without the snow layer. Returns a shared object,
+   * so read it before the next call.
+   */
+  snowAt(kmX: number, kmZ: number): { line: number; band: number } | null {
+    const s = this.snow
+    if (!s) return null
+    const fx = (kmX + this.halfWidthKm) / s.kmPerSample, fy = kmZ / s.kmPerSample
+    this._snow.line = bilinear(s.line, fx, fy)
+    this._snow.band = bilinear(s.band, fx, fy)
+    return this._snow
+  }
+
+  /** Is the 1 km cell at world km a salar: flat ground MODIS finds white all year round. */
+  saltAt(kmX: number, kmZ: number): boolean {
+    const g = this.salt
+    if (!g) return false
+    const i = Math.floor((kmX + this.halfWidthKm) / g.kmPerSample), j = Math.floor(kmZ / g.kmPerSample)
+    return i >= 0 && j >= 0 && i < g.cols && j < g.rows && g.data[j * g.cols + i] !== 0
   }
 
   /** Elevation in metres at world km (x east of the centreline, z south of the north edge). */

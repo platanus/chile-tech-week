@@ -38,13 +38,15 @@ RSpec.describe "the landing" do
       expect(Rails.public_path.join("icon.svg").read).to include(%(fill="#EE2B2B"))
     end
 
-    it "preloads the terrain index and overview the scene needs before its first frame" do
+    it "preloads the terrain index, overview, snow line and salars the scene needs before its first frame" do
       get "/"
 
       base = TerrainAssets.base
       expect(base).to match(%r{\A/terrain/cl-[0-9a-f]+\z})
       expect(response.body).to include(%(<link rel="preload" as="fetch" crossorigin href="#{base}/index.json">))
       expect(response.body).to include(%(<link rel="preload" as="fetch" crossorigin href="#{base}/overview.bin">))
+      expect(response.body).to include(%(<link rel="preload" as="fetch" crossorigin href="#{base}/snow.bin">))
+      expect(response.body).to include(%(<link rel="preload" as="fetch" crossorigin href="#{base}/salt.bin">))
       expect(Rails.public_path.join("terrain", File.basename(base), "index.json")).to exist
     end
 

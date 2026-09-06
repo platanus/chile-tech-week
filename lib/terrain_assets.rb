@@ -15,9 +15,11 @@ module TerrainAssets
     end
   end
 
-  # The two files the scene needs before its first frame (index + 2 km overview).
+  # The files the scene needs before its first frame: the index, the 2 km overview and the
+  # measured snow line and salars (a few KB), which decide the colour of everything it draws.
   def self.preload_paths
-    ["#{base}/index.json", "#{base}/overview.bin"]
+    ["#{base}/index.json", "#{base}/overview.bin", "#{base}/snow.bin", "#{base}/salt.bin"]
+      .select { |path| Rails.public_path.join(path.delete_prefix("/")).exist? }
   end
 
   def self.read_base

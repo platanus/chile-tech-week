@@ -6,7 +6,7 @@
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { gunzipSync } from 'node:zlib'
+import { gunzipSync, inflateSync } from 'node:zlib'
 
 // centreline, north -> south
 export const CENTER: [number, number][] = [
@@ -77,6 +77,47 @@ export function corridorBox(latS: number, latN: number) {
     w = Math.min(w, lonC(lat) - half); e = Math.max(e, lonC(lat) + half)
   }
   return { w, e }
+}
+
+// ---------------------------------------------------------------- minimal PNG decoder (8-bit RGB/RGBA, non-interlaced)
+export function decodePng(buf: Buffer): { w: number; h: number; ch: number; px: Uint8Array } {
+  let pos = 8
+  let w = 0, h = 0, ch = 3
+  const idat: Buffer[] = []
+  while (pos < buf.length) {
+    const len = buf.readUInt32BE(pos)
+    const type = buf.toString('latin1', pos + 4, pos + 8)
+    const body = buf.subarray(pos + 8, pos + 8 + len)
+    if (type === 'IHDR') {
+      w = body.readUInt32BE(0); h = body.readUInt32BE(4)
+      const depth = body[8], color = body[9], interlace = body[12]
+      if (depth !== 8 || (color !== 2 && color !== 6) || interlace) throw new Error(`unsupported PNG depth=${depth} color=${color} interlace=${interlace}`)
+      ch = color === 6 ? 4 : 3
+    } else if (type === 'IDAT') idat.push(body)
+    pos += 12 + len
+  }
+  const raw = inflateSync(Buffer.concat(idat))
+  const stride = w * ch
+  const px = new Uint8Array(w * h * ch)
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)]
+    const src = y * (stride + 1) + 1, dst = y * stride
+    for (let i = 0; i < stride; i++) {
+      const a = i >= ch ? px[dst + i - ch] : 0
+      const b = y > 0 ? px[dst - stride + i] : 0
+      const c = y > 0 && i >= ch ? px[dst - stride + i - ch] : 0
+      let v = raw[src + i]
+      if (f === 1) v += a
+      else if (f === 2) v += b
+      else if (f === 3) v += (a + b) >> 1
+      else if (f === 4) {
+        const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c)
+        v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c
+      }
+      px[dst + i] = v & 255
+    }
+  }
+  return { w, h, ch, px }
 }
 
 // ---------------------------------------------------------------- download with cache

@@ -8,6 +8,7 @@
     "terrain:fetch": "node --experimental-strip-types scripts/terrain/fetch-terrain.ts",
     "buildings:fetch": "node --experimental-strip-types scripts/terrain/fetch-buildings.ts",
     "places:fetch": "node --experimental-strip-types scripts/terrain/fetch-places.ts",
+    "snow:fetch": "node --experimental-strip-types scripts/terrain/fetch-snow.ts",
     "brand:marks": "node --experimental-strip-types scripts/brand/build-marks.ts",
     "brand:favicon": "scripts/brand/favicon.sh",
     "terrain:spikes": "node --experimental-strip-types scripts/terrain/find-spikes.ts",
