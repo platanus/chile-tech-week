@@ -114,9 +114,9 @@ const DEFAULTS = {
   waveAmp: 1.4,
   waveFreq: 0.06,
   waveSpeed: 1.0,
-  seaDeep: '#b8b8b8',
-  seaCrest: '#eeeeee',
-  seaWireColor: '#ffffff',
+  seaDeep: '#383838',
+  seaCrest: '#555555',
+  seaWireColor: '#858585',
   seaWireOpacity: 0.28,
   // terrain colors
   colorLow: '#140303',
