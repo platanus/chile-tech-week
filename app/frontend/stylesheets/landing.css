@@ -177,11 +177,11 @@ body.game #search:not([hidden]) { pointer-events: auto; }
 /* how many are flying, under the play button while the page is in ambient mode */
 #flockcount { position: absolute; right: 8vw; bottom: 14px; font-size: 10px; color: var(--gray); }
 
-/* ---- touch flight controls: a joystick, bottom-left, only wired up on a coarse pointer
+/* ---- touch flight controls: a joystick, bottom centre, only wired up on a coarse pointer
    (landing/touch.ts toggles body.touch-ui and reads/writes it there) */
 #joystick-base { display: none; }
-body.touch-ui #joystick-base { position: absolute; left: 20px; bottom: 20px; width: 104px; height: 104px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); background: rgba(0,0,0,.45);
+body.touch-ui #joystick-base { position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%); width: 104px; height: 104px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); background: rgba(0,0,0,.45);
   touch-action: none; }
 body.game #joystick-base { pointer-events: auto; } /* like #exit, #minimap, #search-btn: interactive only in game mode */
 #joystick-knob { width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,.55); }
