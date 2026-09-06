@@ -23,6 +23,21 @@ RSpec.describe "the landing" do
       expect(png.bytesize).to be < 100_000
     end
 
+    it "links the favicon set and serves it from public" do
+      get "/"
+
+      expect(response.body).to include(%(<link rel="icon" href="/favicon.ico" sizes="48x48">))
+      expect(response.body).to include(%(<link rel="icon" href="/icon.svg" type="image/svg+xml">))
+      expect(response.body).to include(%(<link rel="apple-touch-icon" href="/apple-touch-icon.png">))
+
+      ico = Rails.public_path.join("favicon.ico").binread
+      expect(ico.byteslice(0, 4)).to eq("\x00\x00\x01\x00".b) # an ICO…
+      expect(ico.byteslice(4, 2).unpack1("v")).to eq(3) # …with 16, 32 and 48
+      png = Rails.public_path.join("apple-touch-icon.png").binread
+      expect(png.byteslice(16, 8).unpack("N2")).to eq([180, 180])
+      expect(Rails.public_path.join("icon.svg").read).to include(%(fill="#EE2B2B"))
+    end
+
     it "preloads the terrain index and overview the scene needs before its first frame" do
       get "/"
 
