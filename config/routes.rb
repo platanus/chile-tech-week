@@ -11,6 +11,9 @@ Rails.application.routes.draw do
   get "brand/icon", to: "brand#icon", as: :brand_icon
   get "brand/wireframe-gen", to: "brand#wireframe", as: :brand_wireframe
 
+  # The OpenGraph image as a 1200×630 stage to screenshot.
+  get "opengraph", to: "opengraph#show", as: :opengraph
+
   # The 2025 edition, kept as it ran on the old site: its landing, its programme and its
   # brand kit (Edition2025::*Controller, pages/Edition2025/*).
   namespace :edition2025, path: "25" do

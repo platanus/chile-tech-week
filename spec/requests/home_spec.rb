@@ -13,6 +13,16 @@ RSpec.describe "the landing" do
       )
     end
 
+    it "carries the 2026 share image, a 1200×630 PNG under public" do
+      get "/"
+
+      expect(response.body).to include(%(property="og:image" content="https://techweek.cl/opengraph.png"))
+      expect(response.body).to include(%(name="twitter:card" content="summary_large_image"))
+      png = Rails.public_path.join("opengraph.png").binread
+      expect(png.byteslice(16, 8).unpack("N2")).to eq([1200, 630])
+      expect(png.bytesize).to be < 100_000
+    end
+
     it "preloads the terrain index and overview the scene needs before its first frame" do
       get "/"
 
