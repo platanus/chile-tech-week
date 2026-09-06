@@ -17,6 +17,8 @@ type Index = {
   buildings?: number[]
   /** populated places [name, kmX, kmZ, population, always?], when scripts/fetch-places.ts has run */
   places?: [string, number, number, number, number?][]
+  /** protected areas [name, title, kmX, kmZ, extent km], when scripts/fetch-parks.ts has run */
+  parks?: [string, string, number, number, number][]
   /** places far outside the corridor drawn inside it (Rapa Nui): a circle at kmX on its true latitude */
   inserts?: { name: string; lat: number; lon: number; kmX: number; radiusKm: number }[]
   /** the country's outline as rings of [kmX, kmZ], largest first, when scripts/fetch-outline.ts has run */
@@ -36,6 +38,8 @@ type Index = {
 export type NamedLake = { name: string; kmX: number; kmZ: number; areaKm2: number; level: number }
 export type Summit = { name: string; kmX: number; kmZ: number; ele: number }
 export type City = { name: string; kmX: number; kmZ: number; pop: number; always: boolean }
+/** a national park or reserve: its centre and how many km its bounding box is across */
+export type Park = { name: string; title: string; kmX: number; kmZ: number; km: number }
 export type Peak = { name: string; kmX: number; kmZ: number; ele: number; tile: string }
 /** a named tall building: height and footprint in metres */
 export type Landmark = { name: string; kmX: number; kmZ: number; h: number; w: number; d: number; tile: string }
@@ -107,6 +111,8 @@ export class ChileTerrain {
   rivers: River[] = []
   /** every populated place of the country, most populous first (known before any tile loads) */
   cities: City[] = []
+  /** every protected area of the corridor, largest first (known before any tile loads) */
+  parks: Park[] = []
   /** resolves once the index and the overview are in (preloaded from the HTML, ~100 KB) */
   readonly ready: Promise<void>
   bytes = 0
@@ -132,6 +138,7 @@ export class ChileTerrain {
       this.snow = sn && this.readSnow(sn.header, sn.data)
       this.salt = sa && { cols: sa.header.cols, rows: sa.header.rows, data: sa.data, kmPerSample: sa.header.kmPerSample }
       this.cities = (idx.places ?? []).map(([name, kmX, kmZ, pop, always]) => ({ name, kmX, kmZ, pop, always: !!always }))
+      this.parks = (idx.parks ?? []).map(([name, title, kmX, kmZ, km]) => ({ name, title, kmX, kmZ, km }))
       this.bytes += idx.overview.bytes + (idx.snow?.bytes ?? 0) + (idx.salt?.bytes ?? 0)
     })()
   }

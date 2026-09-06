@@ -41,6 +41,12 @@ const DEFAULTS = {
   cityLabelCount: 3,
   cityMinPop: 15000,
   cityLabelRange: 8000,    // units (400 km): big cities show at their bearing on the horizon long before their tiles
+  // parks: the protected areas (OSM boundary=national_park / protected_area), pinned at their
+  // centre like the cities — they are landscapes, so they are worth seeing coming
+  parkLabels: true,
+  parkLabelCount: 2,
+  parkLabelRange: 5000,
+  parkMinKm: 8,            // a protected area smaller than this across is not a horizon waypoint
   // where flights run in the real world: km east of the corridor centreline (roughly the central
   // valley), so the same lane works along the whole country; the start latitude picks the region
   landBase: 2.5,           // land sits this far above the sea plane (waves are ±waveAmp)
@@ -1741,6 +1747,10 @@ fCities.add(P, 'cityLabels').name('waypoints');
 fCities.add(P, 'cityLabelCount', 1, 8, 1).name('max cities');
 fCities.add(P, 'cityMinPop', 1000, 500000, 1000).name('min population');
 fCities.add(P, 'cityLabelRange', 500, 20000, 100).name('label range');
+fCities.add(P, 'parkLabels').name('parks');
+fCities.add(P, 'parkLabelCount', 1, 6, 1).name('max parks');
+fCities.add(P, 'parkMinKm', 2, 60, 1).name('min park size (km)');
+fCities.add(P, 'parkLabelRange', 500, 20000, 100).name('park range');
 const fPeaks = gui.addFolder('Peak names');
 fPeaks.add(P, 'peakLabels').name('show names');
 fPeaks.add(P, 'peakLabelCount', 1, 30, 1).name('max labels');
@@ -2088,6 +2098,26 @@ function updatePeakLabels() {
     lastCityCands = list.slice(0, 6).map((cd) => `${cd.name} ${cd.km.toFixed(0)}km ahead=${cd.ahead.toFixed(2)} score=${cd.score.toFixed(0)}`);
     cands.push(...list);
   }
+  if (P.parkLabels) {
+    const range = P.parkLabelRange;
+    const seg = Math.floor(c.z / H.L) * H.L;
+    for (const pk of real.parks) {
+      if (pk.km < P.parkMinKm) continue;
+      const x = H.kmX(pk.kmX);
+      for (const z of H.zCopies(pk.kmZ, seg, seg + H.L)) {
+        const id = 'k:' + pk.name, active = labels.has(id);
+        const dx = x - c.x, dz = z - c.z, d = Math.hypot(dx, dz);
+        if (d < 1 || d > range * (active ? 1.15 : 1)) continue;
+        const ahead = (dx * fx + dz * fz) / d;
+        if (ahead < (active ? 0.0 : 0.05)) continue;
+        const km = d / H.upk;
+        _pv.set(x, H.height(x, z) + 1, z).project(camera);
+        const sx = ((_pv.x + 1) / 2) * W, sy = ((1 - _pv.y) / 2) * Hh;
+        if (!onScreen(sx, sy, active)) continue;
+        cands.push({ id, kind: 'park', name: pk.name, sub: `${pk.title} · ${Math.max(1, km).toFixed(0)} km`, score: (pk.km * 1000 * ahead * ahead) / (km + 15), sx, sy, d, occ: false, opacity: 1 });
+      }
+    }
+  }
   if (P.peakLabels) {
     const range = P.peakLabelRange;
     const consider = (id, name, ele, v, boost) => {
@@ -2138,8 +2168,13 @@ function updatePeakLabels() {
   // a free slot, a few qualifying frames in a row, and no exit in the last moment
   const chosen = [], claimed = [];
   const overlaps = (cd) => claimed.some((q) => Math.abs(q.sx - cd.sx) < 160 && Math.abs(q.sy - cd.sy) < 48);
-  for (const kind of ['city', 'peak']) {
-    const max = kind === 'city' ? (P.cityLabels ? Math.round(P.cityLabelCount) : 0) : (P.peakLabels ? Math.round(P.peakLabelCount) : 0);
+  const budget = {
+    city: P.cityLabels ? Math.round(P.cityLabelCount) : 0,
+    peak: P.peakLabels ? Math.round(P.peakLabelCount) : 0,
+    park: P.parkLabels ? Math.round(P.parkLabelCount) : 0,
+  };
+  for (const kind of ['city', 'peak', 'park']) {
+    const max = budget[kind];
     const ofKind = cands.filter((cd) => cd.kind === kind && !cd.blocked);
     const cutoff = ofKind[max]?.score ?? 0; // the best candidate that would not fit
     let n = 0;
@@ -2173,7 +2208,7 @@ function updatePeakLabels() {
       L = labelPool.pop() ?? makeLabelEl();
       L.since = now; L.occ = 0;
       L.el.hidden = false;
-      L.el.className = cd.kind === 'city' ? 'peak city' : 'peak';
+      L.el.className = cd.kind === 'peak' ? 'peak' : 'peak city';
       L.name.textContent = cd.name;
       labels.set(cd.id, L);
       pending.delete(cd.id);
@@ -2271,10 +2306,11 @@ minimap.el.addEventListener('pointerdown', (e) => {
   teleport(kmX, kmZ);
 });
 
-// ---------------------------------------------------------------- search: a city or a summit, then fly there
-// The magnifying glass in the corner opens a panel: every populated place (the index) and every
-// named summit (peaks.json, fetched the first time), fuzzy-matched as you type; Enter or a click
-// teleports. While the input has focus the flight keys are off (isTyping).
+// ---------------------------------------------------------------- search: a place, then fly there
+// The magnifying glass in the corner opens a panel: every populated place and protected area
+// (both in the index), every named summit (peaks.json) and every named lake (lakes.json, both
+// fetched the first time), fuzzy-matched as you type; Enter or a click teleports. While the
+// input has focus the flight keys are off (isTyping).
 const search = {
   btn: document.getElementById('search-btn'), panel: document.getElementById('search'),
   input: document.getElementById('search-input'), list: document.getElementById('search-results'),
@@ -2286,7 +2322,8 @@ async function searchItems() {
     const cities = real.cities.map((c) => ({ name: c.name, kind: 'ciudad', sub: c.pop >= 1000 ? `${Math.round(c.pop / 1000)} k hab.` : `${c.pop} hab.`, kmX: c.kmX, kmZ: c.kmZ }));
     const peaks = summits.map((p) => ({ name: p.name, kind: 'cumbre', sub: `${p.ele} m`, kmX: p.kmX, kmZ: p.kmZ }));
     const water = lakes.map((l) => ({ name: l.name, kind: /embalse|tranque|represa/i.test(l.name) ? 'embalse' : 'lago', sub: `${l.areaKm2 >= 10 ? l.areaKm2.toFixed(0) : l.areaKm2.toFixed(1)} km² · ${l.level} m`, kmX: l.kmX, kmZ: l.kmZ }));
-    search.items = [...cities, ...peaks, ...water].map((it) => ({ ...it, key: fold(it.name) }));
+    const areas = real.parks.map((p) => ({ name: p.name, kind: p.title, sub: `${p.km} km de extensión`, kmX: p.kmX, kmZ: p.kmZ }));
+    search.items = [...cities, ...areas, ...peaks, ...water].map((it) => ({ ...it, key: fold(it.name) }));
   }
   return search.items;
 }

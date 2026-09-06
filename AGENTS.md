@@ -179,7 +179,7 @@ settings JSON" prints it.
 
 The terrain the scene streams is `public/terrain/cl-<hash>/` (committed, ~14 MB,
 immutable-by-path). `scripts/terrain/*.ts` rebuild it (`npm run terrain:fetch`,
-`buildings:fetch`, `places:fetch`, `water:fetch`, `snow:fetch`; raw downloads cache under `scripts/terrain/.cache`) and
+`buildings:fetch`, `places:fetch`, `water:fetch`, `snow:fetch`, `parks:fetch`; raw downloads cache under `scripts/terrain/.cache`) and
 publish a new `cl-<hash>` directory, writing it into `app/frontend/terrain/terrain-url.ts`.
 Every layer after `terrain:fetch` reads the published relief back through `scripts/terrain/dataset.ts`
 rather than fetching elevation again, and republishes the same directory under a new hash.
