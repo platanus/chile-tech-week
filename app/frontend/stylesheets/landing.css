@@ -40,8 +40,10 @@ body.game #hero > * { pointer-events: none; }
 /* the logo: CHILE / TECH / WEEK / 2026, strokes draw in and the fill lands (same motion as /logo, 03 Outline) */
 .logo { width: min(38vw, 540px); height: auto; overflow: visible; display: block; cursor: pointer; }
 .logo text { font-family: var(--display); font-weight: 800; letter-spacing: -0.03em; }
-.logo > text { fill: var(--ink); stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 480; stroke-dashoffset: 480; fill-opacity: 0; }
-.logo.go > text { animation: draw 1.6s ease-out forwards, land .5s ease-out forwards;
+/* the dash must be at least the longest glyph outline (the W, 715 units at this size): anything longer
+   than the dash shows its tail before the draw starts. 720 over 2.4s keeps the stroke's speed. */
+.logo > text { fill: var(--ink); stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 720; stroke-dashoffset: 720; fill-opacity: 0; }
+.logo.go > text { animation: draw 2.4s ease-out forwards, land .5s ease-out forwards;
   animation-delay: calc(var(--i) * .2s), calc(1.4s + var(--i) * .2s); }
 .logo.still > text { stroke-dashoffset: 0; fill-opacity: 1; stroke-width: 0; }
 .logo .y26 { fill: var(--red); stroke: var(--red); }
