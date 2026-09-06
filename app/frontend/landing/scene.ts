@@ -77,7 +77,7 @@ const DEFAULTS = {
   // quality: 'auto' guesses a tier from the device (GPU class, screen pixels, cores, memory),
   // confirms it against frame times in the first seconds (at most one step down), then locks it
   // for the session: nothing changes in flight. A tier sets viewDistance, fog (2.5 / viewDistance:
-  // 8 % visibility at the edge, so nothing invisible is drawn), the pixel-ratio cap and bloom.
+  // 8 % visibility at the edge, so nothing invisible is drawn), and the pixel-ratio cap. Lighting and bloom stay the same across tiers.
   quality: 'auto',
   fogAuto: true,
   cellSize: 8,
@@ -1039,6 +1039,7 @@ const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), P.bloomStrength, P.bloomRadius, P.bloomThreshold);
 composer.addPass(bloomPass);
+// Keep color conversion and tone mapping identical even when bloom is disabled.
 composer.addPass(new OutputPass());
 
 const TONE = { None: THREE.NoToneMapping, ACES: THREE.ACESFilmicToneMapping, Reinhard: THREE.ReinhardToneMapping, Cineon: THREE.CineonToneMapping, Neutral: THREE.NeutralToneMapping };
@@ -1087,10 +1088,10 @@ function applySky() {
 // Chunks grow with the square of the view distance: 55 at 2000 units, 108 at 2800, 178 at 3600.
 // Fill cost is the bloom (about six passes) and scales with pixels, hence the pixel-ratio cap.
 const QUALITY = [
-  { name: 'low',    viewDistance: 1400, dprCap: 1.0, bloom: false }, // ~27 chunks, 0.14 M tris
-  { name: 'medium', viewDistance: 2000, dprCap: 1.5, bloom: true },  // ~55 chunks, 0.28 M tris
-  { name: 'high',   viewDistance: 2800, dprCap: 1.5, bloom: true },  // ~108 chunks, 0.54 M tris
-  { name: 'ultra',  viewDistance: 3600, dprCap: 2.0, bloom: true },  // ~178 chunks, 0.9 M tris, ~100 MB
+  { name: 'low',    viewDistance: 1400, dprCap: 1.0 }, // ~27 chunks, 0.14 M tris
+  { name: 'medium', viewDistance: 2000, dprCap: 1.5 },  // ~55 chunks, 0.28 M tris
+  { name: 'high',   viewDistance: 2800, dprCap: 1.5 },  // ~108 chunks, 0.54 M tris
+  { name: 'ultra',  viewDistance: 3600, dprCap: 2.0 },  // ~178 chunks, 0.9 M tris, ~100 MB
 ];
 const quality = { tier: 1, target: 1, gpu: '', dprCap: 1.5, dprLimit: 2, fogTarget: P.fogDensity, pendingView: null, pendingFog: null, displayMs: 16.7, frames: [], lastChange: 0, since: 0, locked: false, verdict: '' };
 // The guess. GPU class from the renderer string when the browser shows one, else a fill-rate
@@ -1206,7 +1207,6 @@ function setTier(t, immediate = false) {
   const q = QUALITY[t];
   quality.tier = t;
   quality.dprCap = Math.min(q.dprCap, quality.dprLimit);
-  P.bloom = q.bloom;
   const fog = P.fogAuto ? 2.5 / q.viewDistance : P.fogDensity;
   if (immediate || q.viewDistance >= P.viewDistance) {
     P.viewDistance = q.viewDistance; quality.pendingView = null;
@@ -1943,7 +1943,7 @@ if (H?.real) {
   await renderer.compileAsync(scene, camera);
   updateCamera(0);
   sky.position.copy(camera.position);
-  if (P.bloom) composer.render(); else renderer.render(scene, camera);
+  composer.render();
 } else updateChunks(Infinity);
 performance.mark('boot:chunks');
 
@@ -2324,7 +2324,7 @@ function frame() {
   if (!ambient) drawMinimap();
   sky.position.copy(camera.position);
   bloomPass.strength = ambient ? P.ambientBloom : P.bloomStrength;
-  if (P.bloom) composer.render(); else renderer.render(scene, camera);
+  composer.render();
   if (!revealed) {
     revealed = true; performance.mark('boot:frame');
     requestAnimationFrame(() => renderer.domElement.classList.add('ready'));
