@@ -161,7 +161,16 @@ const VARIANTS = {
   light: { suffix: '-light', ink: '#000', background: null }, // for white paper
 } as const
 
-function svgOf(m: Mark, v: (typeof VARIANTS)[keyof typeof VARIANTS]): string {
+function svgOf(id: string, m: Mark, v: (typeof VARIANTS)[keyof typeof VARIANTS]): string {
+  // A favicon lives on a square canvas, but the visible app-icon surface should not have sharp
+  // corners. The generous radius gives it the continuous, squircle-like silhouette browsers and
+  // operating systems expect. Maskable
+  // icons are produced separately below: they must stay full-bleed because Android applies its own
+  // shape and safe zone.
+  const squircle = id === 'icon' && v.background
+    ? `<defs><clipPath id="icon-squircle"><rect width="1024" height="1024" rx="224"/></clipPath></defs>\n<g clip-path="url(#icon-squircle)">`
+    : ''
+  const closeSquircle = squircle ? '</g>' : ''
   const bg = v.background ? `\n<rect width="${m.width}" height="${m.height}" fill="${v.background}"/>` : ''
   // The hollow digits are a ring of `stroke` around the glyph, not a stroke on its contours:
   // Unbounded's 2 is drawn as overlapping shapes, and a plain stroke traces the overlap too.
@@ -171,9 +180,9 @@ function svgOf(m: Mark, v: (typeof VARIANTS)[keyof typeof VARIANTS]): string {
       `\n<path fill="none" stroke="${v.ink}" stroke-width="${(2 * m.stroke).toFixed(1)}" stroke-linejoin="round" mask="url(#hollow)" d="${m.layers.hollow}"/>`
     : ''
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${m.width} ${m.height}" width="${m.width}" height="${m.height}">
-<title>${m.title}</title>${bg}
+<title>${m.title}</title>${squircle}${bg}
 <path fill="${v.ink}" d="${m.layers.ink}"/>${hollow}
-<path fill="${RED}" d="${m.layers.red}"/>
+<path fill="${RED}" d="${m.layers.red}"/>${closeSquircle}
 </svg>
 `
 }
@@ -183,10 +192,20 @@ const marks = { logo: stackedLogo(font), 'logo-horizontal': horizontalLogo(font)
 mkdirSync(OUT, { recursive: true })
 for (const [id, mark] of Object.entries(marks)) {
   for (const v of Object.values(VARIANTS)) {
-    const svg = svgOf(mark, v)
+    const svg = svgOf(id, mark, v)
     const png = new Resvg(svg, { fitTo: { mode: 'width', value: mark.png } }).render().asPng()
     writeFileSync(`${OUT}/${id}${v.suffix}.svg`, svg)
     writeFileSync(`${OUT}/${id}${v.suffix}.png`, png)
     console.log(`${id}${v.suffix}: ${mark.width}×${mark.height}, svg ${svg.length} B, png ${mark.png} px ${png.length} B`)
+  }
+
+  if (id === 'icon') {
+    // Android maskable icons are deliberately not clipped: the launcher supplies the final
+    // squircle/circle/rounded-square mask and needs the full 1024px field to do it safely.
+    const svg = svgOf('icon-maskable', mark, VARIANTS.black)
+    const png = new Resvg(svg, { fitTo: { mode: 'width', value: mark.png } }).render().asPng()
+    writeFileSync(`${OUT}/icon-maskable.svg`, svg)
+    writeFileSync(`${OUT}/icon-maskable.png`, png)
+    console.log(`icon-maskable: ${mark.width}×${mark.height}, svg ${svg.length} B, png ${mark.png} px ${png.length} B`)
   }
 }
