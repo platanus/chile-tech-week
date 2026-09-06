@@ -87,7 +87,9 @@ export class PilotHud {
   setOnline(n: number, playing: boolean) {
     const others = playing ? Math.max(0, n - 1) : n;
     const text = others === 0 ? (playing ? 'vuelas solo' : '') : others === 1 ? '1 cóndor más en vuelo' : `${others} cóndores en vuelo`;
-    this.count.textContent = playing ? text : '';
+    // touch layout: just the count, not the sentence — the corner has no room to spare
+    const compact = matchMedia('(pointer: coarse)').matches;
+    this.count.textContent = !playing ? '' : compact ? (others ? String(others) : '') : text;
     this.all.disabled = !playing || others === 0;
     this.heroCount.textContent = playing ? '' : text;
     this.heroCount.hidden = playing || others === 0;

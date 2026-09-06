@@ -177,6 +177,29 @@ body.game #search:not([hidden]) { pointer-events: auto; }
 /* how many are flying, under the play button while the page is in ambient mode */
 #flockcount { position: absolute; right: 8vw; bottom: 14px; font-size: 10px; color: var(--gray); }
 
+/* ---- touch flight controls: a joystick, bottom-left, only wired up on a coarse pointer
+   (landing/touch.ts toggles body.touch-ui and reads/writes it there) */
+#joystick-base { display: none; }
+body.touch-ui #joystick-base { position: absolute; left: 20px; bottom: 20px; width: 104px; height: 104px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); background: rgba(0,0,0,.45);
+  touch-action: none; }
+body.game #joystick-base { pointer-events: auto; } /* like #exit, #minimap, #search-btn: interactive only in game mode */
+#joystick-knob { width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,.55); }
+#joystick-base.sprint #joystick-knob { background: rgba(238,43,43,.7); }
+#joystick-base.boost #joystick-knob { background: var(--red); box-shadow: 0 0 14px var(--red); }
+
+/* ---- touch layout: no map to tap-teleport with (a finger can't hover it), no keyboard legend,
+   the exit button shrinks to a bare ✕ top-left so the pilot corner and the search glass — moved
+   up beside it — have the top-right to themselves */
+body.touch-ui #help { display: none; }
+body.touch-ui #minimap { visibility: hidden; } /* not display:none: buildMinimap() reads its clientHeight every frame */
+body.touch-ui #exit { left: 14px; right: auto; top: 14px; padding: 9px 11px; }
+body.touch-ui #exit .lbl { display: none; }
+body.touch-ui #search-btn { top: 14px; right: 14px; bottom: auto; }
+body.touch-ui #search { top: 58px; right: 14px; bottom: auto; left: auto; width: min(280px, calc(100vw - 28px)); max-height: 50vh; }
+body.touch-ui #pilot { top: 58px; right: 14px; font-size: 10px; }
+body.touch-ui #search:not([hidden]) ~ #pilot { display: none; } /* the two would otherwise overlap, top right */
+
 /* peak names: a mono label above a 1px red tick that ends on the summit vertex */
 #peaks { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .4s ease; }
 body.game #peaks { opacity: 1; }

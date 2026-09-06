@@ -3,6 +3,7 @@ import { type CSSProperties, useEffect } from 'react';
 import { startFlock } from '@/flock';
 import { startLogo } from '@/landing/logo';
 import { startScene } from '@/landing/scene';
+import { startTouchControls } from '@/landing/touch';
 import type { HomeShow } from '@/types';
 
 // The landing: the outline logo over the condor flying the real Chile relief, the page below
@@ -27,6 +28,7 @@ export default function Show({ title, description }: HomeShow) {
     startLogo();
     void startScene();
     startFlock(); // the scene installs its hooks synchronously, before its first await
+    startTouchControls();
   }, []);
 
   return (
@@ -110,9 +112,16 @@ export default function Show({ title, description }: HomeShow) {
 
       <div id="gameui">
         <button id="exit" type="button">
-          ✕ salir {nb}
-          <span style={{ opacity: 0.6 }}>Esc</span>
+          ✕
+          <span className="lbl">
+            {' '}
+            salir {nb}
+            <span style={{ opacity: 0.6 }}>Esc</span>
+          </span>
         </button>
+        <div id="joystick-base" aria-hidden="true">
+          <div id="joystick-knob" />
+        </div>
         <div id="help">
           <b>A / D</b> girar {nb} <b>W / S</b> subir / bajar {nb} <b>Shift</b> turbo
           <br />
