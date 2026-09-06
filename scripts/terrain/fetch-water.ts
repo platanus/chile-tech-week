@@ -19,14 +19,16 @@
 //    index.json gets `water` (bytes per tile, 0 = none) and the directory is re-published
 //    under a new hash. The relief tile never waits for this file: the client loads it alongside
 //    and draws land without it if it fails.
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 import { DuckDBInstance } from '@duckdb/node-api'
 import { CACHE, HALF_WIDTH_KM, KM_PER_SAMPLE, LAT_N, LAT_S, TILE, TILES_X, TILES_Y, TILE_KM, corridorBox, currentDir, insertBoxes, pack, publish, toKm } from './corridor.ts'
 import { Dataset } from './dataset.ts'
+import { filterSmallWater } from './filter-water.ts'
 
 const RELEASE = '2026-08-19.0'
-const MIN_BODY_KM2 = 0.05 // about one cell: smaller ponds are not drawn
+const MIN_PATCH_CELLS = 4 // 0.25 km² at 250 m: omit isolated one-to-three-cell spots
+const MIN_BODY_KM2 = MIN_PATCH_CELLS * KM_PER_SAMPLE ** 2
 const SIMPLIFY_KM = 0.04 // Douglas-Peucker tolerance for the river lines
 const Q = 32 // river coordinates in 1/Q cell: 7.8 m
 const SEA_FRACTION = 0.5 // a body with more of its cells at or below sea level is an inlet, not a lake
@@ -128,12 +130,6 @@ function rasterize(body: Body, rings: Pt[][]) {
     xs.sort((p, q) => p - q)
     for (let s = 0; s + 1 < xs.length; s += 2) for (let i = Math.ceil(xs[s]); i <= Math.floor(xs[s + 1]); i++) paint(i, j)
   }
-  if (!body.cells) {
-    // smaller than a cell centre spacing: the cell under its centroid
-    let sx = 0, sz = 0, n = 0
-    for (const r of rings) for (const [x, z] of r) { sx += x; sz += z; n++ }
-    paint(Math.floor((sx / n + HALF_WIDTH_KM) / K), Math.floor(sz / n / K))
-  }
 }
 
 // ---------------------------------------------------------------- 3. rivers cut into tiles
@@ -221,6 +217,19 @@ for (const { body, rings } of polygons) {
 const inlet = new Set<number>()
 let dropped = 0
 for (const b of bodies) if (b.cells && b.sea / b.cells > SEA_FRACTION) { inlet.add(b.id); dropped++ }
+// Filter the final raster, including disconnected fragments of larger river polygons.
+// Do this globally so a lake crossing a tile boundary is measured as one patch.
+for (let k = 0; k < ids.length; k++) if (inlet.has(ids[k])) ids[k] = 0
+const removed = filterSmallWater(ids, COLS, MIN_PATCH_CELLS)
+console.log(`small patches: ${removed.patches} dropped (${removed.cells} cells; minimum ${MIN_PATCH_CELLS} connected cells)`)
+// Recompute metadata from surviving cells, also accounting for overwritten polygons.
+for (const b of bodies) { b.cells = 0; b.sumI = 0; b.sumJ = 0; b.levels = [] }
+for (let k = 0; k < ids.length; k++) {
+  if (!ids[k]) continue
+  const b = bodies[ids[k] - 1], i = k % COLS, j = Math.floor(k / COLS)
+  b.cells++; b.sumI += i; b.sumJ += j
+  b.levels.push(relief.metres(i, j))
+}
 // a lake or reservoir is one plane; a river polygon slopes, so it gets no level (0) and is only painted
 const level = new Map<number, number>()
 for (const b of bodies) {
@@ -233,6 +242,8 @@ console.log(`bodies: ${bodies.length} rasterized, ${dropped} inlets dropped; lar
 // ---------------------------------------------------------------- 4. write tiles
 const dir = currentDir()
 if (!dir) throw new Error('no published terrain directory: run npm run terrain:fetch first')
+// A rebuild may leave a tile with no water; discard stale files from the previous layer.
+rmSync(`${dir}/w`, { recursive: true, force: true })
 mkdirSync(`${dir}/w`, { recursive: true })
 const index = JSON.parse(readFileSync(`${dir}/index.json`, 'utf8'))
 const sizes = new Array<number>(TILES_X * TILES_Y).fill(0)
