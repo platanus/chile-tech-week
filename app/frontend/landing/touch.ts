@@ -5,10 +5,11 @@
 // UI keys off to go minimal: no map to teleport with a tap, no keyboard legend, a compact pilot
 // corner (see landing.css and flock/hud.ts).
 //
-// Pulling the thumb out past the base's own visible circle engages sprint (the Shift boost);
-// well past it, it steps the flight speed up once — the same step one scroll-wheel notch would,
-// replayed as a synthetic wheel event on the scene's canvas so the two stay in perfect sync
-// instead of duplicating scene.ts's speed formula here.
+// Dragging the thumb well clear of the base — a full base diameter past its perimeter, so
+// steering near the edge never trips it — engages sprint (the Shift boost); one more radius
+// out, it steps the flight speed up once — the same step one scroll-wheel notch would, replayed
+// as a synthetic wheel event on the scene's canvas so the two stay in perfect sync instead of
+// duplicating scene.ts's speed formula here.
 const coarse = matchMedia('(pointer: coarse)');
 
 export function startTouchControls() {
@@ -28,9 +29,10 @@ export function startTouchControls() {
   let pointerId: number | null = null;
   let originX = 0;
   let originY = 0;
-  // the base's own on-screen radius: sprint needs the thumb truly outside the circle, not just
-  // near its edge, so these come from the rendered element rather than a constant that could
-  // drift from the CSS. Set on pointerdown, alongside the origin.
+  // distances from the base's centre, in multiples of its on-screen radius: sprint needs the
+  // thumb a whole diameter clear of the perimeter, not just near its edge, so these come from
+  // the rendered element rather than a constant that could drift from the CSS. Set on
+  // pointerdown, alongside the origin.
   let sprintAt = Infinity;
   let stepAt = Infinity;
   let stepArmed = true; // must ease back inside the sprint ring before another step can fire
@@ -91,8 +93,8 @@ export function startTouchControls() {
     originX = r.left + r.width / 2;
     originY = r.top + r.height / 2;
     const baseRadius = r.width / 2;
-    sprintAt = baseRadius; // out of the circle entirely, not just near its edge
-    stepAt = baseRadius * 1.6;
+    sprintAt = baseRadius * 3; // the perimeter plus one full diameter of clearance
+    stepAt = baseRadius * 4;
     base.setPointerCapture(e.pointerId);
     move(e);
   });
