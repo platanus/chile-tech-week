@@ -10,6 +10,26 @@ RSpec.describe "the 2026 brand" do
       expect(inertia).to have_props(title: "Marca · Chile Tech Week 2026")
     end
 
+    it "carries the share tags from the server, with absolute URLs" do
+      get "/brand"
+
+      expect(response.body).to include(%(<link rel="canonical" href="https://techweek.cl/brand">))
+      expect(response.body).to include(%(property="og:image" content="https://techweek.cl/opengraph.png"))
+      expect(response.body).to include(%(property="og:title" content="Marca · Chile Tech Week 2026"))
+      expect(response.body).to include(%(name="twitter:card" content="summary_large_image"))
+    end
+
+    it "keeps the share tags when SSR renders the page's own head, without a second title" do
+      allow_any_instance_of(InertiaRails::Helper).to receive(:inertia_ssr_head).and_return(%(<title inertia>SSR</title>).html_safe)
+
+      get "/brand"
+
+      expect(response.body.scan("<title").size).to eq(1)
+      expect(response.body).to include(%(property="og:image" content="https://techweek.cl/opengraph.png"))
+      expect(response.body).to include(%(name="twitter:image" content="https://techweek.cl/opengraph.png"))
+      expect(response.body).not_to include(%(<meta name="description"))
+    end
+
     it "serves every mark in its three variants, as PNG and as outlined SVG" do
       %w[logo logo-horizontal icon].product(["", "-transparent", "-light"]) do |mark, variant|
         get "/brand/#{mark}#{variant}.svg"

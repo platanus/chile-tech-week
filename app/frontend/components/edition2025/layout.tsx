@@ -37,20 +37,14 @@ export function Edition2025Layout({ children }: { children: ReactNode }) {
   );
 }
 
-// The document metadata of one 2025 page. The server renders the same tags for crawlers
-// when SSR is off (MetaTagsHelper); with SSR this <Head> is what lands in the HTML.
-export function PageHead({ title, description, opengraphImage }: Edition2025Page) {
+// The document title and description of one 2025 page, for the tab and client navigation.
+// The OpenGraph, Twitter and canonical tags are the server's (MetaTagsHelper, absolute
+// URLs), whether or not SSR renders this <Head>.
+export function PageHead({ title, description }: Edition2025Page) {
   return (
     <Head>
       <title>{title}</title>
       <meta name="description" content={description} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:type" content="website" />
-      <meta property="og:site_name" content="Chile Tech Week" />
-      <meta property="og:image" content={opengraphImage} />
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:image" content={opengraphImage} />
     </Head>
   );
 }

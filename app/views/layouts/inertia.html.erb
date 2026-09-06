@@ -3,9 +3,10 @@
   <head>
     <% ssr_head = inertia_ssr_head %>
     <meta charset="utf-8">
-    <%# SEO + OpenGraph meta, server-rendered (meta-tags gem). When SSR produced the page's
-        own <Head>, its title wins and the defaults stay out of the way. %>
-    <%= display_meta_tags(default_meta_tags) unless ssr_head.present? %>
+    <%# SEO + OpenGraph meta, server-rendered (meta-tags gem): crawlers don't run JS. The
+        OpenGraph, Twitter and canonical tags always come from here, with absolute URLs; the
+        title and description too, unless SSR produced the page's own <Head> with them. %>
+    <%= display_meta_tags(ssr_head.present? ? default_meta_tags.except(:title, :description) : default_meta_tags) %>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
