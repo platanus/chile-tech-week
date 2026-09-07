@@ -22,7 +22,7 @@ const NAV = [
 ];
 
 // The moderation panel's shell: a sidebar with the week switcher, the three areas and the
-// signed-in admin, the page beside it. Light and plain on purpose — only the wordmark uses
+// signed-in admin, the page beside it. The black brand palette — only the wordmark uses
 // the display face.
 export function AdminLayout({ children }: { children: ReactNode }) {
   const { url, props } = usePage();
@@ -32,7 +32,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const section = NAV.find((item) => item.section === url.split('?')[0].split('/')[3]) ?? NAV[0];
 
   return (
-    <div className="site site-light flex min-h-screen">
+    <div className="site flex min-h-screen">
       <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-secondary">
         <div className="border-b border-border px-5 py-5">
           {/* a real navigation: the landing's scene only starts on a fresh document */}
@@ -42,7 +42,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           <div className="label mt-1 text-muted-foreground">Admin</div>
           {/* Switching edition keeps you in the same area, at that week's own address. */}
           <Select value={week.slug} onValueChange={(slug) => router.visit(section.href(slug))}>
-            <SelectTrigger size="sm" className="mt-3 w-full bg-white" aria-label="Cambiar de Tech Week">
+            <SelectTrigger size="sm" className="mt-3 w-full bg-background" aria-label="Cambiar de Tech Week">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

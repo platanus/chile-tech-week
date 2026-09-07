@@ -6,22 +6,38 @@ RSpec.describe "admin events" do
   before { sign_in admin }
 
   describe "GET /admin/:week/events" do
-    it "lists the week's submitted events newest first, with the edition and the state" do
+    it "lists all the week's events newest first, including the published archive" do
       older = create(:event, title: "Older", created_at: 2.days.ago)
       newer = create(:event, title: "Newer", created_at: 1.day.ago)
-      create(:event, :published, title: "Published")
-      create(:event, title: "Next year", edition: 2026)
+      published = create(:event, :published, title: "Published")
+      create(:event, :published, title: "Next year", edition: 2026)
 
       get "/admin/25/events"
 
       expect(response).to have_http_status(:ok)
       expect(inertia).to render_component("Admin/Events/Index")
-      expect(inertia).to have_props(status: "submitted", search: "")
-      events = inertia.props.fetch(:events).map(&:deep_symbolize_keys)
-      expect(events.map { |e| e[:title] }).to eq(["Newer", "Older"])
-      expect(events.first).to include(id: newer.id, edition: 2025, state: "submitted", authorEmail: newer.author_email)
-      expect(events.last[:id]).to eq(older.id)
-      expect(inertia.props[:pagination].deep_symbolize_keys).to include(count: 2, page: 1, last: 1)
+      expect(inertia).to have_props(status: "all", search: "")
+      expect(inertia).to have_props { |props|
+        expect(props[:events].map { |event| event["id"] }).to eq([published.id, newer.id, older.id])
+        expect(props[:events].first).to include("edition" => 2025, "state" => "published")
+        expect(props[:pagination]).to include("count" => 3, "page" => 1, "last" => 1)
+      }
+    end
+
+    it "can filter down to submissions and return to all states" do
+      submitted = create(:event, title: "Community submitted")
+      published = create(:event, :published, title: "Community published")
+      create(:event, :published, title: "Unrelated")
+
+      get "/admin/25/events", params: {status: "submitted"}
+      expect(inertia).to have_props(status: "submitted")
+      expect(inertia).to have_props { |props| props[:events].map { |event| event["id"] } == [submitted.id] }
+
+      get "/admin/25/events", params: {status: "all", search: "Community"}
+      expect(inertia).to have_props(status: "all")
+      expect(inertia).to have_props { |props|
+        expect(props[:events].map { |event| event["id"] }).to contain_exactly(submitted.id, published.id)
+      }
     end
 
     it "filters by state and searches title, company and host" do
@@ -36,7 +52,7 @@ RSpec.describe "admin events" do
       expect(inertia.props.fetch(:events).map { |e| e["title"] }).to eq(["AI breakfast"])
 
       get "/admin/25/events", params: {status: "bogus"}
-      expect(inertia).to have_props(status: "submitted")
+      expect(inertia).to have_props(status: "all")
     end
 
     it "pages ten at a time" do

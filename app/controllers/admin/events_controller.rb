@@ -5,9 +5,10 @@ module Admin
     PER_PAGE = 10
 
     def index
-      @status = Event::STATES.include?(params[:status]) ? params[:status] : "submitted"
+      @status = Event::STATES.include?(params[:status]) ? params[:status] : "all"
       @search = params[:search].to_s.strip
-      scope = @week.events.where(state: @status).order(created_at: :desc)
+      scope = @week.events.order(created_at: :desc)
+      scope = scope.where(state: @status) unless @status == "all"
       scope = scope.where("title ILIKE :q OR company_name ILIKE :q OR author_name ILIKE :q", q: "%#{Event.sanitize_sql_like(@search)}%") if @search.present?
       pagy, @events = pagy(:offset, scope, limit: PER_PAGE)
       @pagination = Pagination.from_pagy(pagy)

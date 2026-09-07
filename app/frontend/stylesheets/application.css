@@ -27,8 +27,7 @@
   --radius-xl: 2px;
 }
 
-/* The shadcn colour tokens, as variables so each area sets its own palette (site.css: .site
- * is dark, .site-light is the admin's light set). `bg-primary`, `text-muted-foreground`, … */
+/* The shadcn colour tokens, as variables shared by the dark pages and overlays (site.css). `bg-primary`, `text-muted-foreground`, … */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

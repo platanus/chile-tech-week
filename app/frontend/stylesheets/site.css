@@ -4,10 +4,10 @@
    utilities and the shadcn components under components/ui. Tailwind's preflight is not loaded
    (application.css), so the reset those assume is reproduced here, scoped to the .site wrapper
    the layouts render in — like edition2025.css does for the archive. The shadcn colour tokens
-   are the variables application.css maps into the theme; .site is the dark set, .site-light
-   (the admin) the light one. */
+   are the variables application.css maps into the theme. Portalled menus and dialogs
+   use .site-overlay to keep the same palette and reset outside the page wrapper. */
 @layer site {
-  .site {
+  .site, .site-overlay {
     --background: #000;
     --foreground: #fff;
     --card: #0a0a0a;
@@ -27,12 +27,14 @@
     --input: #404040;
     --ring: #ee2b2b;
 
-    min-height: 100vh;
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-body);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+  }
+  .site {
+    min-height: 100vh;
     /* the far side of the landing's fade-out (landing/exit.ts): the document arrives from
        black instead of popping in. Once per document — Inertia keeps this wrapper mounted
        across client-side visits, so it does not replay on every page. */
@@ -42,32 +44,16 @@
   @media (prefers-reduced-motion: reduce) {
     .site { animation: none; }
   }
-  .site-light {
-    --background: #fff;
-    --foreground: #0a0a0a;
-    --card: #fff;
-    --card-foreground: #0a0a0a;
-    --popover: #fff;
-    --popover-foreground: #0a0a0a;
-    --secondary: #f5f5f5;
-    --secondary-foreground: #0a0a0a;
-    --muted: #f5f5f5;
-    --muted-foreground: #737373;
-    --accent: #f5f5f5;
-    --accent-foreground: #0a0a0a;
-    --border: #e5e5e5;
-    --input: #d4d4d4;
-  }
-  .site *, .site *::before, .site *::after { box-sizing: border-box; border: 0 solid var(--border); margin: 0; padding: 0; }
-  .site h1, .site h2, .site h3, .site h4, .site p { font-size: inherit; font-weight: inherit; }
-  .site a { color: inherit; text-decoration: inherit; }
-  .site button, .site input, .site select, .site textarea { font: inherit; color: inherit; background: transparent; border-radius: 0; letter-spacing: inherit; }
-  .site button { cursor: pointer; text-align: inherit; }
-  .site input::placeholder, .site textarea::placeholder { color: var(--muted-foreground); opacity: 1; }
-  .site img, .site svg, .site video, .site canvas { display: block; max-width: 100%; }
-  .site ul, .site ol { list-style: none; }
-  .site table { border-collapse: collapse; border-spacing: 0; }
-  .site ::selection { background: var(--primary); color: #fff; }
+  :where(.site, .site-overlay) *, :where(.site, .site-overlay) *::before, :where(.site, .site-overlay) *::after, .site-overlay { box-sizing: border-box; border: 0 solid var(--border); margin: 0; padding: 0; }
+  :where(.site, .site-overlay) h1, :where(.site, .site-overlay) h2, :where(.site, .site-overlay) h3, :where(.site, .site-overlay) h4, :where(.site, .site-overlay) p { font-size: inherit; font-weight: inherit; }
+  :where(.site, .site-overlay) a { color: inherit; text-decoration: inherit; }
+  :where(.site, .site-overlay) button, :where(.site, .site-overlay) input, :where(.site, .site-overlay) select, :where(.site, .site-overlay) textarea { font: inherit; color: inherit; background: transparent; border-radius: 0; letter-spacing: inherit; }
+  :where(.site, .site-overlay) button { cursor: pointer; text-align: inherit; }
+  :where(.site, .site-overlay) input::placeholder, :where(.site, .site-overlay) textarea::placeholder { color: var(--muted-foreground); opacity: 1; }
+  :where(.site, .site-overlay) img, :where(.site, .site-overlay) svg, :where(.site, .site-overlay) video, :where(.site, .site-overlay) canvas { display: block; max-width: 100%; }
+  :where(.site, .site-overlay) ul, :where(.site, .site-overlay) ol { list-style: none; }
+  :where(.site, .site-overlay) table { border-collapse: collapse; border-spacing: 0; }
+  :where(.site, .site-overlay) ::selection { background: var(--primary); color: #fff; }
   /* the mono label of the landing (.label), same voice here */
-  .site .label { font-family: var(--font-mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; }
+  :where(.site, .site-overlay) .label { font-family: var(--font-mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; }
 }

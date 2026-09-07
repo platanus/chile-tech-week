@@ -61,11 +61,11 @@ export const STATE_LABELS: Record<EventState, string> = {
 };
 
 const STATE_STYLES: Record<EventState, string> = {
-  submitted: 'border-border bg-white text-foreground',
-  rejected: 'border-foreground bg-foreground text-white',
-  waiting_luma_edit: 'border-amber-400 bg-amber-100 text-amber-900',
+  submitted: 'border-border bg-card text-foreground',
+  rejected: 'border-foreground bg-foreground text-background',
+  waiting_luma_edit: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
   published: 'border-primary bg-primary text-white',
-  deleted: 'border-red-200 bg-red-50 text-red-700',
+  deleted: 'border-red-500/40 bg-red-500/10 text-red-300',
 };
 
 export function StateBadge({ state }: { state: EventState }) {
@@ -78,13 +78,13 @@ export function StateBadge({ state }: { state: EventState }) {
 
 const EMAIL_STATUS: Record<string, [string, string]> = {
   sent: ['Enviado', 'border-primary bg-primary text-white'],
-  failed: ['Fallido', 'border-red-200 bg-red-50 text-red-700'],
-  pending: ['Pendiente', 'border-amber-400 bg-amber-100 text-amber-900'],
-  queued: ['En cola', 'border-border bg-white text-foreground'],
+  failed: ['Fallido', 'border-red-500/40 bg-red-500/10 text-red-300'],
+  pending: ['Pendiente', 'border-amber-500/40 bg-amber-500/10 text-amber-300'],
+  queued: ['En cola', 'border-border bg-card text-foreground'],
 };
 
 export function EmailStatusBadge({ status }: { status: string }) {
-  const [label, style] = EMAIL_STATUS[status] ?? [status, 'border-border bg-white'];
+  const [label, style] = EMAIL_STATUS[status] ?? [status, 'border-border bg-card'];
   return (
     <Badge variant="outline" className={cn('rounded-sm font-mono text-[11px] uppercase tracking-wider', style)}>
       {label}
@@ -159,7 +159,7 @@ export function Pager({ pagination, buildHref }: { pagination: AdminPagination; 
             preserveState
             className={cn(
               'inline-flex h-8 min-w-8 items-center justify-center rounded-sm border px-2 font-mono text-xs',
-              page === pagination.page ? 'border-foreground bg-foreground text-white' : 'border-border hover:bg-accent',
+              page === pagination.page ? 'border-foreground bg-foreground text-background' : 'border-border hover:bg-accent',
             )}
           >
             {page}

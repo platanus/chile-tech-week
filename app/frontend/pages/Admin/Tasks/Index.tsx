@@ -12,7 +12,7 @@ function StatusBadge({ task }: { task: AdminTask }) {
   if (task.lastStatus === 'success') {
     return <Badge variant="outline" className="rounded-sm border-emerald-300 bg-emerald-50 font-mono text-[11px] uppercase tracking-wider text-emerald-800"><CheckCircle2 /> Éxito</Badge>;
   }
-  return <Badge variant="outline" className="rounded-sm border-red-200 bg-red-50 font-mono text-[11px] uppercase tracking-wider text-red-700"><XCircle /> Error</Badge>;
+  return <Badge variant="outline" className="rounded-sm border-red-500/40 bg-red-500/10 font-mono text-[11px] uppercase tracking-wider text-red-300"><XCircle /> Error</Badge>;
 }
 
 // /admin/26/tasks — the scheduled tasks, their last run, and a button to run one now. The

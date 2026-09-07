@@ -9,7 +9,7 @@ import type { AdminEventsIndex, EventState } from '@/types';
 
 const STATES = Object.keys(STATE_LABELS) as EventState[];
 
-// /admin/events — the submissions of one state, searched and paged.
+// The week’s events, optionally filtered by state, searched and paged.
 export default function Index({ events, pagination, status, search }: AdminEventsIndex) {
   const week = useWeek();
   const [query, setQuery] = useState(search);
@@ -30,7 +30,7 @@ export default function Index({ events, pagination, status, search }: AdminEvent
       <Flash />
       <PageTitle
         title="Eventos"
-        subtitle="Revisa y aprueba los eventos enviados."
+        subtitle="Revisa todos los eventos de esta Tech Week y aprueba los enviados."
         action={<div className="font-mono text-xs text-muted-foreground">Total: {pagination.count} eventos</div>}
       />
 
@@ -66,6 +66,7 @@ export default function Index({ events, pagination, status, search }: AdminEvent
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
               {STATES.map((state) => (
                 <SelectItem key={state} value={state}>
                   {STATE_LABELS[state]}
@@ -80,7 +81,7 @@ export default function Index({ events, pagination, status, search }: AdminEvent
         <div className="flex flex-col items-center gap-3 rounded-sm border border-dashed border-border py-16 text-center">
           <CalendarDays className="size-8 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            {search ? `Ningún evento coincide con “${search}”.` : `No hay eventos en estado ${STATE_LABELS[status as EventState].toLowerCase()}.`}
+            {search ? `Ningún evento coincide con “${search}”.` : status === 'all' ? 'No hay eventos para esta Tech Week.' : `No hay eventos en estado ${STATE_LABELS[status as EventState].toLowerCase()}.`}
           </p>
         </div>
       ) : (
