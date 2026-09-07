@@ -2,7 +2,7 @@ module Admin
   # The submissions of the week in the URL: the list to moderate (filtered by state,
   # searched by title/company/host) and one event with everything the admin can change on it.
   class EventsController < BaseController
-    PER_PAGE = 10
+    PER_PAGE = 25
 
     def index
       @status = Event::STATES.include?(params[:status]) ? params[:status] : "all"

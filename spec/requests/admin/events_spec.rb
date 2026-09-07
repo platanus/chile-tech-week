@@ -55,13 +55,20 @@ RSpec.describe "admin events" do
       expect(inertia).to have_props(status: "all")
     end
 
-    it "pages ten at a time" do
-      12.times { |i| create(:event, title: "Event #{i}", created_at: i.hours.ago) }
+    it "pages twenty-five at a time" do
+      27.times { |i| create(:event, title: "Event #{i}", created_at: i.hours.ago) }
+
+      get "/admin/25/events"
+      expect(inertia).to have_props { |props|
+        expect(props[:events].size).to eq(25)
+        expect(props[:pagination]).to include("count" => 27, "page" => 1, "last" => 2)
+      }
 
       get "/admin/25/events", params: {page: 2}
-
-      expect(inertia.props.fetch(:events).size).to eq(2)
-      expect(inertia.props[:pagination].deep_symbolize_keys).to include(count: 12, page: 2, last: 2, previous: 1, next: nil)
+      expect(inertia).to have_props { |props|
+        expect(props[:events].map { |event| event["title"] }).to eq(["Event 25", "Event 26"])
+        expect(props[:pagination]).to include("count" => 27, "page" => 2, "last" => 2, "previous" => 1, "next" => nil)
+      }
     end
   end
 

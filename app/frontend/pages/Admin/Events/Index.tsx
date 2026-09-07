@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Building2, CalendarDays, Clock, Search, X } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { buildQuery, Flash, formatDateTime, PageTitle, Pager, STATE_LABELS, StateBadge, useWeek } from '@/components/admin/ui';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,12 +14,47 @@ export default function Index({ events, pagination, status, search }: AdminEvent
   const week = useWeek();
   const [query, setQuery] = useState(search);
 
-  const go = (params: { status?: string; search?: string; page?: number }) =>
-    router.get(admin_events_path(week.slug) + buildQuery({ status, search, ...params }), {}, { preserveState: true });
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const cancelSearch = useRef<(() => void) | undefined>(undefined);
+
+  useEffect(() => {
+    // A pending search must never pull you back after changing page, week or section.
+    const removeBefore = router.on('before', () => clearTimeout(timer.current));
+    const removeNavigate = router.on('navigate', ({ detail }) => {
+      clearTimeout(timer.current);
+      setQuery(String(detail.page.props.search ?? ''));
+    });
+    return () => {
+      clearTimeout(timer.current);
+      cancelSearch.current?.();
+      removeBefore();
+      removeNavigate();
+    };
+  }, []);
+
+  const go = (params: { status?: string; search?: string; page?: number }, replace = false) => {
+    clearTimeout(timer.current);
+    cancelSearch.current?.();
+    router.get(admin_events_path(week.slug) + buildQuery({ status, search, ...params }), {}, {
+      preserveState: true,
+      preserveScroll: true,
+      replace,
+      onCancelToken: (token) => { cancelSearch.current = token.cancel; },
+      onFinish: () => { cancelSearch.current = undefined; },
+    });
+  };
+
+  const changeSearch = (value: string) => {
+    setQuery(value);
+    clearTimeout(timer.current);
+    // Cancel the previous request immediately so a slow response cannot overwrite typing.
+    cancelSearch.current?.();
+    timer.current = setTimeout(() => go({ search: value.trim() }, true), 300);
+  };
 
   const submitSearch = (e: FormEvent) => {
     e.preventDefault();
-    go({ search: query.trim(), page: undefined });
+    go({ search: query.trim() }, true);
   };
 
   return (
@@ -42,16 +77,16 @@ export default function Index({ events, pagination, status, search }: AdminEvent
             placeholder="Buscar por título, empresa u organizador…"
             aria-label="Buscar eventos"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => changeSearch(e.target.value)}
             className="pl-9"
           />
-          {search && (
+          {query && (
             <button
               type="button"
               aria-label="Limpiar búsqueda"
               onClick={() => {
                 setQuery('');
-                go({ search: '', page: undefined });
+                go({ search: '' }, true);
               }}
               className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
@@ -61,7 +96,7 @@ export default function Index({ events, pagination, status, search }: AdminEvent
         </form>
         <div className="flex items-center gap-2">
           <span className="label text-[10px] text-muted-foreground">Estado</span>
-          <Select value={status} onValueChange={(value) => go({ status: value, page: undefined })}>
+          <Select value={status} onValueChange={(value) => go({ status: value, search: query.trim() })}>
             <SelectTrigger className="w-64" aria-label="Filtrar por estado">
               <SelectValue />
             </SelectTrigger>

@@ -84,14 +84,71 @@ test('an event waiting for its Luma edit shows its Luma details', async ({ page 
   await shot(page, 'event-waiting');
 });
 
-test('search and the published list', async ({ page }) => {
+test('search automatically debounces typing and keeps the published filter', async ({ page }) => {
   await login(page);
   await page.goto(adminPath('/events?status=published'));
-  await page.getByLabel('Buscar eventos').fill('brunch');
-  await page.getByLabel('Buscar eventos').press('Enter');
+  const requests: string[] = [];
+  page.on('request', (request) => {
+    if (request.headers()['x-inertia'] && new URL(request.url()).pathname === adminPath('/events')) {
+      requests.push(request.url());
+    }
+  });
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  const search = page.getByLabel('Buscar eventos');
+  await search.fill('bru');
+  await page.clock.runFor(200);
+  await search.fill('brunch');
+  await page.clock.runFor(299);
+  expect(requests).toHaveLength(0);
+  await page.clock.runFor(1);
   await expect(page).toHaveURL(/search=brunch/);
+  expect(requests).toHaveLength(1);
+  await expect(search).toBeFocused();
+  await expect(page).toHaveURL(/status=published/);
+  await page.clock.resume();
   await expect(page.locator(`a[href^="${adminPath('/events/')}"]`).first()).toContainText(/brunch/i);
   await shot(page, 'events-search');
+
+  await page.getByRole('button', { name: 'Limpiar búsqueda' }).click();
+  await expect(search).toHaveValue('');
+  await expect(page).not.toHaveURL(/search=/);
+});
+
+test('a slow search response cannot replace newer typing', async ({ page }) => {
+  await login(page);
+  let releaseResponse!: () => void;
+  const held = new Promise<void>((resolve) => { releaseResponse = resolve; });
+  await page.route('**/events?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('search') !== 'brunch') return route.continue();
+    const response = await route.fetch();
+    await held;
+    await route.fulfill({ response });
+  });
+  const oldRequest = page.waitForRequest((request) => new URL(request.url()).searchParams.get('search') === 'brunch');
+  const search = page.getByLabel('Buscar eventos');
+  await search.fill('brunch');
+  await oldRequest;
+  const cancelled = page.waitForEvent('requestfailed', (request) => new URL(request.url()).searchParams.get('search') === 'brunch');
+  await search.fill('Fintech');
+  await cancelled;
+  await expect(page).toHaveURL(/search=Fintech/);
+  releaseResponse();
+  await expect(search).toHaveValue('Fintech');
+  await expect(page.locator(`a[href^="${adminPath('/events/')}"]`).first()).toContainText(/Fintech/i);
+});
+
+test('pending search does not undo navigation to another week', async ({ page }) => {
+  await login(page);
+  await page.clock.install();
+  await page.clock.pauseAt(new Date());
+  await page.getByLabel('Buscar eventos').fill('pending search');
+  await page.getByLabel('Cambiar de Tech Week').click();
+  await page.getByRole('option', { name: 'Tech Week 2025' }).click();
+  await expect(page).toHaveURL(/\/admin\/25\/events$/);
+  await page.clock.runFor(500);
+  await expect(page).toHaveURL(/\/admin\/25\/events$/);
+  await expect(page.getByLabel('Buscar eventos')).toHaveValue('');
 });
 
 test('the emails and tasks pages', async ({ page }) => {
