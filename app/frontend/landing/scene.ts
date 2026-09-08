@@ -1153,6 +1153,7 @@ const stepName = (l) => `${QUALITY[LADDER[l].tier].name} @${LADDER[l].dpr}x`;
 const quality = {
   level: TOP[1], want: TOP[1], tier: 1, dprCap: 1.5, ceiling: LADDER.length - 1, steps: 0,
   gpu: '', label: '', verdict: '', source: 'guess', locked: false, calibrating: false, started: 0,
+  manual: false, trialFrom: null, retryAt: 0, smoothSince: 0, lastMode: null,
   fogTarget: P.fogDensity, pendingView: null, pendingFog: null,
   displayMs: 16.7, budget: 16.7, cost: 0, since: 0, last: 0, costs: [], gaps: [],
 };
@@ -1160,7 +1161,7 @@ const say = (msg) => { quality.verdict = quality.label ? `${quality.label} · ${
 
 // What an earlier visit settled on, in localStorage for 90 days, against the GPU string and the
 // window's pixel count: a device that comes back to a screen of about the same size starts where
-// it left off and never measures again.
+// it left off; sustained smooth frames can still earn a higher rung.
 const STORE = 'condor.quality.v2';
 const winPx = () => innerWidth * innerHeight * devicePixelRatio ** 2;
 const remembered = (() => {
@@ -1234,6 +1235,7 @@ function setLevel(l, immediate = false) {
     else { quality.pendingFog = fog; quality.fogTarget = P.fogDensity; lastPending = Infinity; } // unknown until the next chunk pass
   } else { quality.pendingView = q.viewDistance; quality.fogTarget = fog; quality.pendingFog = null; }
   quality.since = performance.now();
+  quality.smoothSince = 0;
   quality.costs.length = 0; quality.gaps.length = 0;
   applyAtmosphere();
   refreshGui();
@@ -1241,6 +1243,9 @@ function setLevel(l, immediate = false) {
 
 // Start the ladder over from a rung (the panel's button, and the tests).
 function calibrate(from) {
+  quality.manual = false;
+  quality.trialFrom = null;
+  quality.smoothSince = 0;
   if (from != null) setLevel(from);
   quality.ceiling = LADDER.length - 1;
   quality.steps = 0;
@@ -1252,13 +1257,18 @@ function calibrate(from) {
 }
 // hand-picked, from the panel or a test: stay there, measure nothing
 function pickLevel(l) {
+  quality.manual = true;
+  quality.trialFrom = null;
   quality.calibrating = false;
   quality.locked = true;
   setLevel(l);
   say(`picked ${stepName(quality.level)}`);
 }
 function stepQuality(d, why) {
-  if (d < 0) quality.ceiling = Math.max(0, quality.level - 1); // this rung was too much: never climb back to it
+  if (d < 0) {
+    quality.ceiling = Math.max(0, quality.level - 1); // do not climb back during this calibration
+    quality.retryAt = performance.now() + 60000;
+  }
   const before = stepName(quality.level);
   setLevel(quality.level + d);
   quality.steps++;
@@ -1269,6 +1279,7 @@ function settleQuality() {
   quality.calibrating = false;
   quality.locked = true;
   quality.want = quality.level;
+  quality.smoothSince = 0;
   say(quality.cost ? `${stepName(quality.level)} at ${quality.cost.toFixed(1)} ms of ${quality.budget.toFixed(1)}` : `${stepName(quality.level)}, not measured`);
   remember();
 }
@@ -1303,7 +1314,7 @@ const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[s.len
 // mode run the ladder — measure a rung, and step up while frames fit the display's period with
 // room to spare, down while they do not, then lock and remember it. Once settled, the gaps between
 // frames are still watched: a device that stops keeping up (hot, on battery, a window that grew,
-// another tab) re-opens the ladder, which can then only go down.
+// another tab) re-opens calibration. Smooth delivery trials a higher rung without readback.
 function adaptQuality(dt, rendered) {
   const now = performance.now();
   if (quality.pendingFog !== null && lastPending === 0) { quality.fogTarget = quality.pendingFog; quality.pendingFog = null; }
@@ -1314,7 +1325,10 @@ function adaptQuality(dt, rendered) {
   } else if (quality.pendingView !== null) { P.viewDistance = quality.pendingView; quality.pendingView = null; quality.since = now; refreshGui(); } // the ring shrinks now; give it a moment before judging it
   const gap = quality.last ? now - quality.last : 0; // 0 across a pause: the hero scrolled away, the tab came back
   quality.last = now;
-  if (P.quality !== 'auto' || !rendered) return;
+  if (!gap || quality.lastMode !== mode) { quality.gaps.length = 0; quality.smoothSince = 0; }
+  if (gap > 250) quality.smoothSince = 0;
+  quality.lastMode = mode;
+  if (P.quality !== 'auto' || quality.manual || !rendered) return;
   // what a frame has to fit in: the display's own period, floored at 60 fps so a 120 Hz screen is
   // not asked for 120. The gaps between frames are held to the looser of that and the ambient cap,
   // which is all the backdrop is being asked for.
@@ -1328,6 +1342,29 @@ function adaptQuality(dt, rendered) {
   // finish building is itself the answer, and the gaps between frames say which way
   const stalled = now - quality.since > 5000;
   if (busyFrame() && !stalled) { while (quality.costs.length && quality.costs[0][0] < quality.since) quality.costs.shift(); return; }
+  // Trial the real workload without synchronous readPixels: a browser's readback cost is
+  // not the cost of normal rendering. Vsync hides spare capacity, so try one rung and verify it.
+  const cadenceReady = quality.gaps.length >= 20 && now - quality.gaps[0][0] >= 3000;
+  // Weight missed frames by elapsed time: a burst of fast frames must not outvote a
+  // subsequent stall just because it supplied many more samples.
+  const elapsed = quality.gaps.reduce((sum, g) => sum + g[1], 0);
+  const missed = quality.gaps.reduce((sum, g) => sum + (g[1] > gapBudget * 1.2 ? g[1] : 0), 0);
+  const smooth = cadenceReady && missed / elapsed < 0.1;
+  if (quality.trialFrom !== null) {
+    if ((cadenceReady && !smooth) || now - quality.since > 15000) {
+      const previous = quality.trialFrom;
+      quality.trialFrom = null;
+      setLevel(previous);
+      quality.retryAt = now + 60000;
+      settleQuality();
+      say('higher rung missed the frame budget; keeping the previous rung');
+    } else if (cadenceReady && !busyFrame()) {
+      quality.trialFrom = null;
+      settleQuality();
+      say(`confirmed ${stepName(quality.level)} with smooth frames`);
+    }
+    return;
+  }
   if (quality.calibrating) {
     const measured = quality.costs.length >= 16 && now - quality.costs[0][0] >= 700;
     if (!measured && !stalled) return;
@@ -1340,6 +1377,19 @@ function adaptQuality(dt, rendered) {
     if (cost > quality.budget * 0.9 && quality.level > 0) stepQuality(-1, spent); // the drawing alone all but fills the frame
     else if (cost * up < quality.budget * 0.8 && worst * up < quality.budget * 1.2 && quality.level < quality.ceiling) stepQuality(1, spent); // and the rung above would still leave the rest of the frame a fifth of the period
     else settleQuality();
+    return;
+  }
+  // A saved or conservatively measured tier is a starting point, not a permanent ceiling.
+  // Require sustained smooth delivery, then test one rung with normal rendering. A failed
+  // trial backs off for a minute; manual choices never enter this path.
+  if (!smooth) quality.smoothSince = 0;
+  else if (!quality.smoothSince) quality.smoothSince = now;
+  if (quality.level < LADDER.length - 1 && quality.smoothSince && now - quality.smoothSince >= 8000 && now >= quality.retryAt && !busyFrame()) {
+    quality.trialFrom = quality.level;
+    quality.locked = false;
+    quality.source = 'measured';
+    setLevel(quality.level + 1);
+    say(`trying ${stepName(quality.level)} after sustained smooth frames`);
     return;
   }
   // settled: a device that stops keeping up (hot, on battery, a window that grew, another tab)
