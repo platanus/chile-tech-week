@@ -145,18 +145,20 @@ export default function Show({ title, description }: HomeShow) {
         <div id="joystick-base" aria-hidden="true">
           <div id="joystick-knob" />
         </div>
-        <div id="help">
-          <b>A / D</b> girar {nb} <b>W / S</b> subir / bajar {nb} <b>Shift</b> turbo
-          <br />
-          <b>Arrastrar</b> orbitar cámara {nb} <b>Rueda</b> velocidad {nb} <b>V</b>{' '}
-          cámara libre {nb} <b>H</b> panel {nb} <b>R</b> reiniciar {nb}{' '}
-          <b>Esc</b> salir
-          <div className="hud" id="hud" />
-          <div className="credit">
-            Relieve: SRTM (AWS Terrain Tiles) · Cumbres: © OpenStreetMap contributors · Edificios y
-            agua: Overture Maps · Mapa: Natural Earth
+        {import.meta.env.DEV && (
+          <div id="help">
+            <b>A / D</b> girar {nb} <b>W / S</b> subir / bajar {nb} <b>Shift</b> turbo
+            <br />
+            <b>Arrastrar</b> orbitar cámara {nb} <b>Rueda</b> velocidad {nb} <b>V</b>{' '}
+            cámara libre {nb} <b>H</b> panel {nb} <b>J</b> mostrar / ocultar ayuda {nb} <b>R</b> reiniciar {nb}{' '}
+            <b>Esc</b> salir
+            <div className="hud" id="hud" />
+            <div className="credit">
+              Relieve: SRTM (AWS Terrain Tiles) · Cumbres: © OpenStreetMap contributors · Edificios y
+              agua: Overture Maps · Mapa: Natural Earth
+            </div>
           </div>
-        </div>
+        )}
         <canvas id="minimap" aria-label="Mapa de Chile: clic para volar allí" title="Clic para volar allí" />
         <button id="search-btn" type="button" aria-label="Buscar ciudad o cumbre" title="Buscar ciudad o cumbre">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">

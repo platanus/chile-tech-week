@@ -1548,7 +1548,13 @@ addEventListener('keydown', (e) => {
   if (mode !== 'game') { if (e.code === 'KeyF') setMode('game'); return; } // ambient: never capture keys
   keys[e.code] = true;
   if (e.code === 'Escape') setMode('ambient');
-  if (e.code === 'KeyH') gui.show(gui._hidden);
+  if (import.meta.env.DEV && !e.repeat) {
+    if (e.code === 'KeyH') gui?.show(gui._hidden);
+    if (e.code === 'KeyJ') {
+      const help = document.getElementById('help');
+      if (help) help.hidden = !help.hidden;
+    }
+  }
   if (e.code === 'KeyR') resetCamera(homeZ());
   if (e.code === 'KeyV') { P.cameraMode = P.cameraMode === 'condor' ? 'free' : 'condor'; onModeChange(); refreshGui(); }
   if (e.code === 'Space') e.preventDefault();
@@ -1691,7 +1697,7 @@ function setMode(m) {
     if (H) resetCamera(homeZ());
     document.getElementById('exit').focus?.({ preventScroll: true });
   } else {
-    gui.hide();
+    gui?.hide();
     closeSearch(false);
     for (const k in keys) keys[k] = false;
     throttle = 0;
@@ -1817,11 +1823,14 @@ function updateCamera(dt) {
 }
 
 // ---------------------------------------------------------------- gui
-const gui = new GUI({ title: 'Andes Synthwave' });
+let gui = null;
+const refreshGui = () => gui?.controllersRecursive().forEach((c) => c.updateDisplay());
+// Keep the tuning UI out of production builds.
+if (import.meta.env.DEV) {
+gui = new GUI({ title: 'Andes Synthwave' });
 gui.hide();
 let rebuildTimer = 0;
 const scheduleRebuild = () => { clearTimeout(rebuildTimer); rebuildTimer = setTimeout(buildTerrain, 80); };
-const refreshGui = () => gui.controllersRecursive().forEach((c) => c.updateDisplay());
 
 const fReal = gui.addFolder('Cordillera');
 fReal.add(P, 'terrain', { 'Chile (real relief)': 'chile', 'Procedural noise': 'procedural' }).name('terrain');
@@ -2035,6 +2044,8 @@ const fIO = gui.addFolder('Save / Share');
 fIO.add({ copy: () => copyText(JSON.stringify(P, null, 2), 'Settings JSON copied') }, 'copy').name('📋 copy settings JSON');
 fIO.add({ link: () => { const url = makeShareUrl(); history.replaceState(null, '', url); copyText(url, 'Share link copied (also in address bar)'); } }, 'link').name('🔗 copy share link');
 fIO.add({ reset: () => { Object.assign(P, DEFAULTS); refreshGui(); applySky(); applyAtmosphere(); buildCondor(); buildTerrain(); } }, 'reset').name('↺ reset defaults');
+
+} // development GUI
 
 function makeShareUrl() {
   const state = {
@@ -2540,6 +2551,7 @@ function frame() {
       if (P.quality === 'auto' && !quality.locked) calibrate(); // the guess was only a guess: measure from here
     }, 1500);
   }
+  if (import.meta.env.DEV && hud) {
   fpsAcc += dt; fpsN++;
   if ((hudTick++ & 15) === 0) {
     const p = focus, fps = fpsN / Math.max(fpsAcc, 1e-3); fpsAcc = 0; fpsN = 0;
@@ -2547,6 +2559,7 @@ function frame() {
     const src = H?.real ? `tiles ${real.tiles.size} · ${(real.bytes / 1024).toFixed(0)} KB · ${QUALITY[quality.tier].name}${P.quality === 'auto' ? ' auto' : ''}` : `seed ${P.seed}`;
     const hdg = H?.real ? `rumbo ${String(Math.round(((((-condor.yaw * 180) / Math.PI) % 360) + 360) % 360)).padStart(3, '0')}°  ·  ` : '';
     hud.textContent = `${hdg}pos ${p.x.toFixed(0)}, ${p.y.toFixed(0)}, ${p.z.toFixed(0)}  ·  speed ${spd.toFixed(0)}  ·  ${src}  ·  ${fps.toFixed(0)} fps`;
+  }
   }
 }
 frame();
