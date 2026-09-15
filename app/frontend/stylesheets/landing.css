@@ -58,13 +58,13 @@ body.game #hero > * { pointer-events: none; }
   border-radius: 2px; border: 1px solid var(--line); background: rgba(0,0,0,.5); color: var(--ink); font: 12px var(--mono);
   cursor: pointer; backdrop-filter: blur(6px); transition: background .2s, border-color .2s; }
 #play:hover { border-color: var(--red); background: rgba(238,43,43,.15); }
-/* A quiet second border draws attention to the desktop flight mode. */
+/* A quiet second border draws attention to flight mode on every device. */
+#play::after { content: ''; position: absolute; inset: -5px; border: 1px solid var(--red); border-radius: 5px;
+  pointer-events: none; opacity: .3; animation: flightInvite 3s ease-in-out infinite; }
 @media (min-width: 721px) and (hover: hover) and (pointer: fine) {
-  #play::after { content: ''; position: absolute; inset: -5px; border: 1px solid var(--red); border-radius: 5px;
-    pointer-events: none; opacity: .3; animation: flightInvite 3s ease-in-out infinite; }
   #play:hover::after, #play:focus-visible::after { animation-play-state: paused; }
-  body.game #play::after { animation: none; }
 }
+body.game #play::after { animation: none; }
 @keyframes flightInvite {
   0%, 100% { opacity: .15; transform: scale(1); }
   50% { opacity: .55; transform: scale(1.035, 1.1); }
@@ -74,6 +74,9 @@ body.game #hero > * { pointer-events: none; }
 }
 
 #play kbd { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border-radius: 2px; border: 1px solid rgba(255,255,255,.25); }
+@media (hover: none), (pointer: coarse) {
+  #play kbd { display: none; }
+}
 
 /* ---- page below the hero, covers the scene when scrolled */
 main { position: relative; z-index: 2; background: transparent; color: var(--gray); padding: 0; border-top: 1px solid var(--line); }
@@ -350,9 +353,13 @@ body.game #peaks { opacity: 1; }
   #minimap { bottom: 14px; right: 14px; }
   #search-btn { bottom: calc(var(--map-h) - 2px); }
   #search { right: calc(var(--map-w) + 24px); top: calc(100% - var(--map-h) - 34px); }
-  #hero { padding-top: 90px; padding-bottom: 90px; justify-content: flex-end; }
-  .logo { width: 78vw; }
-  #hero .lede { max-width: 30ch; }
-  #play { position: static; margin-top: 26px; align-self: flex-start; }
+  /* svh fits the first view with browser bars expanded; reserve room for every CTA. */
+  #hero { min-height: 100svh; padding-top: max(24px, env(safe-area-inset-top));
+    padding-bottom: max(24px, env(safe-area-inset-bottom)); justify-content: center; }
+  .logo { width: clamp(120px, calc(100svh - 390px), 78vw); }
+  #hero .lede { max-width: 30ch; margin: 12px 0 16px; }
+  #hero .dates { margin-bottom: 18px; }
+  #play { position: relative; right: auto; bottom: auto; min-height: 44px; margin-top: 18px; align-self: flex-start; }
+  #play kbd { display: none; }
   #veil { background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.15) 35%, rgba(0,0,0,.85) 70%, rgba(0,0,0,.92) 100%); }
 }
