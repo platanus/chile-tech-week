@@ -1,6 +1,6 @@
 import { Form, Link } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, Check, Plus, Trash2 } from 'lucide-react';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { cloneElement, type ReactElement, type ReactNode, useEffect, useRef, useState } from 'react';
 import { LogoInput } from '@/components/events/logo-input';
 import { FORMAT_LABELS } from '@/components/events/formats';
 import { PageHead } from '@/components/site/layout';
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { validateEvent, type EventErrors } from '@/lib/event-validation';
 import { cn } from '@/lib/utils';
 import { events_path } from '@/routes';
 import type { EventsNew } from '@/types';
@@ -19,7 +20,7 @@ type Errors = Record<string, string[] | string | undefined>;
 function FieldError({ errors, name }: { errors: Errors; name: string }) {
   const error = errors[name];
   if (!error) return null;
-  return <p className="text-sm text-primary">{Array.isArray(error) ? error.join('. ') : error}</p>;
+  return <p id={`${name}-error`} aria-live="polite" className="text-sm text-primary">{Array.isArray(error) ? error.join('. ') : error}</p>;
 }
 
 function Field({ label, htmlFor, hint, children, errors, name, className }: {
@@ -32,11 +33,14 @@ function Field({ label, htmlFor, hint, children, errors, name, className }: {
   className?: string;
 }) {
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div data-field={name} className={cn('flex flex-col gap-2', className)}>
       <Label htmlFor={htmlFor} className="label text-[11px] text-muted-foreground">
         {label}
       </Label>
-      {children}
+      {cloneElement(children as ReactElement<Record<string, unknown>>, {
+        'aria-invalid': !!errors[name],
+        'aria-describedby': errors[name] ? `${name}-error` : undefined,
+      })}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       <FieldError errors={errors} name={name} />
     </div>
@@ -131,9 +135,9 @@ function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   );
 }
 
-function LogoField({ name, label, errors, errorName }: { name: string; label: string; errors: Errors; errorName: string }) {
+function LogoField({ name, label, errors, errorName, onValidation }: { name: string; label: string; errors: Errors; errorName: string; onValidation: (input: HTMLInputElement) => void }) {
   const error = errors[errorName.replace('company_logo_url', 'logo')] || errors[errorName];
-  return <LogoInput name={name} label={label} error={Array.isArray(error) ? error.join('. ') : error} />;
+  return <div data-field={errorName.replace('company_logo_url', 'logo')}><LogoInput onValidation={onValidation} name={name} label={label} required error={Array.isArray(error) ? error.join('. ') : error} /></div>;
 }
 
 // The catalogue pickers (temas, audiencias): a grid of checkboxes posting `name[]`.
@@ -144,11 +148,11 @@ function CheckboxGrid({ name, options, errors, errorName }: {
   errorName: string;
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div data-field={errorName} role="group" aria-label={errorName === 'themes' ? 'Temas' : 'Audiencias'} aria-describedby={errors[errorName] ? `${errorName}-error` : undefined} className="flex flex-col gap-2">
       <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2 md:grid-cols-3">
         {options.map((option) => (
           <label key={option.id} className="flex cursor-pointer items-center gap-2 text-sm">
-            <Checkbox name={name} value={option.id} />
+            <Checkbox name={name} value={option.id} aria-invalid={!!errors[errorName]} />
             {option.name}
           </label>
         ))}
@@ -214,37 +218,52 @@ export default function New({ days, weekDates, communes, formats, themes, audien
     formRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'});
   };
 
-  // The browser's own checks on the fields of this step only (type=email, type=url, a number
-  // out of range). Nothing is marked required, so a hidden step can never block the submit;
-  // what a field must actually hold is the server's call, in Spanish.
-  // The click is stopped explicitly, and the two buttons below carry keys: without either,
-  // React reuses one DOM node for "Continuar" and "Enviar evento", so by the time the browser
-  // performs the click's default action the node has already turned into the submit button
-  // and the form goes off a step early.
-  const nextStep = (event: React.MouseEvent) => {
-    event.preventDefault();
-    const fields = formRef.current?.querySelectorAll<HTMLInputElement>(`section[data-step="${step}"] input, section[data-step="${step}"] textarea`);
-    for (const field of fields ?? []) {
-      if (!field.checkValidity()) {
-        field.reportValidity();
-        return;
-      }
+  const [clientErrors, setClientErrors] = useState<EventErrors>({});
+  const touched = useRef(new Set<string>());
+
+  const readErrors = () => {
+    const form = formRef.current?.querySelector('form');
+    if (!form) return {};
+    const errors = validateEvent(new FormData(form), { weekDates, descriptionLimit, communes, formats });
+    for (const input of form.querySelectorAll<HTMLInputElement>('input[type="file"]')) {
+      const key = input.closest<HTMLElement>('[data-field]')?.dataset.field;
+      if (key && input.validity.customError) errors[key] = input.validationMessage;
     }
-    goTo(Math.min(step + 1, last));
+    return errors;
   };
 
-  // Hidden steps stay mounted. Reveal an invalid field before asking the browser to
-  // focus it, including when a logo was changed after visiting a later step.
-  const validateBeforeSubmit = () => {
-    const fields = formRef.current?.querySelectorAll<HTMLInputElement>('input, textarea');
-    for (const field of fields ?? []) {
-      if (!field.checkValidity()) {
-        goTo(Number(field.closest('section')?.getAttribute('data-step') ?? 0));
-        requestAnimationFrame(() => field.reportValidity());
-        return false;
-      }
-    }
-    return true;
+  const refreshField = (target: EventTarget, blur = false) => {
+    if (!(target instanceof HTMLElement)) return;
+    const key = target.closest<HTMLElement>('[data-field]')?.dataset.field;
+    if (!key) return;
+    if (blur || target.matches('input[type="file"], input[type="checkbox"], [role="checkbox"], [role="combobox"]')) touched.current.add(key);
+    // Radix's hidden controls and React's date autofill settle before reading FormData.
+    setTimeout(() => {
+      const errors = readErrors();
+      setClientErrors(Object.fromEntries([...touched.current].map((name) => [name, errors[name]])));
+    }, 0);
+  };
+
+  const validate = (onlyStep?: number) => {
+    const errors = readErrors();
+    const keys = [...(formRef.current?.querySelectorAll<HTMLElement>('[data-field]') ?? [])]
+      .map((field) => field.dataset.field!)
+      .filter((key) => onlyStep === undefined || stepOfError(key) === onlyStep);
+    keys.forEach((key) => touched.current.add(key));
+    setClientErrors(Object.fromEntries([...touched.current].map((key) => [key, errors[key]])));
+    const first = keys.find((key) => errors[key]);
+    if (!first) return true;
+    goTo(stepOfError(first));
+    requestAnimationFrame(() => {
+      const field = [...(formRef.current?.querySelectorAll<HTMLElement>('[data-field]') ?? [])].find((field) => field.dataset.field === first);
+      field?.querySelector<HTMLElement>('input, textarea, button')?.focus();
+    });
+    return false;
+  };
+
+  const nextStep = (event: React.MouseEvent) => {
+    event.preventDefault();
+    if (validate(step)) goTo(Math.min(step + 1, last));
   };
 
   return (
@@ -262,9 +281,13 @@ export default function New({ days, weekDates, communes, formats, themes, audien
         </p>
       </header>
 
-      <Form action={events_path()} method="post" className="flex flex-col gap-10" resetOnSuccess={false} noValidate onBefore={validateBeforeSubmit}>
-        {({ errors, processing }) => (
-          <>
+      <Form action={events_path()} method="post" className="flex flex-col gap-10" resetOnSuccess={false} noValidate onBefore={() => validate()}
+        onBlur={(event) => refreshField(event.target, true)}
+        onChange={(event) => refreshField(event.target)}
+        onError={() => { touched.current.clear(); setClientErrors({}); }}>
+        {({ errors: serverErrors, processing, clearErrors }) => {
+          const errors = { ...serverErrors, ...clientErrors };
+          return (<>
             <Stepper current={step} furthest={furthest} onGo={goTo} />
             <Step index={0} current={step}>
               <SectionTitle title="Organizador" hint="Quién organiza y a quién le escribimos." />
@@ -330,7 +353,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
               <div className="grid gap-6 sm:grid-cols-2">
                 <Field label="Comuna" htmlFor="commune" errors={errors} name="commune">
                   <Select name="event[commune]">
-                    <SelectTrigger id="commune" className={selectClass}>
+                    <SelectTrigger aria-invalid={!!errors.commune} aria-describedby={errors.commune ? "commune-error" : undefined} id="commune" className={selectClass}>
                       <SelectValue placeholder="Elige una comuna" />
                     </SelectTrigger>
                     <SelectContent className="site min-h-0 border-border bg-popover text-popover-foreground">
@@ -344,7 +367,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
                 </Field>
                 <Field label="Formato" htmlFor="format" errors={errors} name="format">
                   <Select name="event[format]">
-                    <SelectTrigger id="format" className={selectClass}>
+                    <SelectTrigger aria-invalid={!!errors.format} aria-describedby={errors.format ? "format-error" : undefined} id="format" className={selectClass}>
                       <SelectValue placeholder="Elige un formato" />
                     </SelectTrigger>
                     <SelectContent className="site min-h-0 border-border bg-popover text-popover-foreground">
@@ -357,11 +380,11 @@ export default function New({ days, weekDates, communes, formats, themes, audien
                   </Select>
                 </Field>
                 <Field label="Capacidad" htmlFor="capacity" errors={errors} name="capacity" hint="Cantidad aproximada de asistentes.">
-                  <Input id="capacity" name="event[capacity]" type="number" min={1} placeholder="50" className={inputClass} />
+                  <Input id="capacity" name="event[capacity]" type="number" min={1} max={500000} step={1} placeholder="50" className={inputClass} />
                 </Field>
               </div>
 
-              <LogoField name="event[logo_upload]" label="Logo de la empresa" errors={errors} errorName="logo" />
+              <LogoField onValidation={(input) => refreshField(input, true)} name="event[logo_upload]" label="Logo de la empresa" errors={errors} errorName="logo" />
             </Step>
 
             <Step index={2} current={step}>
@@ -389,7 +412,12 @@ export default function New({ days, weekDates, communes, formats, themes, audien
                   <div key={cohostId} className="flex flex-col gap-6 rounded-sm border border-border p-5">
                     <div className="flex items-center justify-between">
                       <h3 className="font-display text-sm font-extrabold uppercase tracking-[-0.02em]">Co-host {index + 1}</h3>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setCohostIds(cohostIds.filter((id) => id !== cohostId))}>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => {
+                        setCohostIds(cohostIds.filter((id) => id !== cohostId));
+                        touched.current = new Set([...touched.current].filter((key) => !key.startsWith('cohosts[')));
+                        setClientErrors((previous) => Object.fromEntries(Object.entries(previous).filter(([key]) => !key.startsWith('cohosts['))));
+                        clearErrors(...Object.keys(serverErrors).filter((key) => key.startsWith('cohosts[')));
+                      }}>
                         <Trash2 />
                         Quitar
                       </Button>
@@ -414,7 +442,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
                         <Input id={`cohost_${cohostId}_linkedin`} name={`${prefix}[primary_contact_linkedin]`} type="url" placeholder="https://linkedin.com/in/usuario" className={inputClass} />
                       </Field>
                     </div>
-                    <LogoField name={`${prefix}[logo_upload]`} label="Logo de la empresa" errors={errors} errorName={err('company_logo_url')} />
+                    <LogoField onValidation={(input) => refreshField(input, true)} name={`${prefix}[logo_upload]`} label="Logo de la empresa" errors={errors} errorName={err('company_logo_url')} />
                   </div>
                 );
               })}
@@ -432,7 +460,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
               </Button>
             </Step>
 
-            <ErrorStep errors={errors} onGo={goTo} />
+            <ErrorStep errors={serverErrors} onGo={goTo} />
 
             <div className="flex flex-wrap items-center gap-4 border-t border-border pt-8">
               {step > 0 && (
@@ -457,12 +485,12 @@ export default function New({ days, weekDates, communes, formats, themes, audien
               <p className="label w-full text-muted-foreground sm:w-auto sm:flex-1 sm:text-right">
                 Paso {step + 1} de {STEPS.length}
               </p>
-              {Object.keys(errors).length > 0 && (
+              {Object.values(errors).some(Boolean) && (
                 <p className="w-full text-sm text-primary">Revisa los campos marcados: hay datos que faltan o no son válidos.</p>
               )}
             </div>
-          </>
-        )}
+          </>);
+        }}
       </Form>
     </div>
   );

@@ -1,8 +1,11 @@
+import { fillOrganizer, fillEventDetails } from './event-form';
 import { expect, test } from '@playwright/test';
 
 test('rejects small and corrupt logos, accepts a replacement, and checks co-hosts too', async ({ page }) => {
   await page.goto('/events/new');
+  await fillOrganizer(page);
   await page.getByRole('button', { name: 'Continuar' }).click();
+  await fillEventDetails(page);
   const logo = page.getByLabel('Logo de la empresa');
   await logo.setInputFiles('spec/fixtures/files/logo.png');
   await expect(page.getByText(/El logo es muy pequeño/)).toBeVisible();
@@ -17,6 +20,8 @@ test('rejects small and corrupt logos, accepts a replacement, and checks co-host
   await expect(page.getByText(/También aceptamos logos con fondo/)).toBeVisible();
   await page.getByRole('button', { name: 'Continuar' }).click();
   await expect(page.getByText('Paso 3 de 4')).toBeVisible();
+  await page.getByText('Fintech', { exact: true }).click();
+  await page.getByText('Investors', { exact: true }).click();
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('button', { name: 'Agregar co-host' }).click();
   const cohost = page.locator('section[data-step="3"]');

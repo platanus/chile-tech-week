@@ -3,13 +3,14 @@ import { checkLogo, logoPolicy } from '@/lib/logo-upload';
 
 // The browser blocks submission while decoding and on errors. The server repeats the
 // checks against the actual bytes. The same picker handles admin's immediate uploads.
-export function LogoInput({ name, label, error, disabled, required, onFile }: {
+export function LogoInput({ name, label, error, disabled, required, onFile, onValidation }: {
   name?: string;
   label: string;
   error?: string;
   disabled?: boolean;
   required?: boolean;
   onFile?: (file: File) => void;
+  onValidation?: (input: HTMLInputElement) => void;
 }) {
   const id = useId();
   const version = useRef(0);
@@ -29,7 +30,7 @@ export function LogoInput({ name, label, error, disabled, required, onFile }: {
     setDetails(null);
     setProblem(null);
     input.setCustomValidity('');
-    if (!file) { setChecking(false); return; }
+    if (!file) { setChecking(false); onValidation?.(input); return; }
     setChecking(true);
     input.setCustomValidity('Espera mientras revisamos el logo.');
     const result = await checkLogo(file);
@@ -37,6 +38,7 @@ export function LogoInput({ name, label, error, disabled, required, onFile }: {
     setChecking(false);
     setProblem(result.error);
     input.setCustomValidity(result.error ?? '');
+    onValidation?.(input);
     setDetails(`${file.name} · ${Math.ceil(file.size / 1024)} KB${result.width ? ` · ${result.width} × ${result.height} px` : ''}`);
     if (!result.error) {
       setPreview(URL.createObjectURL(file));

@@ -70,20 +70,15 @@ test.describe('the status page', () => {
 });
 
 test.describe('the submission form', () => {
-  test('sends the form back with Spanish errors when it is empty', async ({ page }) => {
+  test('shows required errors immediately and stays on the incomplete step', async ({ page }) => {
     await page.goto('/events/new');
-    // Four steps, nothing filled in: the last one is where the submit lives.
-    for (let step = 0; step < 3; step++) await page.getByRole('button', { name: 'Continuar' }).click();
-    await page.getByRole('button', { name: 'Enviar evento' }).click();
-    // It comes back on the first step the server complained about — the organizer's.
+    let submitted = false;
+    page.on('request', (request) => { if (request.method() === 'POST') submitted = true; });
+    await page.getByRole('button', { name: 'Continuar' }).click();
     await expect(page.getByText('Paso 1 de 4')).toBeVisible();
-    await expect(page.getByText('El nombre de la empresa no puede estar en blanco')).toBeVisible();
-    await page.getByRole('button', { name: 'Evento' }).click();
-    await expect(page.getByText('El título no puede estar en blanco')).toBeVisible();
-    await expect(page.getByText('El logo no puede estar en blanco')).toBeVisible();
-    await page.getByRole('button', { name: 'Temas y audiencias' }).click();
-    await expect(page.getByText('Los temas no puede estar en blanco')).toBeVisible();
-    await expect(page).toHaveURL(/\/events\/new$/);
+    await expect(page.getByLabel('Nombre de la empresa').first()).toBeFocused();
+    await expect(page.locator('#company_name-error')).toHaveText('Completa este campo.');
+    expect(submitted).toBe(false);
   });
 
   test('submits a whole event with a co-host and lands on its status page', async ({ page }) => {
