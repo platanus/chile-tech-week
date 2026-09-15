@@ -87,10 +87,12 @@ main p { max-width: 44ch; line-height: 1.55; font-size: clamp(16px, 1.3vw, 19px)
 #more .organizers-section { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; }
 #more .organizers-section:has(.organizer-mark[data-cutout]) { backdrop-filter: brightness(2) saturate(1.2); -webkit-backdrop-filter: brightness(2) saturate(1.2); }
 #more .organizers-section h2 { max-width: 19ch; overflow-wrap: anywhere; }
-.organizers-grid { list-style: none; padding: 0; margin: 32px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.organizers-grid li { padding: 32px 20px 24px; border-top: 1px solid var(--line); text-align: center; }
+.organizers-grid { list-style: none; padding: 0; margin: 32px 0 0; display: flex; flex-wrap: wrap; justify-content: center; }
+.organizers-grid li { box-sizing: border-box; width: 25%; padding: 32px 20px 24px; border-top: 1px solid var(--line); text-align: center; }
 .organizer-mark { height: 100px; display: flex; align-items: center; justify-content: center; }
 .organizer-mark img { display: block; width: auto; height: auto; max-width: 100%; max-height: 80px; filter: brightness(0) invert(1); }
+.organizer-mark img[src="/organizers/df-mas.webp"] { max-width: 70%; }
+.organizer-mark img[src="/organizers/corfo.webp"] { max-width: 85%; max-height: 68px; }
 /* The SVG paints the section black except for the hovered logo's alpha silhouette. */
 .organizers-backdrop { position: absolute; inset: 0; pointer-events: none; }
 .organizers-section > header, .organizers-grid { position: relative; }
@@ -120,10 +122,11 @@ main p { max-width: 44ch; line-height: 1.55; font-size: clamp(16px, 1.3vw, 19px)
   #more .faq-section h2 { max-width: 20ch; }
 }
 @media (max-width: 600px) {
-  .organizers-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 16px; }
-  .organizers-grid li { padding: 24px 12px; }
+  .organizers-grid { margin-top: 16px; }
+  .organizers-grid li { width: 50%; padding: 24px 12px; }
   .organizer-mark { height: 76px; }
   .organizer-mark img { max-height: 64px; }
+  .organizer-mark img[src="/organizers/corfo.webp"] { max-height: 54px; }
   .faq-list summary { gap: 10px; grid-template-columns: 20px 1fr 16px; }
   #more .faq-list p { margin-left: 30px; margin-right: 0; }
 }

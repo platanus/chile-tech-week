@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react';
 
-// Optimized copies of the /25 logos, independent of archived event/database records.
+// Optimized logos from /25 and official brand sites, independent of archived records.
 const organizers = [
   { name: 'EtMday', file: 'etmday', width: 450, height: 158 },
   { name: 'ACVC', file: 'acvc', width: 480, height: 159 },
@@ -9,7 +9,9 @@ const organizers = [
   { name: 'Fundación Chile', file: 'fundacion-chile', width: 480, height: 106 },
   { name: 'Startups Latam', file: 'startups-latam', width: 452, height: 200 },
   { name: 'CORFO', file: 'corfo', width: 404, height: 131 },
+  { name: 'Start-Up Chile', file: 'startup-chile', width: 480, height: 43 },
   { name: 'Impacta VC', file: 'impacta-vc', width: 480, height: 132 },
+  { name: 'DF MAS', file: 'df-mas', width: 480, height: 146 },
 ];
 
 export function OrganizersSection() {
