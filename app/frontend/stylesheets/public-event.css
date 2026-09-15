@@ -1,0 +1,73 @@
+/* Public event detail, using the shared SiteLayout and Chile Tech Week brand. */
+.public-event { --event-muted: #a3a3a3; --event-faint: #a3a3a3; --event-line: #262626; color: #fff; font-family: var(--font-body); font-size: 17px; line-height: 1.6; }
+.public-event a:focus-visible { outline: 2px solid #ee2b2b; outline-offset: 5px; }
+.public-event a:hover { color: #ee2b2b; }
+.event-back { display: inline-flex; align-items: center; gap: 10px; color: var(--event-muted) !important; font: 11px/1.5 var(--font-mono); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 32px; }
+.event-detail-grid { display: grid; grid-template-columns: minmax(0, .58fr) minmax(0, 1fr); gap: clamp(32px, 4.5vw, 64px); align-items: start; }
+.event-sidebar, .event-content { min-width: 0; }
+.event-cover { aspect-ratio: 1; overflow: hidden; border: 1px solid var(--event-line); border-radius: 2px; background: #0a0a0a; }
+.event-cover > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.event-cover-fallback { height: 100%; display: grid; place-items: center; background: #0a0a0a; }
+.event-cover-fallback img { width: 62%; height: 70%; object-fit: contain; }
+.event-organizer-icon { width: 40px; height: 40px; border-radius: 2px; object-fit: contain; flex-shrink: 0; background: #0a0a0a; }
+.event-organizer-initial { display: grid; place-items: center; font-weight: 600; }
+.public-event .event-summary { margin-top: 18px; color: var(--event-muted); font-size: 15px; line-height: 1.65; overflow-wrap: anywhere; }
+.event-website { display: inline-flex; margin-top: 16px; color: var(--event-muted); }
+.event-organizers { margin-top: 28px; }
+.public-event .event-organizers h2, .public-event .event-about > h2 { font: 11px/1.6 var(--font-mono); text-transform: uppercase; letter-spacing: .12em; color: var(--event-muted); border-bottom: 1px solid var(--event-line); padding-bottom: 13px; }
+.event-organizer-row { display: flex; align-items: center; gap: 12px; padding-top: 15px; font-size: 16px; font-weight: 600; }
+.event-organizer-row .event-organizer-icon { width: 30px; height: 30px; }
+.event-organizer-row > svg { margin-left: auto; color: var(--event-muted); }
+.event-external-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 26px; font: 11px/1.6 var(--font-mono); text-transform: uppercase; letter-spacing: .06em; }
+.event-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.event-tags span { border: 1px solid var(--event-line); border-radius: 2px; padding: 5px 9px; color: var(--event-muted); font: 10px/1.5 var(--font-mono); text-transform: uppercase; }
+.public-event .event-content > h1 { font: 800 clamp(28px, 3vw, 46px)/1.15 var(--font-display); text-transform: uppercase; letter-spacing: -.035em; margin: 0; overflow-wrap: anywhere; text-wrap: balance; }
+.event-facts { display: flex; flex-direction: column; gap: 22px; margin-top: 30px; }
+.event-fact { display: flex; align-items: center; gap: 16px; }
+.event-date-icon, .event-location-icon { width: 48px; height: 50px; flex-shrink: 0; border: 1px solid var(--event-line); border-radius: 2px; color: var(--event-muted); overflow: hidden; }
+.event-date-icon { display: flex; flex-direction: column; align-items: center; }
+.event-date-icon span { width: 100%; text-align: center; font: 9px/19px var(--font-mono); text-transform: uppercase; background: #ee2b2b; color: #fff; }
+.event-date-icon strong { font: 700 20px/29px var(--font-mono); color: #fff; }
+.event-location-icon { display: grid; place-items: center; }
+.public-event .event-fact-title { font-size: 18px; font-weight: 600; line-height: 1.4; }
+.public-event .event-fact-detail { color: var(--event-muted); font: 11px/1.8 var(--font-mono); margin-top: 4px; }
+.event-fact-detail span { white-space: nowrap; }
+.event-register { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; margin-top: 28px; padding: 16px 24px; border: 1px solid #ee2b2b; border-radius: 2px; background: #ee2b2b; color: #fff; font: 800 13px/1.5 var(--font-display); text-transform: uppercase; letter-spacing: .04em; transition: background .15s; }
+.public-event .event-register:hover { background: #ff3d3d; border-color: #ff3d3d; color: #fff; }
+.event-about { margin-top: 34px; }
+.event-markdown { font-size: 17px; line-height: 1.8; overflow-wrap: anywhere; }
+.event-markdown > :first-child { margin-top: 23px; }
+.event-markdown :is(p, ul, ol, blockquote, pre, table, hr) { margin: 20px 0; }
+.event-markdown :is(h1,h2,h3,h4,h5,h6) { font: 800 19px/1.5 var(--font-display); text-transform: uppercase; letter-spacing: -.02em; margin: 28px 0 16px; }
+.event-markdown :is(h3,h4,h5,h6) { font-size: 16px; }
+.event-markdown a { text-decoration: underline; text-underline-offset: 4px; }
+.event-markdown img { display: block; max-width: 100%; height: auto; border-radius: 2px; }
+.event-markdown ul, .event-markdown ol { padding-left: 24px; list-style: disc; }
+.event-markdown ol { list-style: decimal; }
+.event-markdown li + li { margin-top: 7px; }
+.event-markdown blockquote { border-left: 2px solid #ee2b2b; padding-left: 20px; color: var(--event-muted); }
+.event-markdown pre { padding: 16px; border: 1px solid var(--event-line); background: #0a0a0a; overflow-x: auto; font-size: 13px; }
+.event-markdown code { font-family: var(--font-mono); font-size: .85em; }
+.event-markdown table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.event-markdown :is(th,td) { border: 1px solid var(--event-line); padding: 8px 12px; }
+.event-markdown hr { border: 0; border-top: 1px solid var(--event-line); }
+@media (max-width: 900px) and (min-width: 701px) {
+  .event-detail-grid { grid-template-columns: minmax(0, .65fr) minmax(0, 1fr); gap: 28px; }
+  .public-event .event-content > h1 { font-size: 28px; }
+}
+@media (max-width: 700px) {
+  .site:has(.public-event) > header { flex-wrap: wrap; }
+  .event-back { margin-bottom: 22px; font-size: 10px; }
+  .event-detail-grid { display: flex; flex-direction: column; gap: 26px; }
+  .event-sidebar { display: contents; }
+  .event-cover { width: min(100%, 420px); align-self: center; order: 0; }
+  .event-content { order: 1; width: 100%; }
+  .event-summary, .event-website, .event-organizers, .event-external-link, .event-tags { order: 2; margin-top: 0 !important; }
+  .event-organizers { width: 100%; }
+  .public-event .event-content > h1 { font-size: clamp(25px, 6vw, 34px); }
+  .event-fact { gap: 12px; }
+  .public-event .event-fact-title { font-size: 16px; }
+  .public-event .event-fact-detail { font-size: 10px; }
+  .event-markdown { font-size: 16px; }
+  .event-markdown :is(h1,h2,h3,h4,h5,h6) { font-size: 16px; }
+}

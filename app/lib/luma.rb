@@ -15,14 +15,14 @@ module Luma
   # One Luma event, as the API returns it. `cover_url` is the artwork the host uploads while
   # editing on Luma (an images.lumacdn.com link) — what the programme shows for the event.
   # Everything but the id is optional: the fake client and the specs build partial events.
-  Event = Data.define(:api_id, :name, :start_at, :end_at, :url, :visibility, :cover_url) do
-    def initialize(api_id:, name: nil, start_at: nil, end_at: nil, url: nil, visibility: nil, cover_url: nil)
+  Event = Data.define(:api_id, :name, :start_at, :end_at, :url, :visibility, :cover_url, :description_md) do
+    def initialize(api_id:, name: nil, start_at: nil, end_at: nil, url: nil, visibility: nil, cover_url: nil, description_md: nil)
       super
     end
 
     def self.from_api(hash)
       new(api_id: hash["api_id"], name: hash["name"], start_at: hash["start_at"], end_at: hash["end_at"],
-        url: hash["url"], visibility: hash["visibility"], cover_url: hash["cover_url"])
+        url: hash["url"], visibility: hash["visibility"], cover_url: hash["cover_url"], description_md: hash["description_md"])
     end
   end
 

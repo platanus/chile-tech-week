@@ -19,7 +19,7 @@ function attachLayout(name: string, page: ResolvedComponent): ResolvedComponent 
   if (page.default.layout) return page;
   if (name.startsWith('Edition2025/')) {
     page.default.layout = (content) => createElement(Edition2025Layout, null, content);
-  } else if (name.startsWith('Events/')) {
+  } else if ((name.startsWith('Events/') || name.startsWith('PublicEvents/'))) {
     page.default.layout = (content) => createElement(SiteLayout, null, content);
   } else if (name.startsWith('Admin/') && !name.startsWith('Admin/Sessions/')) {
     page.default.layout = (content) => createElement(AdminLayout, null, content);

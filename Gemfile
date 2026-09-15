@@ -30,7 +30,7 @@ gem "devise-i18n"
 gem "rails-i18n", "~> 8.0"
 
 # Misc
-gem "ruby-vips", "~> 2.2", require: "vips"
+gem "ruby-vips", "~> 2.3", require: "vips"
 gem "strong_migrations"
 gem "meta-tags", "~> 2.22"
 
@@ -56,3 +56,5 @@ group :development do
   gem "standard", ">= 1.35.1", require: false
   gem "standard-rails", require: false
 end
+
+gem "commonmarker", "~> 2.0"

@@ -51,6 +51,54 @@ RSpec.describe Luma::Sync do
     expect(event.reload.luma_event_url).to eq("https://luma.com/new-slug")
   end
 
+  %w[waiting_luma_edit published].each do |state|
+    it "backfills and refreshes the full Markdown body for #{state} events without changing the summary or emailing" do
+      event = linked(state: state)
+      summary = event.description
+      body = "# Sobre el evento\n\n#{"Descripción larga. " * 40}\n\n- **Charlas**\n- [Programa](https://techweek.cl/events)\n\n![Foto](https://images.lumacdn.com/photo.png)"
+      client.update_event(event.luma_event_api_id, description_md: body)
+
+      outcome = nil
+      expect { outcome = described_class.new(client: client).call }.not_to have_enqueued_mail
+      expect(outcome.updated).to eq(1)
+      expect(event.reload).to have_attributes(luma_description_md: body, description: summary)
+
+      expect { described_class.new(client: client).call }.not_to change { event.reload.updated_at }
+
+      client.update_event(event.luma_event_api_id, description_md: "## Nuevo programa\n\nNos vemos mañana.")
+      described_class.new(client: client).call
+      expect(event.reload.luma_description_md).to eq("## Nuevo programa\n\nNos vemos mañana.")
+    end
+  end
+
+  it "clears the stored body when the host empties it on Luma" do
+    event = linked(luma_description_md: "Old body")
+    client.update_event(event.luma_event_api_id, description_md: "")
+
+    expect(described_class.new(client: client).call.updated).to eq(1)
+    expect(event.reload.luma_description_md).to eq("")
+  end
+
+  it "preserves the stored body when Luma omits it, even when other fields change" do
+    event = linked(luma_description_md: "Keep this body")
+    client.update_event(event.luma_event_api_id, url: "https://luma.com/new-slug")
+
+    described_class.new(client: client).call
+
+    expect(event.reload).to have_attributes(luma_description_md: "Keep this body", luma_event_url: "https://luma.com/new-slug")
+  end
+
+  it "stores the Markdown body returned by the HTTP client" do
+    event = linked
+    body = "## Agenda\n\n- Bienvenida\n- **Demo**"
+    stub_request(:get, "https://public-api.luma.com/v1/event/get?api_id=#{event.luma_event_api_id}")
+      .to_return(status: 200, body: {event: {api_id: event.luma_event_api_id, description_md: body}}.to_json)
+
+    described_class.new(client: Luma::Client.new("luma-key")).call
+
+    expect(event.reload.luma_description_md).to eq(body)
+  end
+
   it "takes down an event cancelled on Luma and tells the host" do
     event = linked(state: "published")
     client.cancel(event.luma_event_api_id)

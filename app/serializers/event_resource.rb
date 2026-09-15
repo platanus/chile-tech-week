@@ -7,6 +7,11 @@ class EventResource < ApplicationResource
     :starts_at, :ends_at, :commune, :format, :capacity
 
   typelize :string?
+  attribute :public_url do |event|
+    public_event_path(slug: event.slug) if event.slug.present?
+  end
+
+  typelize :string?
   attribute :registration_url, &:registration_url
 
   # The event's picture: our mirror of the Luma cover, else Luma's own URL (see

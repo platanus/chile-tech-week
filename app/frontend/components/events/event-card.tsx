@@ -1,12 +1,11 @@
+import { Link } from '@inertiajs/react';
 import { ArrowUpRight, MapPin } from 'lucide-react';
 import type { Event } from '@/types';
 import { formatDateRange, formatTime } from './dates';
 import { FORMAT_LABELS } from './formats';
 
 // One row of the programme: the day and time on the left, the title, who hosts it, its
-// format and commune, and the event's own artwork from Luma on the right. Links out to
-// where people register (the host's page or the Luma event); there is no event page of its
-// own. A row without a cover simply drops the column — an empty frame would read as broken.
+// format and commune, and the event artwork. Opens our public event page when available.
 export function EventCard({ event }: { event: Event }) {
   const organizers = [event.companyName, ...event.cohosts.map((c) => c.companyName)].join(' + ');
 
@@ -21,7 +20,7 @@ export function EventCard({ event }: { event: Event }) {
       <div className="flex min-w-0 flex-col gap-2">
         <h3 className="font-display text-base font-extrabold uppercase leading-tight tracking-[-0.02em] transition-colors group-hover:text-primary md:text-lg">
           {event.title}
-          {event.registrationUrl && (
+          {(event.publicUrl || event.registrationUrl) && (
             <ArrowUpRight className="ml-1 inline size-4 align-[-2px] text-muted-foreground transition-colors group-hover:text-primary" />
           )}
         </h3>
@@ -51,6 +50,10 @@ export function EventCard({ event }: { event: Event }) {
   );
 
   const classes = 'group block border-b border-border py-5 first:border-t';
+
+  if (event.publicUrl) {
+    return <Link href={event.publicUrl} className={classes} data-testid="event-card">{body}</Link>;
+  }
 
   if (!event.registrationUrl) {
     return (

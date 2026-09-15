@@ -11,6 +11,13 @@ class Event < ApplicationRecord
   # the Luma event the site created) → published. Deleted is the host's own withdrawal.
   STATES = %w[submitted rejected waiting_luma_edit published deleted].freeze
 
+  # Root-level event URLs must not collide with application routes.
+  RESERVED_SLUGS = %w[events admin brand luma luma-cover opengraph up rails assets
+    flock cable vite-dev vite-test vite favicon robots sitemap 25].freeze
+
+  before_create :assign_public_slug
+  attr_readonly :slug
+
   # An international number: "+56 9 8765 4321", spaces and dashes allowed.
   PHONE_FORMAT = /\A\+[1-9][\d\s-]{6,20}\z/
   HTTPS_URL = %r{\Ahttps://[^\s/$.?#].[^\s]*\z}i
@@ -95,6 +102,20 @@ class Event < ApplicationRecord
   end
 
   private
+
+  def assign_public_slug
+    base = title.to_s.parameterize.truncate(100, omission: "").sub(/-+\z/, "").presence || "evento"
+    # Creates run in a transaction. Serialize equal titles so simultaneous submissions
+    # cannot select the same URL; the unique index remains the final safeguard.
+    self.class.connection.execute("SELECT pg_advisory_xact_lock(#{Zlib.crc32("event-slug:#{base}")})")
+    candidate = base
+    suffix = 1
+    while RESERVED_SLUGS.include?(candidate) || self.class.exists?(slug: candidate)
+      suffix += 1
+      candidate = "#{base}-#{suffix}"
+    end
+    self.slug = candidate
+  end
 
   def within_the_week
     return if week.blank?

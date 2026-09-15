@@ -21,6 +21,7 @@ Rails.application.routes.draw do
 
   # The OpenGraph image as a 1200×630 stage to screenshot.
   get "opengraph", to: "opengraph#show", as: :opengraph
+  get "luma-cover", to: "luma_cover#show", as: :luma_cover
 
   # The 2025 edition, kept as it ran on the old site: its landing, its programme and its
   # brand kit (Edition2025::*Controller, pages/Edition2025/*).
@@ -60,4 +61,8 @@ Rails.application.routes.draw do
 
   # Solid Queue dashboard, only when its basic-auth credentials are configured.
   mount MissionControl::Jobs::Engine, at: "/admin/jobs" if AppConfig.instance.mission_control?
+
+  # Keep last: the host's UUID status page and every named application route take priority.
+  get ":slug/opengraph", to: "public_event_opengraph#show", as: :public_event_opengraph, constraints: {slug: /[a-z0-9]+(?:-[a-z0-9]+)*/}
+  get ":slug", to: "public_events#show", as: :public_event, constraints: {slug: /[a-z0-9]+(?:-[a-z0-9]+)*/}
 end

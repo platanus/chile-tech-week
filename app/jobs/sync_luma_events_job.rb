@@ -1,6 +1,5 @@
-# Every 10 minutes: mirrors what hosts changed on Luma (title, dates, URL) into the events
-# awaiting edit or published, and takes down the ones cancelled there. Filled in by the
-# main session; this is the contract the admin's task page runs.
+# Every 10 minutes: mirrors what hosts changed on Luma (title, dates, URL, cover and Markdown
+# body) into the events awaiting edit or published, and takes down the ones cancelled there.
 class SyncLumaEventsJob < ApplicationJob
   include RecordsTaskRun
 

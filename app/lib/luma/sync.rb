@@ -1,7 +1,7 @@
 module Luma
   # Mirrors the host's Luma edits into the events awaiting edit or published: title, dates,
-  # URL and the cover artwork. An event cancelled on Luma is taken down here too. The host
-  # hears about visible changes (not a bare URL or cover change) and about the takedown.
+  # URL, cover artwork and full Markdown body. An event cancelled on Luma is taken down here
+  # too. The host hears about title/date changes and about the takedown.
   class Sync
     Outcome = Data.define(:synced, :updated, :cancelled, :failed)
 
@@ -45,14 +45,17 @@ module Luma
       changes[:ends_at] = {old: event.ends_at, new: ends_at} if ends_at && ends_at != event.ends_at
       url_changed = remote.url.present? && remote.url != event.luma_event_url
       cover_changed = remote.cover_url.present? && remote.cover_url != event.luma_cover_url
-      return :unchanged if changes.empty? && !url_changed && !cover_changed
+      # Missing/null means unavailable; an empty string means the host cleared the body.
+      description_changed = !remote.description_md.nil? && remote.description_md != event.luma_description_md
+      return :unchanged if changes.empty? && !url_changed && !cover_changed && !description_changed
 
       event.update!(
         title: changes.key?(:title) ? remote.name : event.title,
         starts_at: starts_at || event.starts_at,
         ends_at: ends_at || event.ends_at,
         luma_event_url: remote.url.presence || event.luma_event_url,
-        luma_cover_url: remote.cover_url.presence || event.luma_cover_url
+        luma_cover_url: remote.cover_url.presence || event.luma_cover_url,
+        luma_description_md: description_changed ? remote.description_md : event.luma_description_md
       )
       # New artwork: fetch our own copy. The host is not told — the picture is theirs.
       MirrorLumaCoverJob.perform_later(event.id, event.luma_cover_url) if cover_changed

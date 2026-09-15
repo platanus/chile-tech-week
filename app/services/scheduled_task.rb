@@ -27,7 +27,7 @@ end
 
 ScheduledTask::ALL = [
   ScheduledTask.new(id: "sync-luma-events", schedule: "cada 10 minutos", job_class: "SyncLumaEventsJob",
-    description: "Trae de Luma los cambios de título, fechas y URL de los eventos aprobados; da de baja los cancelados."),
+    description: "Trae de Luma los cambios de título, fechas, URL, portada y descripción de los eventos aprobados; da de baja los cancelados."),
   ScheduledTask.new(id: "luma-reminder", schedule: "todos los días a las 10:00", job_class: "LumaReminderJob",
     description: "Recuerda a los organizadores que llevan más de un día sin publicar su evento de Luma.")
 ].freeze

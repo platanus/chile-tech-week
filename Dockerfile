@@ -6,7 +6,7 @@ FROM ruby:${RUBY_VERSION}-alpine AS build
 # Cache mount (not --no-cache) so the apk package index/downloads persist across
 # builds instead of being re-fetched from scratch every time.
 RUN --mount=type=cache,id=apk-build,target=/var/cache/apk \
-    apk add build-base postgresql-dev tzdata bash yaml-dev git nodejs npm vips
+    apk add build-base postgresql-dev tzdata bash yaml-dev git nodejs npm vips pango fontconfig
 
 ENV RAILS_ENV=production \
     NODE_ENV=production
@@ -43,9 +43,10 @@ FROM ruby:${RUBY_VERSION}-alpine AS app
 # nodejs: the inertia_ssr Puma plugin spawns `node public/vite-ssr/ssr.js` alongside the
 # Rails process, so the runtime image needs a node binary too, not just the build stage.
 RUN --mount=type=cache,id=apk-app,target=/var/cache/apk \
-    apk add postgresql-client tzdata bash yaml nodejs vips
+    apk add postgresql-client tzdata bash yaml nodejs vips pango fontconfig
 
-ENV RAILS_ENV=production \
+ENV PANGOCAIRO_BACKEND=fc \
+    RAILS_ENV=production \
     RAILS_LOG_TO_STDOUT=true \
     RAILS_SERVE_STATIC_FILES=true
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_06_200100) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -107,6 +107,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_200100) do
     t.timestamptz "logo_shown_at"
     t.decimal "longitude", precision: 11, scale: 8
     t.string "luma_cover_url"
+    t.text "luma_description_md"
     t.string "luma_event_api_id"
     t.timestamptz "luma_event_created_at"
     t.string "luma_event_url"
@@ -114,6 +115,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_200100) do
     t.timestamptz "published_at"
     t.timestamptz "rejected_at"
     t.text "rejection_reason"
+    t.string "slug"
     t.timestamptz "starts_at", null: false
     t.string "state", default: "submitted", null: false
     t.timestamptz "submitted_at", default: -> { "now()" }, null: false
@@ -123,6 +125,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_200100) do
     t.index ["edition", "starts_at"], name: "index_events_on_edition_and_starts_at"
     t.index ["edition", "state"], name: "index_events_on_edition_and_state"
     t.index ["public_id"], name: "index_events_on_public_id", unique: true
+    t.index ["slug"], name: "index_events_on_slug", unique: true
   end
 
   create_table "outbound_emails", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

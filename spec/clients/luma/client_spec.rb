@@ -32,6 +32,15 @@ RSpec.describe Luma::Client do
     expect(update).to have_been_requested
   end
 
+  it "reads Markdown from an unwrapped event response, including an empty body" do
+    stub_request(:get, "https://public-api.luma.com/v1/event/get?api_id=evt-1")
+      .to_return(status: 200, body: {api_id: "evt-1", description_md: "## Agenda\n\n**Demo**"}.to_json)
+      .then.to_return(status: 200, body: {api_id: "evt-1", description_md: ""}.to_json)
+
+    expect(client.get_event("evt-1").description_md).to eq("## Agenda\n\n**Demo**")
+    expect(client.get_event("evt-1").description_md).to eq("")
+  end
+
   it "raises Luma::NotFound with the cancellation on a 404, Luma::Error otherwise" do
     stub_request(:get, "https://public-api.luma.com/v1/event/get?api_id=gone").to_return(status: 404, body: "event was canceled")
     stub_request(:get, "https://public-api.luma.com/v1/event/get?api_id=bad").to_return(status: 500, body: "boom")

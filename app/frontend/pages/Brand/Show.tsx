@@ -1,7 +1,8 @@
+import { Link } from '@inertiajs/react';
 import { COLORS, FONTS, FONTS_LINK, MARKS, RED, VARIANTS, markDownload, markFile, type Mark } from '@/brand/kit';
 import { BrandFrame, Chip, SURFACE, Section, useCopy } from '@/components/brand/frame';
 import { Wireframe } from '@/components/brand/wireframe';
-import { brand_icon_path, brand_wireframe_path } from '@/routes';
+import { brand_icon_path, brand_wireframe_path, luma_cover_path } from '@/routes';
 import type { BrandShow } from '@/types';
 
 // /brand: the 2026 brand kit. The marks (public/brand, built by npm run brand:marks) in
@@ -95,6 +96,9 @@ export default function Show({ title, description }: BrandShow) {
               {name}
             </a>
           ))}
+          <Link href={luma_cover_path()} className="text-(--red) no-underline hover:text-white">
+            Portada Luma →
+          </Link>
         </nav>
       </Section>
 
