@@ -2,8 +2,8 @@
 // that drives the exact same key state the keyboard does — window.condorScene.flock.keys — so
 // updateCondor() and the flock's network reporting see no difference between a key press and a
 // drag. `body.touch-ui` (toggled here from the same media query) is what the rest of the game
-// UI keys off to go minimal: no map to teleport with a tap, no keyboard legend, a compact pilot
-// corner (see landing.css and flock/hud.ts).
+// UI keys off: the map below exit, no keyboard legend, and a compact pilot corner
+// (see landing.css and flock/hud.ts).
 //
 // Left of it, under the other thumb, a spring-loaded throttle lever. Pushing it up feeds
 // window.condorScene.setThrottle() a 0…1 that covers the whole range a desktop pilot scrolls

@@ -285,17 +285,28 @@ body.game #throttle { pointer-events: auto; } /* like the joystick: interactive 
   box-shadow: 0 0 calc(var(--t) * 15px) rgb(238 43 43 / calc(var(--t) * .9)); }
 @media (max-height: 520px) { #throttle .track { height: 104px; } } /* landscape: down to the joystick's own height */
 
-/* ---- touch layout: no map to tap-teleport with (a finger can't hover it), no keyboard legend,
-   the exit button shrinks to a bare ✕ top-left so the pilot corner and the search glass — moved
-   up beside it — have the top-right to themselves */
+/* ---- touch layout: the map sits below exit, near the left edge. Search sits next to
+   exit, with its panel underneath and to the right of the map. */
+body.touch-ui #gameui { --map-h: min(260px, 28svh); --touch-map-top: 62px; --touch-header-h: 44px; }
+/* Short landscape screens leave room for the throttle below the map. */
+@media (max-height: 520px) {
+  body.touch-ui #gameui { --map-h: min(28svh, max(32px, calc(100svh - 262px))); }
+}
 body.touch-ui #help { display: none; }
-body.touch-ui #minimap { visibility: hidden; } /* not display:none: buildMinimap() reads its clientHeight every frame */
-body.touch-ui #exit { left: 14px; right: auto; top: 14px; padding: 9px 11px; }
+body.touch-ui #minimap { top: var(--touch-map-top); left: 6px; right: auto; bottom: auto; }
+body.touch-ui #exit { left: 14px; right: auto; top: 14px; width: var(--touch-header-h); height: var(--touch-header-h);
+  box-sizing: border-box; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1; }
 body.touch-ui #exit .lbl { display: none; }
-body.touch-ui #search-btn { top: 14px; right: 14px; bottom: auto; }
-body.touch-ui #search { top: 58px; right: 14px; bottom: auto; left: auto; width: min(280px, calc(100vw - 28px)); max-height: 50vh; }
-body.touch-ui #pilot { top: 58px; right: 14px; font-size: 10px; }
-body.touch-ui #search:not([hidden]) ~ #pilot { display: none; } /* the two would otherwise overlap, top right */
+body.touch-ui #search-btn { top: 14px; left: calc(14px + var(--touch-header-h) + 8px); right: auto; bottom: auto; width: var(--touch-header-h); height: var(--touch-header-h); }
+body.touch-ui #search { top: 62px; left: max(66px, calc(var(--map-w) + 18px)); right: auto; bottom: auto;
+  width: min(280px, calc(100vw - var(--map-w) - 40px)); max-height: 50svh; }
+body.touch-ui #pilot { top: 14px; right: 14px; font-size: 10px; }
+body.touch-ui #pilot > .row { height: var(--touch-header-h); max-width: calc(100vw - 140px); min-width: 0; }
+body.touch-ui #pilot-color { flex-shrink: 0; }
+body.touch-ui #pilot-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.touch-ui #pilot > .row input { min-width: 0; box-sizing: border-box; }
+/* Keep the current pilot in the header; hide only the details that would cover search. */
+body.touch-ui #search:not([hidden]) ~ #pilot > :not(.row) { display: none; }
 
 /* peak names: a mono label above a 1px red tick that ends on the summit vertex */
 #peaks { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .4s ease; }
