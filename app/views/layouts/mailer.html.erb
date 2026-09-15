@@ -3,31 +3,52 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%= @subject || "Chile Tech Week" %></title>
+    <meta name="color-scheme" content="dark">
+    <meta name="supported-color-schemes" content="dark">
+    <title><%= message.subject.presence || "Chile Tech Week" %></title>
+    <style>
+      table { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+      @media only screen and (max-width: 480px) {
+        .mail-outer { padding: 16px 8px !important; }
+        .mail-content { padding: 24px 20px !important; }
+      }
+    </style>
   </head>
-  <body style="margin:0;padding:0;background:#000;color:#fff;font-family:Syne,Inter,-apple-system,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#000;">
+  <% week = @event&.week %>
+  <body style="margin:0;padding:0;background:#000;color:#fff;font-family:Syne,Inter,-apple-system,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#000000" style="background:#000;">
       <tr>
-        <td align="center" style="padding:32px 16px;">
-          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border:1px solid #262626;border-radius:2px;background:#000;">
+        <td align="center" class="mail-outer" style="padding:32px 16px;">
+          <!--[if mso]><table role="presentation" width="600" align="center"><tr><td><![endif]-->
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" bgcolor="#000000" style="max-width:600px;width:100%;border:1px solid #262626;border-top:4px solid #ee2b2b;border-radius:2px;background:#000;">
             <tr>
-              <td style="padding:24px 28px;border-bottom:1px solid #262626;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.02em;color:#fff;">
-                CLTW<span style="color:#ee2b2b;">26</span>
-                <span style="float:right;font-family:'Space Mono',Menlo,monospace;font-weight:400;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#a3a3a3;">16 al 22 de noviembre</span>
+              <td class="mail-content" style="padding:32px 28px;border-bottom:1px solid #262626;">
+                <% if week&.year == 2026 %>
+                  <a href="<%= site_url %>" style="text-decoration:none;color:#fff;">
+                    <img src="<%= site_url.chomp('/') %>/brand/logo-horizontal.png" alt="Chile Tech Week 2026" width="400" style="display:block;width:100%;max-width:400px;height:auto;border:0;color:#fff;font-family:Helvetica,Arial,sans-serif;font-weight:800;font-size:20px;">
+                  </a>
+                <% else %>
+                  <p style="margin:0;font-family:Unbounded,Inter,Helvetica,Arial,sans-serif;font-weight:800;font-size:24px;line-height:1.2;text-transform:uppercase;color:#fff;">Chile Tech Week <%= week&.year %></p>
+                <% end %>
+                <% if week %>
+                  <p style="margin:20px 0 0;font-family:'Space Mono',Menlo,Consolas,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#a3a3a3;"><%= week.dates_label %> · Chile</p>
+                <% end %>
               </td>
             </tr>
             <tr>
-              <td style="padding:28px;">
+              <td class="mail-content" style="padding:32px 28px;overflow-wrap:anywhere;word-break:break-word;">
                 <%= yield %>
               </td>
             </tr>
             <tr>
-              <td style="padding:20px 28px;border-top:1px solid #262626;font-family:'Space Mono',Menlo,monospace;font-size:11px;letter-spacing:.06em;color:#a3a3a3;">
-                Chile Tech Week 2026 · <a href="<%= site_url %>" style="color:#a3a3a3;">techweek.cl</a> · ¿Dudas? Escríbenos a <a href="mailto:<%= contact_email %>" style="color:#fff;">
-                <%= contact_email %></a>
+              <td class="mail-content" style="padding:24px 28px;border-top:1px solid #262626;">
+                <p style="margin:0 0 12px;font-family:'Space Mono',Menlo,Consolas,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a3a3a3;">Chile Tech Week <%= week&.year %></p>
+                <p style="margin:0 0 8px;font-size:13px;color:#a3a3a3;">¿Dudas? Escríbenos a <a href="mailto:<%= contact_email %>" style="color:#fff;text-decoration:underline;"><%= contact_email %></a></p>
+                <a href="<%= site_url %>" style="font-size:13px;color:#a3a3a3;text-decoration:underline;">techweek.cl</a>
               </td>
             </tr>
           </table>
+          <!--[if mso]></td></tr></table><![endif]-->
         </td>
       </tr>
     </table>

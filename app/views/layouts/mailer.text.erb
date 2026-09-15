@@ -1,7 +1,8 @@
-CHILE TECH WEEK 2026 · 16 al 22 de noviembre
+<% week = @event&.week %>
+CHILE TECH WEEK <%= week&.year %><% if week %> · <%= week.dates_label %><% end %>
 
 <%= yield %>
 
 —
-Chile Tech Week 2026 · <%= site_url %>
+Chile Tech Week <%= week&.year %> · <%= site_url %>
 ¿Dudas? Escríbenos a <%= contact_email %>

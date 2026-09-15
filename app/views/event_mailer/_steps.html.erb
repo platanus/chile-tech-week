@@ -3,7 +3,7 @@
   <% steps.each_with_index do |step, i| %>
     <% n = i + 1 %>
     <% state = (n < current) ? :done : ((n == current) ? :current : :pending) %>
-    <tr><td style="padding:7px 0;border-top:1px solid #262626;color:<%= {done: "#a3a3a3", current: "#fff", pending: "#525252"}[state] %>;">
+    <tr><td style="padding:10px 0;border-top:1px solid #262626;color:<%= {done: "#a3a3a3", current: "#fff", pending: "#a3a3a3"}[state] %>;">
       <%= {done: "✓", current: "→", pending: "○"}[state] %> <%= n %>. <%= step.upcase %><%= " — EN CURSO" if state == :current %>
     </td></tr>
   <% end %>
