@@ -56,12 +56,12 @@ RSpec.describe "admin emails" do
 
     it "reports a failure" do
       email = create(:outbound_email)
-      allow(OutboundEmail::Delivery).to receive(:send_stored).and_raise(StandardError, "Resend down")
+      allow(OutboundEmail::Delivery).to receive(:send_stored).and_raise(StandardError, "SMTP unavailable")
 
       post "/admin/25/emails/#{email.id}/resend"
 
       follow_redirect!
-      expect(inertia).to have_flash(alert: "No se pudo reenviar: Resend down")
+      expect(inertia).to have_flash(alert: "No se pudo reenviar: SMTP unavailable")
     end
   end
 end

@@ -207,8 +207,8 @@ archive is that year's week, under `/25`.
   week is only in their URL. Functional and light on purpose.
 - **Mail**: `EventMailer` (Spanish, `app/views/event_mailer`), delivered by
   `OutboundEmail::Delivery` — the Action Mailer delivery method in every environment — which
-  logs each message as an `OutboundEmail` row and sends it through Resend's HTTP API
-  (`ResendClient`, `app/clients/`). `SEND_EMAILS=false` (the default outside production) logs the message as
+  logs each message as an `OutboundEmail` row and sends it through Mailgun SMTP
+  (`OutboundEmailMailer`, `app/mailers/`). `SEND_EMAILS=false` (the default outside production) logs the message as
   sent with a mock id and sends nothing; outside production a real send goes to
   `EMAIL_CATCH_ALL` instead of the recipient. Specs assert on `OutboundEmail` rows and
   `have_enqueued_mail`.
@@ -228,7 +228,7 @@ archive is that year's week, under `/25`.
   sample programme for `Week.current`. Specs get the same two weeks from
   `spec/support/weeks.rb` — a database loaded from `db/schema.rb` has none.
 - **Settings** (all through `AppConfig`, sampled in `.env.sample`): `LUMA_API_KEY`, `LUMA_COVER_URL`,
-  `LUMA_ALLOWED_COHOST_DEV`, `SEND_EMAILS`, `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
+  `LUMA_ALLOWED_COHOST_DEV`, `SEND_EMAILS`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
   `EMAIL_CATCH_ALL`, `CONTACT_EMAIL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL`.
 - **End-to-end**: Playwright specs under `e2e/` run against a live dev stack —
   `PLAYWRIGHT_BASE_URL=http://localhost:$PORT npm run e2e` (Chromium via

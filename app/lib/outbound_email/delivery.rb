@@ -1,11 +1,13 @@
 class OutboundEmail
   # The Action Mailer delivery method (`config.action_mailer.delivery_method = :outbound`):
-  # every message becomes an OutboundEmail row, then goes out through Resend — or, when
+  # every message becomes an OutboundEmail row, then goes out through SMTP — or, when
   # sending is off (SEND_EMAILS=false, the default outside production), is marked sent with a
   # mock id so the log still shows what would have gone. Outside production the recipient
   # is replaced by EMAIL_CATCH_ALL. Failures are recorded on the row and re-raised so the
   # mail job retries.
   class Delivery
+    class Error < StandardError; end
+
     MOCK_MESSAGE_ID = "dev-mock-id".freeze
 
     def initialize(_settings = {})
@@ -42,16 +44,10 @@ class OutboundEmail
         return record
       end
 
-      to = Rails.env.production? ? record.to : config.email_catch_all.presence
-      raise ResendClient::Error, "EMAIL_CATCH_ALL must be set to send mail outside production" if to.blank?
-
-      id = ResendClient.new(config.resend_api_key).send_email(
-        from: config.email_from, to: to, subject: record.subject, html: record.html_content, text: record.text_content,
-        cc: Rails.env.production? ? record.cc : nil, bcc: Rails.env.production? ? record.bcc : nil, reply_to: config.email_reply_to
-      )
-      record.mark_sent!(id)
+      message = OutboundEmailMailer.queued(record, config: config).deliver_now
+      record.mark_sent!(message.message_id)
       record
-    rescue ResendClient::Error => e
+    rescue => e
       record.mark_failed!(e.message)
       raise
     end

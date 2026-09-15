@@ -1,5 +1,5 @@
-# Every email the app sent, or tried to: the rendered message, who it went to and what Resend
-# answered. Written by OutboundEmail::Delivery (the Action Mailer delivery method); read by
+# Every email the app sent, or tried to: the rendered message, who it went to and the SMTP delivery
+# outcome. Written by OutboundEmail::Delivery (the Action Mailer delivery method); read by
 # the admin's email log, which can resend any of them.
 class OutboundEmail < ApplicationRecord
   STATUSES = %w[queued pending sent failed].freeze

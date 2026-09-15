@@ -23,12 +23,15 @@ class AppConfig < Anyway::Config
     # The public Luma calendar every published event ends up in.
     luma_calendar_url: "https://lu.ma/cltw",
 
-    # Mail goes out through Resend's HTTP API (OutboundEmail::Delivery). SEND_EMAILS=false keeps
+    # Mail goes out through SMTP (Mailgun by default). SEND_EMAILS=false keeps
     # the outbound log but sends nothing — the default outside production.
-    resend_api_key: "",
+    smtp_host: "smtp.mailgun.org",
+    smtp_port: 587,
+    smtp_user: "",
+    smtp_password: "",
     send_emails: false,
-    email_from: "Chile Tech Week <hola@techweek.cl>",
-    email_reply_to: "hola@techweek.cl",
+    email_from: "Chile Tech Week 2026 <events@techweek.cl>",
+    email_reply_to: "hello@techweek.cl",
     # Outside production every message is redirected here instead of its real recipient.
     email_catch_all: "",
     contact_email: "hola@techweek.cl",
@@ -38,12 +41,25 @@ class AppConfig < Anyway::Config
     slack_channel: ""
   )
 
-  coerce_types send_emails: :boolean
+  coerce_types send_emails: :boolean, smtp_port: :integer
 
   # One instance for the process (`AppConfig.instance.site_url`); specs that need a different
   # value stub it: `allow(AppConfig).to receive(:instance).and_return(AppConfig.new(...))`.
   def self.instance
     @instance ||= new
+  end
+
+  def smtp_settings
+    {
+      address: smtp_host.presence,
+      port: smtp_port,
+      user_name: smtp_user.presence,
+      password: smtp_password.presence,
+      authentication: :plain,
+      enable_starttls: true,
+      open_timeout: 5,
+      read_timeout: 20
+    }
   end
 
   def mission_control?
