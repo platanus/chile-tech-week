@@ -74,7 +74,7 @@ footer a:hover { color: var(--ink); }
 /* ---- game-mode UI */
 #gameui { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
 body.game #gameui { opacity: 1; }
-#exit { position: absolute; top: 18px; right: 18px; pointer-events: auto; cursor: pointer; padding: 8px 14px; border-radius: 2px;
+#exit { position: absolute; top: 18px; left: 18px; pointer-events: auto; cursor: pointer; padding: 8px 14px; border-radius: 2px;
   border: 1px solid var(--line); background: rgba(0,0,0,.6); color: var(--ink); font: 12px var(--mono); }
 body.game #exit { pointer-events: auto; }
 #exit:focus:not(:focus-visible) { outline: none; }
@@ -114,11 +114,11 @@ body.game #search:not([hidden]) { pointer-events: auto; }
 #search li.active, #search li:hover { background: rgba(238,43,43,.12); }
 #search li span { color: #777; white-space: nowrap; font-size: 11px; }
 #search li.empty { color: #666; cursor: default; }
-/* the pilot (multiplayer): top right under the exit button. The name and dot take the pilot's
+/* the pilot (multiplayer): top right, opposite the exit button. The name and dot take the pilot's
    colour (--pilot); the swatch row is hidden behind the dot; under them the nearest condors, one
    line each (name · heading arrow · km · climb arrow · m), and the button that counts the flock
    and opens the roster */
-#pilot { position: absolute; right: 18px; top: 62px; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+#pilot { position: absolute; right: 18px; top: 18px; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
   font: 12px/1.55 var(--mono); color: var(--gray); text-align: right; opacity: 0; transition: opacity .3s ease; }
 #pilot.ready { opacity: 1; }
 #pilot .row { display: flex; align-items: center; gap: 9px; }
