@@ -32,6 +32,31 @@ module Luma
       Event.from_api(post("/event/create", attributes))
     end
 
+    # The signed PUT goes directly to storage; never send the Luma API key there.
+    def upload_image(body:, content_type:)
+      upload = post("/images/create-upload-url", content_type: content_type)
+      uri = URI.parse(upload.fetch("upload_url"))
+      file_url = upload.fetch("file_url")
+      unless uri.is_a?(URI::HTTPS) && uri.host.present? && uri.userinfo.nil? && file_url.is_a?(String) && file_url.start_with?("https://images.lumacdn.com/")
+        raise Error, "Luma devolvió una URL de carga inválida."
+      end
+
+      req = Net::HTTP::Put.new(uri)
+      req["Content-Type"] = content_type
+      req.body = body
+      response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: OPEN_TIMEOUT, read_timeout: READ_TIMEOUT) do |http|
+        http.request(req)
+      end
+      # Do not expose the signed URL or storage response in logs or admin errors.
+      raise Error, "No se pudo subir la portada a Luma (HTTP #{response.code})." unless response.is_a?(Net::HTTPSuccess)
+
+      file_url
+    rescue KeyError, TypeError, URI::InvalidURIError
+      raise Error, "Luma devolvió una respuesta de carga inválida."
+    rescue Timeout::Error, SystemCallError, IOError, OpenSSL::SSL::SSLError
+      raise Error, "No se pudo subir la portada a Luma."
+    end
+
     def update_event(api_id, attributes)
       post("/event/update", {event_api_id: api_id}.merge(attributes))
     end

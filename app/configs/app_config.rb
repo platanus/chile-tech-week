@@ -15,7 +15,7 @@ class AppConfig < Anyway::Config
     # Luma (https://public-api.luma.com). Without a key the app talks to Luma::FakeClient, so
     # the approve → edit → publish flow works locally; production must set LUMA_API_KEY.
     luma_api_key: "",
-    # The cover every generated Luma event starts with; the host replaces it.
+    # Default PNG/JPEG cover: an HTTPS source uploaded to Luma, or an existing Luma CDN URL.
     luma_cover_url: "",
     # Development only: co-host emails Luma is allowed to invite (comma-separated), so a local
     # run never mails a real submitter. Empty means invite nobody.

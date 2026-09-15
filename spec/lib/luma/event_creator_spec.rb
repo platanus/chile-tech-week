@@ -15,6 +15,7 @@ RSpec.describe Luma::EventCreator do
   it "creates a private Luma event in Santiago time with the checklist description and the site's cover" do
     config = AppConfig.new(luma_cover_url: "https://techweek.cl/luma-cover.png", luma_allowed_cohost_dev: "ada@example.com")
 
+    stub_request(:get, "https://techweek.cl/luma-cover.png").to_return(body: "cover-bytes", headers: {"Content-Type" => "image/png"})
     result = described_class.new(event, client: client, config: config).call
 
     expect(result.api_id).to start_with("evt-fake-")
@@ -22,8 +23,35 @@ RSpec.describe Luma::EventCreator do
     created = client.events.fetch(result.api_id)
     expect(created).to have_attributes(name: "Demo Day", start_at: "2026-11-18T21:00:00Z", end_at: "2026-11-18T23:00:00Z", visibility: "private")
     attributes = described_class.new(event, client: client, config: config).attributes
-    expect(attributes).to include(timezone: "America/Santiago", cover_url: "https://techweek.cl/luma-cover.png", tint_color: "#ee2b2b", capacity: 80, location: "Providencia")
+    expect(attributes).to include(timezone: "America/Santiago", cover_url: client.upload_image(body: "cover-bytes", content_type: "image/png"), tint_color: "#ee2b2b", capacity: 80, location: "Providencia")
     expect(attributes[:description_md]).to include("RECUERDA EDITAR", "Una demo.", "https://techweek.cl/events/#{event.id}?publish=true", "**BCI** — Bea (co@example.com)")
+  end
+
+  it "uploads a self-hosted cover before sending the CDN URL to the real API client" do
+    config = AppConfig.new(luma_cover_url: "https://techweek.cl/cover.png", luma_api_key: "key")
+    stub_request(:get, config.luma_cover_url).to_return(body: "png", headers: {"Content-Type" => "image/png"})
+    stub_request(:post, "https://public-api.luma.com/v1/images/create-upload-url")
+      .to_return(body: {upload_url: "https://storage.example/upload", file_url: "https://images.lumacdn.com/cover.png"}.to_json)
+    put = stub_request(:put, "https://storage.example/upload").with(body: "png").to_return(status: 200)
+    create = stub_request(:post, "https://public-api.luma.com/v1/event/create")
+      .with { |request| JSON.parse(request.body)["cover_url"] == "https://images.lumacdn.com/cover.png" }
+      .to_return(body: {api_id: "evt-1", url: "https://luma.com/demo"}.to_json)
+    stub_request(:get, "https://public-api.luma.com/v1/event/get?api_id=evt-1")
+      .to_return(body: {api_id: "evt-1", url: "https://luma.com/demo"}.to_json)
+
+    result = described_class.new(event, client: Luma::Client.new("key"), config: config).call
+
+    expect(result.url).to eq("https://luma.com/demo")
+    expect(put).to have_been_requested
+    expect(create).to have_been_requested
+  end
+
+  it "does not create an event or invite hosts if uploading the cover fails" do
+    config = AppConfig.new(luma_cover_url: "https://techweek.cl/cover.png")
+    stub_request(:get, config.luma_cover_url).to_return(status: 503)
+    expect(client).not_to receive(:create_event)
+    expect(client).not_to receive(:add_host)
+    expect { described_class.new(event, client: client, config: config).call }.to raise_error(Luma::Error, /503/)
   end
 
   it "invites only the allow-listed hosts outside production" do

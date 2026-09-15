@@ -27,6 +27,10 @@ module Luma
       @events.fetch(api_id) { raise NotFound, "Luma API error (404) on /event/get: event #{api_id} not found" }
     end
 
+    def upload_image(body:, content_type:)
+      "https://images.lumacdn.com/fake/#{Digest::SHA256.hexdigest(body)}.#{(content_type == "image/png") ? "png" : "jpg"}"
+    end
+
     def create_event(attributes)
       api_id = "evt-fake-#{SecureRandom.hex(4)}"
       event = Event.new(api_id: api_id, name: attributes[:name], start_at: attributes[:start_at], end_at: attributes[:end_at],

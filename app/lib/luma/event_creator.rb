@@ -24,7 +24,7 @@ module Luma
         end_at: @event.ends_at.utc.iso8601,
         timezone: Week::TIME_ZONE,
         description_md: Description.new(@event).to_md,
-        cover_url: @config.luma_cover_url.presence,
+        cover_url: CoverUpload.new(client: @client, config: @config).call,
         tint_color: "#ee2b2b",
         location: @event.commune,
         geo_address_json: {type: "manual", address: "#{@event.commune}, Chile"},

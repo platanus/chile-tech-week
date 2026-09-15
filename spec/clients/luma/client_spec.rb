@@ -14,6 +14,32 @@ RSpec.describe Luma::Client do
     expect(request.with { |req| JSON.parse(req.body) == {"name" => "Demo", "start_at" => "2026-11-18T21:00:00Z", "end_at" => "2026-11-18T23:00:00Z", "visibility" => "private"} }).to have_been_requested
   end
 
+  it "uploads bytes to the signed URL without disclosing the API key" do
+    stub_request(:post, "https://public-api.luma.com/v1/images/create-upload-url")
+      .with(body: {content_type: "image/png"}.to_json, headers: {"x-luma-api-key" => "luma-key"})
+      .to_return(body: {upload_url: "https://storage.example/cover?signature=secret", file_url: "https://images.lumacdn.com/cover.png"}.to_json)
+    upload = stub_request(:put, "https://storage.example/cover?signature=secret")
+      .with(body: "png-bytes", headers: {"Content-Type" => "image/png"}) { |request| !request.headers.key?("X-Luma-Api-Key") }
+      .to_return(status: 200, body: "")
+    expect(client.upload_image(body: "png-bytes", content_type: "image/png")).to eq("https://images.lumacdn.com/cover.png")
+    expect(upload).to have_been_requested
+  end
+
+  it "does not expose signed storage credentials when an upload fails" do
+    stub_request(:post, "https://public-api.luma.com/v1/images/create-upload-url")
+      .to_return(body: {upload_url: "https://storage.example/cover?signature=secret", file_url: "https://images.lumacdn.com/cover.png"}.to_json)
+    stub_request(:put, "https://storage.example/cover?signature=secret").to_return(status: 403, body: "signature=secret")
+    expect { client.upload_image(body: "png", content_type: "image/png") }.to raise_error(Luma::Error) { |error|
+      expect(error.message).to include("403")
+      expect(error.message).not_to include("secret")
+    }
+  end
+
+  it "rejects malformed upload responses" do
+    stub_request(:post, "https://public-api.luma.com/v1/images/create-upload-url").to_return(body: "{}")
+    expect { client.upload_image(body: "png", content_type: "image/png") }.to raise_error(Luma::Error, /inválida/)
+  end
+
   it "reads an event" do
     stub_request(:get, "https://public-api.luma.com/v1/event/get?api_id=evt-1")
       .to_return(status: 200, body: {event: {api_id: "evt-1", name: "Demo", start_at: "2026-11-18T21:00:00Z", end_at: "2026-11-18T23:00:00Z", url: "https://luma.com/x1"}}.to_json)
