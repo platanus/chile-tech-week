@@ -112,8 +112,8 @@ test.describe('the submission form', () => {
     await page.getByRole('combobox', { name: 'Formato' }).click();
     await page.getByRole('option', { name: 'Pitch / Demo day' }).click();
     await page.getByLabel('Capacidad').fill('80');
-    await page.getByLabel('Logo de la empresa').setInputFiles('spec/fixtures/files/logo.png');
-    await expect(page.getByText(/logo\.png · \d+ KB/)).toBeVisible();
+    await page.getByLabel('Logo de la empresa').setInputFiles('spec/fixtures/files/logo-quality.png');
+    await expect(page.getByText(/logo-quality\.png · \d+ KB/)).toBeVisible();
     await page.getByRole('button', { name: 'Continuar' }).click();
 
     await page.getByText('Fintech', { exact: true }).click();
@@ -130,7 +130,7 @@ test.describe('the submission form', () => {
     await cohost.getByLabel('Nombre de la empresa').fill('BCI');
     await cohost.getByLabel('Nombre de contacto').fill('Grace Hopper');
     await cohost.getByLabel('Email de contacto').fill('grace@bci.cl');
-    await cohost.getByLabel('Logo de la empresa').setInputFiles('spec/fixtures/files/logo.png');
+    await cohost.getByLabel('Logo de la empresa').setInputFiles('spec/fixtures/files/logo-quality.png');
 
     await page.getByRole('button', { name: 'Enviar evento' }).click();
 

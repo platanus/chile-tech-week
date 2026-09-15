@@ -2,6 +2,8 @@
 class Cohost < ApplicationRecord
   belongs_to :event
 
+  include HasUploadedLogo
+
   has_one_attached :logo
 
   validates :company_name, :primary_contact_name, :primary_contact_email, presence: true
@@ -20,13 +22,4 @@ class Cohost < ApplicationRecord
   normalizes :primary_contact_phone_number, :primary_contact_website, :primary_contact_linkedin, with: ->(value) { value.strip.presence }
 
   scope :logo_shown, -> { where.not(logo_shown_at: nil) }
-
-  # An uploaded image becomes the company logo (see Event#logo_upload=).
-  def logo_upload=(file)
-    return if file.blank?
-
-    blob = ActiveStorage::Blob.create_and_upload!(io: file, filename: file.original_filename, content_type: file.content_type)
-    logo.attach(blob)
-    self.company_logo_url = Rails.application.routes.url_helpers.rails_blob_path(blob, only_path: true)
-  end
 end

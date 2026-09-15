@@ -30,7 +30,7 @@ test('submit → approve → publish → in the programme', async ({ page }) => 
   await page.getByRole('combobox', { name: 'Formato' }).click();
   await page.getByRole('option', { name: 'Networking' }).click();
   await page.getByLabel('Capacidad').fill('40');
-  await page.getByLabel('Logo de la empresa').setInputFiles('spec/fixtures/files/logo.png');
+  await page.getByLabel('Logo de la empresa').setInputFiles('spec/fixtures/files/logo-quality.png');
   await page.getByRole('button', { name: 'Continuar' }).click();
 
   await page.getByText('Fintech', { exact: true }).click();

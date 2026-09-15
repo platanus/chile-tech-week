@@ -32,6 +32,7 @@ es:
         audiences: "Las audiencias"
         custom_url: "La URL"
       cohost:
+        logo: "El logo"
         company_name: "El nombre de la empresa"
         company_logo_url: "El logo"
         primary_contact_name: "El nombre de contacto"

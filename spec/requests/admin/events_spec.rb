@@ -124,13 +124,21 @@ RSpec.describe "admin events" do
     end
 
     it "replaces the logo with an upload" do
-      file = Rack::Test::UploadedFile.new(StringIO.new("\x89PNG\r\n\x1a\n" + ("x" * 64)), "image/png", original_filename: "logo.png")
+      file = fixture_file_upload("logo-quality.png", "image/png")
 
       patch "/admin/25/events/#{event.id}", params: {event: {logo_upload: file}}
 
       follow_redirect!
       expect(event.reload.logo).to be_attached
       expect(event.company_logo_url).to match(%r{\A/rails/active_storage/blobs/redirect/})
+    end
+
+    it "rejects an invalid logo replacement and keeps the previous logo URL" do
+      old_url = event.company_logo_url
+      patch "/admin/25/events/#{event.id}", params: {event: {logo_upload: fixture_file_upload("logo.png", "image/png")}}
+      follow_redirect!
+      expect(inertia).to have_flash(alert: LogoUpload::POLICY["errors"]["small"])
+      expect(event.reload.company_logo_url).to eq(old_url)
     end
 
     it "reports a rejected change" do

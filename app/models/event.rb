@@ -22,6 +22,8 @@ class Event < ApplicationRecord
   has_many :cohosts, dependent: :destroy, index_errors: true
   accepts_nested_attributes_for :cohosts, allow_destroy: true
 
+  include HasUploadedLogo
+
   has_one_attached :logo
   # The Luma cover, mirrored by MirrorLumaCoverJob so the programme does not hotlink Luma's CDN.
   has_one_attached :cover
@@ -65,16 +67,6 @@ class Event < ApplicationRecord
   # Where attendees register: the host's own page when they gave one, else the Luma event.
   def registration_url
     custom_url.presence || luma_event_url.presence
-  end
-
-  # An uploaded image (the form's file field) becomes the company logo: stored with Active
-  # Storage, and its permanent URL kept in company_logo_url like the 2025 archive's.
-  def logo_upload=(file)
-    return if file.blank?
-
-    blob = ActiveStorage::Blob.create_and_upload!(io: file, filename: file.original_filename, content_type: file.content_type)
-    logo.attach(blob)
-    self.company_logo_url = Rails.application.routes.url_helpers.rails_blob_path(blob, only_path: true)
   end
 
   # The picture of the event: our copy of the cover the host set on Luma, falling back to

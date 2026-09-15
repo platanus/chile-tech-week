@@ -30,6 +30,7 @@ gem "devise-i18n"
 gem "rails-i18n", "~> 8.0"
 
 # Misc
+gem "ruby-vips", "~> 2.2", require: "vips"
 gem "strong_migrations"
 gem "meta-tags", "~> 2.22"
 

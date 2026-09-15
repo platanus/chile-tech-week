@@ -1,6 +1,7 @@
 import { Form, Link } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight, Check, Plus, Trash2, Upload } from 'lucide-react';
-import { type ChangeEvent, type ReactNode, useEffect, useId, useRef, useState } from 'react';
+import { ArrowLeft, ArrowRight, Check, Plus, Trash2 } from 'lucide-react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { LogoInput } from '@/components/events/logo-input';
 import { FORMAT_LABELS } from '@/components/events/formats';
 import { PageHead } from '@/components/site/layout';
 import { Button } from '@/components/ui/button';
@@ -14,9 +15,6 @@ import { events_path } from '@/routes';
 import type { EventsNew } from '@/types';
 
 type Errors = Record<string, string[] | string | undefined>;
-
-const LOGO_TYPES = 'image/jpeg,image/png,image/webp';
-const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
 function FieldError({ errors, name }: { errors: Errors; name: string }) {
   const error = errors[name];
@@ -66,7 +64,7 @@ function stepOfError(key: string) {
 
 function Step({ index, current, children }: { index: number; current: number; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-6" style={index === current ? undefined : {display: 'none'}}>
+    <section data-step={index} className="flex flex-col gap-6" style={index === current ? undefined : {display: 'none'}}>
       {children}
     </section>
   );
@@ -133,59 +131,9 @@ function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   );
 }
 
-// A logo picker: the file input, its preview on black (where the site shows it), the file name
-// and size, and a size/type check before the server's.
 function LogoField({ name, label, errors, errorName }: { name: string; label: string; errors: Errors; errorName: string }) {
-  const id = useId();
-  const [preview, setPreview] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [problem, setProblem] = useState<string | null>(null);
-
-  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      setPreview(null);
-      setFileName(null);
-      setProblem(null);
-      return;
-    }
-    setFileName(`${file.name} · ${Math.round(file.size / 1024)} KB`);
-    setProblem(
-      file.size > LOGO_MAX_BYTES
-        ? 'El logo debe pesar menos de 2 MB.'
-        : !LOGO_TYPES.split(',').includes(file.type)
-          ? 'El logo debe ser JPEG, PNG o WebP.'
-          : null,
-    );
-    setPreview(URL.createObjectURL(file));
-  };
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={id} className="label text-[11px] text-muted-foreground">
-        {label}
-      </Label>
-      <div className="flex flex-wrap items-center gap-4">
-        <label
-          htmlFor={id}
-          className="flex size-24 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-dashed border-input bg-black transition-colors hover:border-foreground"
-        >
-          {preview ? (
-            <img src={preview} alt="" className="max-h-full max-w-full object-contain p-2" />
-          ) : (
-            <Upload className="size-5 text-muted-foreground" />
-          )}
-        </label>
-        <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-          <input id={id} name={name} type="file" accept={LOGO_TYPES} onChange={onChange} className="text-sm text-foreground file:mr-3 file:rounded-sm file:border file:border-border file:bg-transparent file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-foreground" />
-          <span>JPEG, PNG o WebP · máximo 2 MB · se muestra sobre negro</span>
-          {fileName && <span className="text-foreground">{fileName}</span>}
-        </div>
-      </div>
-      {problem && <p className="text-sm text-primary">{problem}</p>}
-      <FieldError errors={errors} name={errorName} />
-    </div>
-  );
+  const error = errors[errorName.replace('company_logo_url', 'logo')] || errors[errorName];
+  return <LogoInput name={name} label={label} error={Array.isArray(error) ? error.join('. ') : error} />;
 }
 
 // The catalogue pickers (temas, audiencias): a grid of checkboxes posting `name[]`.
@@ -275,7 +223,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
   // and the form goes off a step early.
   const nextStep = (event: React.MouseEvent) => {
     event.preventDefault();
-    const fields = formRef.current?.querySelectorAll<HTMLInputElement>('section:not([style]) input, section:not([style]) textarea');
+    const fields = formRef.current?.querySelectorAll<HTMLInputElement>(`section[data-step="${step}"] input, section[data-step="${step}"] textarea`);
     for (const field of fields ?? []) {
       if (!field.checkValidity()) {
         field.reportValidity();
@@ -283,6 +231,20 @@ export default function New({ days, weekDates, communes, formats, themes, audien
       }
     }
     goTo(Math.min(step + 1, last));
+  };
+
+  // Hidden steps stay mounted. Reveal an invalid field before asking the browser to
+  // focus it, including when a logo was changed after visiting a later step.
+  const validateBeforeSubmit = () => {
+    const fields = formRef.current?.querySelectorAll<HTMLInputElement>('input, textarea');
+    for (const field of fields ?? []) {
+      if (!field.checkValidity()) {
+        goTo(Number(field.closest('section')?.getAttribute('data-step') ?? 0));
+        requestAnimationFrame(() => field.reportValidity());
+        return false;
+      }
+    }
+    return true;
   };
 
   return (
@@ -300,7 +262,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
         </p>
       </header>
 
-      <Form action={events_path()} method="post" className="flex flex-col gap-10" resetOnSuccess={false}>
+      <Form action={events_path()} method="post" className="flex flex-col gap-10" resetOnSuccess={false} noValidate onBefore={validateBeforeSubmit}>
         {({ errors, processing }) => (
           <>
             <Stepper current={step} furthest={furthest} onGo={goTo} />

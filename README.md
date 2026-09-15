@@ -17,6 +17,11 @@ tiles, OSM peaks, Overture buildings) with the flight game behind it.
 `POSTGRES_URL` and the rest of the development settings come from `.env.local` at the
 repo root (see `.env.sample` for the production shape).
 
+Logo uploads use libvips to check image resolution and decode the file before storage.
+Install it locally with `brew install vips` (macOS) or `sudo apt-get install libvips42`
+(Ubuntu 22.04). Docker and CI install it automatically. The browser and backend share
+the limits and upload guidance in `config/logo_upload.json`.
+
 ```bash
 bundle install && npm ci
 bin/dev-db                                            # local Postgres via docker compose (optional)

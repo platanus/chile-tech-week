@@ -52,7 +52,7 @@ RSpec.describe Event, "on submission" do
 
   it "stores an uploaded logo and keeps its permanent URL" do
     event = submission(company_logo_url: nil)
-    event.logo_upload = fixture_file_upload("logo.png", "image/png")
+    event.logo_upload = fixture_file_upload("logo-quality.png", "image/png")
     expect(event.valid?(:submission)).to be(true), event.errors.full_messages.join(", ")
     expect(event.company_logo_url).to match(%r{\A/rails/active_storage/blobs/redirect/})
     event.save!

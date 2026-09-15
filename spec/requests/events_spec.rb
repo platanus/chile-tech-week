@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "the current edition's events" do
-  let(:logo) { fixture_file_upload("logo.png", "image/png") }
+  let(:logo) { fixture_file_upload("logo-quality.png", "image/png") }
   let(:theme) { create(:theme, name: "Fintech") }
   let(:audience) { create(:audience, name: "Investors") }
 
@@ -66,7 +66,7 @@ RSpec.describe "the current edition's events" do
           theme_ids: [theme.id], audience_ids: [audience.id],
           cohosts_attributes: {
             "0" => {company_name: "BCI", primary_contact_name: "Grace Hopper", primary_contact_email: "grace@bci.cl",
-                    primary_contact_website: "https://bci.cl", logo_upload: fixture_file_upload("logo.png", "image/png")}
+                    primary_contact_website: "https://bci.cl", logo_upload: fixture_file_upload("logo-quality.png", "image/png")}
           }
         }
       }
@@ -96,6 +96,20 @@ RSpec.describe "the current edition's events" do
       expect(inertia).to render_component("Events/Show")
       expect(inertia).to have_flash(notice: "¡Evento enviado! Lo revisaremos pronto.")
       expect(inertia.props.fetch(:event)).to include("step" => 1, "state" => "submitted", "title" => "Demo Day")
+    end
+
+    it "rejects low-resolution host and co-host logos without saving the submission" do
+      params = valid_params.deep_merge(event: {
+        logo_upload: fixture_file_upload("logo.png", "image/png"),
+        cohosts_attributes: {"0" => {logo_upload: fixture_file_upload("logo.png", "image/png")}}
+      })
+      expect { post "/events", params: params }.not_to change(Event, :count)
+      expect(ActiveStorage::Blob.count).to eq(0)
+      follow_redirect!
+      expect(inertia).to have_props { |props|
+        expect(props[:errors]["logo"].join).to include("320 px")
+        expect(props[:errors]["cohosts[0].logo"].join).to include("320 px")
+      }
     end
 
     it "sends the form back with Spanish errors, nested ones by co-host index, and keeps nothing" do

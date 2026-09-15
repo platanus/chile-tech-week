@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Check, ChevronLeft, ExternalLink, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { Field, Flash, formatDateTime, LogoOnBlack, StateBadge, useWeek } from '@/components/admin/ui';
+import { LogoInput } from '@/components/events/logo-input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -339,22 +340,7 @@ function CustomUrl({ current, onSave, busy }: { current: string | null; onSave: 
 
 // A file picker that submits as soon as an image is chosen.
 function LogoUpload({ label, onFile, disabled }: { label: string; onFile: (file: File) => void; disabled?: boolean }) {
-  return (
-    <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-sm border border-border px-3 text-xs font-medium hover:bg-accent has-disabled:opacity-50">
-      <Pencil className="size-3" /> {label}
-      <input
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        className="sr-only"
-        disabled={disabled}
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) onFile(file);
-          e.target.value = '';
-        }}
-      />
-    </label>
-  );
+  return <LogoInput label={label} onFile={onFile} disabled={disabled} />;
 }
 
 const COHOST_FIELDS: Array<{ name: string; label: string; type?: string; required?: boolean }> = [
@@ -437,8 +423,7 @@ function Cohosts({ eventId, cohosts, published }: { eventId: string; cohosts: Ad
                 </div>
               ))}
               <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <Label htmlFor="cohost_logo_upload">Logo *</Label>
-                <Input id="cohost_logo_upload" name="logo_upload" type="file" accept="image/png,image/jpeg,image/webp" required />
+                <LogoInput name="logo_upload" label="Logo *" required />
               </div>
             </div>
             <DialogFooter>
