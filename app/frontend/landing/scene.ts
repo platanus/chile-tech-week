@@ -1595,7 +1595,7 @@ cv.addEventListener('pointerup', () => { dragging = false; });
 cv.addEventListener('wheel', (e) => {
   if (mode !== 'game') return; // let the page scroll
   const f = e.deltaY > 0 ? 0.88 : 1.14;
-  if (P.cameraMode === 'condor') P.flightSpeed = clamp(P.flightSpeed * f, 0, TOP_SPEED);
+  if (P.cameraMode === 'condor') P.flightSpeed = clamp(P.flightSpeed * f, DEFAULTS.flightSpeed, TOP_SPEED);
   else P.flySpeed = clamp(P.flySpeed * f, 2, 600);
   refreshGui();
 }, { passive: true });
@@ -1986,7 +1986,7 @@ fAtm.close();
 
 const fCam = gui.addFolder('Condor & Camera');
 fCam.add(P, 'cameraMode', ['condor', 'free']).name('mode (V)').onChange(onModeChange);
-fCam.add(P, 'flightSpeed', 0, TOP_SPEED, 1).name('glide speed');
+fCam.add(P, 'flightSpeed', DEFAULTS.flightSpeed, TOP_SPEED, 1).name('glide speed');
 fCam.add(P, 'turnRate', 0.1, 3, 0.01).name('turn rate');
 fCam.add(P, 'bankAngle', 0, 1.3, 0.01).name('bank angle');
 fCam.add(P, 'maxPitch', 0, 1.2, 0.01).name('climb angle');
