@@ -2517,8 +2517,8 @@ let ambientAcc = 0;
 function frame() {
   requestAnimationFrame(frame);
   const ambient = mode !== 'game';
-  // paused while the hero is scrolled away (the tab being hidden already stops rAF)
-  if (ambient && !heroVisible) { clock.getDelta(); quality.last = 0; return; }
+  // Keep the live terrain moving through a hovered organizer logo; otherwise pause offscreen.
+  if (ambient && !heroVisible && !document.querySelector('.organizer-mark[data-cutout]')) { clock.getDelta(); quality.last = 0; return; }
   let dt = Math.min(clock.getDelta(), 0.1);
   if (ambient) { // frame-rate cap for the background, with half a vsync of tolerance: two 16.67 ms
     ambientAcc += dt; // frames land a hair under 1/30, and without it every other frame waits a third

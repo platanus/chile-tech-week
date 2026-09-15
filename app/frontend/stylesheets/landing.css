@@ -58,18 +58,92 @@ body.game #hero > * { pointer-events: none; }
   border-radius: 2px; border: 1px solid var(--line); background: rgba(0,0,0,.5); color: var(--ink); font: 12px var(--mono);
   cursor: pointer; backdrop-filter: blur(6px); transition: background .2s, border-color .2s; }
 #play:hover { border-color: var(--red); background: rgba(238,43,43,.15); }
+/* A quiet second border draws attention to the desktop flight mode. */
+@media (min-width: 721px) and (hover: hover) and (pointer: fine) {
+  #play::after { content: ''; position: absolute; inset: -5px; border: 1px solid var(--red); border-radius: 5px;
+    pointer-events: none; opacity: .3; animation: flightInvite 3s ease-in-out infinite; }
+  #play:hover::after, #play:focus-visible::after { animation-play-state: paused; }
+  body.game #play::after { animation: none; }
+}
+@keyframes flightInvite {
+  0%, 100% { opacity: .15; transform: scale(1); }
+  50% { opacity: .55; transform: scale(1.035, 1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #play::after { animation: none; }
+}
+
 #play kbd { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border-radius: 2px; border: 1px solid rgba(255,255,255,.25); }
 
 /* ---- page below the hero, covers the scene when scrolled */
-main { position: relative; z-index: 2; background: #000; color: var(--gray); padding: 14vh 8vw 14vh; border-top: 1px solid var(--line); }
+main { position: relative; z-index: 2; background: transparent; color: var(--gray); padding: 0; border-top: 1px solid var(--line); }
 main .label { color: var(--red); }
 main h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: -.03em; line-height: .95;
   color: var(--ink); font-size: clamp(30px, 4.6vw, 64px); margin: 18px 0 20px; max-width: 16ch; }
 main p { max-width: 44ch; line-height: 1.55; font-size: clamp(16px, 1.3vw, 19px); margin: 0 0 30px; }
+/* Real page sections over the terrain; content can grow beyond one viewport. */
+#more .landing-slide { padding: clamp(72px, 12vh, 140px) 8vw; box-sizing: border-box; }
+#more .landing-slide + .landing-slide { border-top: 1px solid var(--line); }
+#more .organizers-section { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; }
+#more .organizers-section:has(.organizer-mark[data-cutout]) { backdrop-filter: brightness(2) saturate(1.2); -webkit-backdrop-filter: brightness(2) saturate(1.2); }
+#more .organizers-section h2 { max-width: 19ch; overflow-wrap: anywhere; }
+.organizers-grid { list-style: none; padding: 0; margin: 32px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.organizers-grid li { padding: 32px 20px 24px; border-top: 1px solid var(--line); text-align: center; }
+.organizer-mark { height: 100px; display: flex; align-items: center; justify-content: center; }
+.organizer-mark img { display: block; width: auto; height: auto; max-width: 100%; max-height: 80px; filter: brightness(0) invert(1); }
+/* The SVG paints the section black except for the hovered logo's alpha silhouette. */
+.organizers-backdrop { position: absolute; inset: 0; pointer-events: none; }
+.organizers-section > header, .organizers-grid { position: relative; }
+.organizer-mark[data-cutout] img { opacity: 0; }
+.organizer-cutout { filter: brightness(0); transform-box: fill-box; transform-origin: center; animation: organizerGrow .25s ease-out both; }
+.organizer-cutout-tint { filter: brightness(0) invert(1); opacity: .4; }
+@keyframes organizerGrow { from { transform: scale(1); } to { transform: scale(1.08); } }
+.organizers-grid.reveal-ready li { opacity: 0; transform: translateY(28px); }
+.organizers-grid.reveal-ready li.is-visible { opacity: 1; transform: none; transition: opacity .65s ease, transform .65s cubic-bezier(.2,.7,.2,1); transition-delay: var(--delay); }
+#more .faq-section { background: #000; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 48px; }
+#more .faq-section h2 { font-size: clamp(28px, 3.4vw, 48px); line-height: 1.05; overflow-wrap: anywhere; }
+.faq-list { border-top: 1px solid var(--line); }
+.faq-list details { border-bottom: 1px solid var(--line); }
+.faq-list summary { list-style: none; display: grid; grid-template-columns: 24px 1fr 20px; gap: 16px; align-items: center; padding: 28px 0; cursor: pointer; color: var(--ink); font-size: clamp(17px, 1.5vw, 22px); font-weight: 700; }
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary:hover { color: var(--red); }
+.faq-list summary:focus-visible { outline: 2px solid var(--red); outline-offset: 5px; }
+.faq-number { color: var(--red); font: 11px var(--mono); }
+.faq-toggle { position: relative; width: 16px; height: 16px; }
+.faq-toggle::before, .faq-toggle::after { content: ''; position: absolute; background: currentColor; }
+.faq-toggle::before { width: 16px; height: 1px; top: 7px; left: 0; }
+.faq-toggle::after { height: 16px; width: 1px; left: 7px; top: 0; }
+.faq-list details[open] .faq-toggle::after { display: none; }
+#more .faq-list p { max-width: 58ch; margin: 0 36px 28px 40px; font-size: 16px; line-height: 1.7; }
+@media (max-width: 900px) {
+  #more .faq-section { grid-template-columns: 1fr; gap: 24px; }
+  #more .faq-section h2 { max-width: 20ch; }
+}
+@media (max-width: 600px) {
+  .organizers-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 16px; }
+  .organizers-grid li { padding: 24px 12px; }
+  .organizer-mark { height: 76px; }
+  .organizer-mark img { max-height: 64px; }
+  .faq-list summary { gap: 10px; grid-template-columns: 20px 1fr 16px; }
+  #more .faq-list p { margin-left: 30px; margin-right: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .organizer-cutout { animation: none; transform: scale(1.08); }
+  .organizers-grid.reveal-ready li, .organizers-grid.reveal-ready li.is-visible { opacity: 1; transform: none; transition: none; }
+}
+
 footer { position: relative; z-index: 2; background: #000; border-top: 1px solid var(--line); padding: 26px 8vw; display: flex; flex-wrap: wrap; gap: 10px 28px;
   justify-content: space-between; color: var(--gray); }
 footer a { color: var(--gray); text-decoration: none; }
 footer a:hover { color: var(--ink); }
+.landing-footer { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; }
+.landing-footer .footer-logo { display: block; width: 240px; max-width: 100%; height: auto; justify-self: center; }
+.landing-footer > a { justify-self: end; }
+@media (max-width: 900px) {
+  .landing-footer { grid-template-columns: minmax(0, 1fr) auto; gap: 24px 16px; }
+  .landing-footer .footer-logo { grid-column: 1 / -1; grid-row: 1; }
+}
+
 
 /* ---- game-mode UI */
 #gameui { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .4s ease; }

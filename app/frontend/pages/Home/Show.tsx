@@ -1,5 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { type CSSProperties, useEffect } from 'react';
+import { FaqSection } from '@/components/landing/faq-section';
+import { OrganizersSection } from '@/components/landing/organizers-section';
 import { startExit } from '@/landing/exit';
 import { startFlock } from '@/flock';
 import { startLogo } from '@/landing/logo';
@@ -102,25 +104,12 @@ export default function Show({ title, description }: HomeShow) {
       </section>
 
       <main id="more">
-        <div className="label">16 al 22 de noviembre</div>
-        <h2>Una semana. Todo el país.</h2>
-        <p>
-          La semana descentralizada con los mejores eventos tech del país: meetups, charlas, demos y
-          fiestas organizados por la comunidad, de Arica a Punta Arenas. Cualquiera puede organizar
-          un evento.
-        </p>
-        <div className="cta">
-          <a className="btn primary" href={events_path()} data-exit>
-            Ver eventos
-          </a>
-          <a className="btn" href={new_event_path()} data-exit>
-            Organiza un evento
-          </a>
-        </div>
+        <OrganizersSection />
+        <FaqSection />
       </main>
-      <footer className="label">
+      <footer className="label landing-footer">
         <span>Chile Tech Week 2026</span>
-        <span>#CTW2026</span>
+        <img className="footer-logo" src="/brand/logo-horizontal-transparent.svg" alt="Chile Tech Week 2026" width="1367" height="138" loading="lazy" />
         <a href="/brand/" data-exit>
           Marca
         </a>
