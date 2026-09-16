@@ -2,10 +2,10 @@
 # 2025 site's "Events" table (see db/migrate/*_create_events.rb); `edition` is the year, and
 # the foreign key to weeks, so the archive and the editions to come share the table.
 class Event < ApplicationRecord
-  FORMATS = %w[
-    breakfast_brunch_lunch dinner experiential hackathon happy_hour matchmaking networking
-    panel_fireside_chat pitch_event_demo_day roundtable_workshop
-  ].freeze
+  # The formats and their Spanish names, shared with the browser (config/event_formats.json):
+  # the programme's filters and the agent-facing documents (Discovery::*) print the same names.
+  FORMAT_LABELS = JSON.parse(Rails.root.join("config/event_formats.json").read).freeze
+  FORMATS = FORMAT_LABELS.keys.freeze
 
   # The 2025 review workflow: submitted → rejected, or approved (waiting for the host to edit
   # the Luma event the site created) → published. Deleted is the host's own withdrawal.
@@ -17,7 +17,7 @@ class Event < ApplicationRecord
 
   # Root-level event URLs must not collide with application routes.
   RESERVED_SLUGS = %w[events admin brand luma luma-cover opengraph up rails assets
-    flock cable vite-dev vite-test vite favicon robots sitemap 25].freeze
+    flock cable vite-dev vite-test vite favicon robots sitemap llms llms-full 25].freeze
 
   before_create :assign_public_slug
   attr_readonly :slug
@@ -79,6 +79,11 @@ class Event < ApplicationRecord
   # created the host's Luma event.
   def luma_synced?
     luma_event_api_id.present?
+  end
+
+  # "Networking", "Pitch / Demo day": the format as the site names it.
+  def format_label
+    FORMAT_LABELS.fetch(format)
   end
 
   # Where attendees register: the host's own page when they gave one, else the Luma event.

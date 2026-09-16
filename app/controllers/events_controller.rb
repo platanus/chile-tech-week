@@ -12,12 +12,21 @@ class EventsController < InertiaController
 
   before_action :set_week
 
+  # The programme; /events.md (or `Accept: text/markdown`) is the same list for agents.
   def index
     @title = "Eventos · #{week_name}"
     @description = "El programa de #{week_name}: los eventos tech de la semana, " \
       "del #{@week.dates_label}, en todo Chile."
     @events = published_events.includes(:themes, :audiences, :cohosts).with_attached_cover
-    @days = week_days
+
+    respond_to do |format|
+      format.html do
+        @days = week_days
+        @markdown_alternate = events_path(format: :md)
+        @structured_data = [Discovery::StructuredData.week(@week, events: @events)]
+      end
+      format.md { render plain: Discovery::Programme.new(@week, @events).render, content_type: Mime[:md] }
+    end
   end
 
   def new
@@ -46,11 +55,13 @@ class EventsController < InertiaController
     end
   end
 
+  # The host's status page: its uuid is their secret, so no index gets to list it.
   def show
     @event = Event.includes(:themes, :audiences, :cohosts).with_attached_cover.find(params[:id])
     @title = "#{@event.title} · Chile Tech Week #{@event.edition}"
     @description = "El estado de tu evento en Chile Tech Week #{@event.edition}."
     @open_publish = params[:publish] == "true" && @event.step == 3
+    @noindex = true
   end
 
   private

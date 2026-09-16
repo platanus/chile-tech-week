@@ -223,6 +223,18 @@ archive is that year's week, under `/25`.
   `include RecordsTaskRun` so the admin sees its last outcome (`TaskRun`).
 - **Slack**: `SlackNotifier` posts new submissions when `SLACK_BOT_TOKEN` + `SLACK_CHANNEL`
   are set.
+- **Discovery** (`app/lib/discovery/`, `DiscoveryController`): what search engines and AI
+  assistants (ChatGPT search, Claude, Perplexity) read, all generated from the published
+  events — `/robots.txt` (everyone allowed, the AI crawlers by name, `/admin` and the hosts'
+  uuid pages hidden), `/sitemap.xml`, `/llms.txt` and `/llms-full.txt` (llmstxt.org), the
+  Markdown twin of the programme and of every event (`/events.md`, `/<slug>.md`, also by
+  `Accept: text/markdown`, linked with `<link rel="alternate">`), and the schema.org JSON-LD
+  every page carries (`StructuredDataHelper`: `Organization` + `WebSite` always, the week as
+  an `Event` with the programme as `subEvent`, each event with schedule, place, organizers
+  and `offers`). Fixed copy those documents share with React lives in `config/faq.json` and
+  `config/event_formats.json`. Nothing is written by hand: publishing an event is enough.
+  Cloudflare sits in front — its "block AI bots" setting must stay off or none of this is
+  reachable.
 - **Seeds** (`db/seeds.rb`, idempotent, run by the deploy after `db:prepare`): the editions
   (`Week.seed!`) and the themes and audiences catalogue; in development also the admin and a
   sample programme for `Week.current`. Specs get the same two weeks from

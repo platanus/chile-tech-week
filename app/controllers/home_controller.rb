@@ -12,5 +12,17 @@ class HomeController < InertiaController
     @title = TITLE
     @description = DESCRIPTION
     @terrain_preloads = TerrainAssets.preload_paths
+    current = week
+    @structured_data = [Discovery::StructuredData.week(current)] if current
+  end
+
+  private
+
+  # The week the schema.org graph describes. The landing must still render against an empty
+  # database (see above), so without a week the graph just has no Event node.
+  def week
+    Week.current
+  rescue ActiveRecord::ActiveRecordError
+    nil
   end
 end

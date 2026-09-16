@@ -11,6 +11,8 @@ module Admin
     before_action :authenticate_user!
     before_action :require_admin
     before_action :set_week
+    # The panel is nobody's search result (robots.txt hides /admin as well).
+    before_action { @noindex = true }
 
     inertia_share currentUser: -> { {email: current_user.email, fullName: current_user.full_name} if current_user },
       week: -> { week_prop(@week) },

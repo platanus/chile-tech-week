@@ -5,6 +5,8 @@ module Admin
   # Warden's params strategy, so a wrong password comes back as a form error on the page the
   # visitor is already on instead of Devise's own re-render.
   class SessionsController < InertiaController
+    before_action { @noindex = true }
+
     def new
       redirect_to admin_root_path and return if user_signed_in?
 

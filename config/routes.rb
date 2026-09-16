@@ -5,6 +5,13 @@ Rails.application.routes.draw do
 
   root "home#show"
 
+  # What crawlers and AI agents ask for by name (app/lib/discovery): all generated from the
+  # published events. The Markdown twin of a page is the page's own route with `.md`.
+  get "robots.txt", to: "discovery#robots"
+  get "sitemap.xml", to: "discovery#sitemap"
+  get "llms.txt", to: "discovery#llms"
+  get "llms-full.txt", to: "discovery#llms_full"
+
   # The current edition: the programme, the submission form and each event's status page
   # (its id is the unguessable uuid the host receives by email), where the host publishes.
   resources :events, only: [:index, :new, :create, :show]

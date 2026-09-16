@@ -32,6 +32,28 @@ RSpec.describe "the current edition's events" do
       expect(days.map { |day| day[:count] }).to eq([0, 1, 0, 1, 0, 0, 0])
       expect(days.first[:date]).to eq("2026-11-16")
     end
+
+    it "carries the programme as the week's subEvents in JSON-LD, links /events.md and serves it" do
+      create(:event, :published, edition: 2026, title: "Earlier", starts_at: Time.zone.local(2026, 11, 17, 10))
+      create(:event, :published, edition: 2026, title: "Later", starts_at: Time.zone.local(2026, 11, 19, 10))
+      create(:event, edition: 2026, state: "submitted", title: "Not yet")
+
+      get "/events"
+
+      expect(response.body).to include(%(<link rel="alternate" href="https://techweek.cl/events.md" type="text/markdown">))
+      week = structured_node("Event")
+      expect(week).to include("name" => "Chile Tech Week 2026", "startDate" => "2026-11-16", "endDate" => "2026-11-22")
+      expect(week["subEvent"].map { |node| node["name"] }).to eq(["Earlier", "Later"])
+      expect(week["subEvent"].first).to include("url" => "https://techweek.cl/earlier", "startDate" => "2026-11-17T10:00:00-03:00")
+      expect(week["subEvent"].first).not_to have_key("superEvent")
+
+      get "/events.md"
+
+      expect(response.media_type).to eq("text/markdown")
+      expect(response.body).to include("# Programa · Chile Tech Week 2026", "## Martes 17 de noviembre\n\n- [Earlier](https://techweek.cl/earlier.md)")
+      expect(response.body).to include("## Jueves 19 de noviembre\n\n- [Later](https://techweek.cl/later.md)")
+      expect(response.body).not_to include("Not yet")
+    end
   end
 
   describe "GET /events/new" do
@@ -153,6 +175,8 @@ RSpec.describe "the current edition's events" do
       event_props = inertia.props.fetch(:event)
       expect(event_props).to include("step" => 3, "state" => "waiting_luma_edit", "lumaEventUrl" => "https://luma.com/abc")
       expect(event_props.keys).not_to include("authorEmail", "authorPhoneNumber")
+      # The uuid is the host's secret: no index may list the page.
+      expect(response.body).to include(%(<meta name="robots" content="noindex">))
     end
 
     it "does not open the publish dialog for an event that is not at step 3" do
