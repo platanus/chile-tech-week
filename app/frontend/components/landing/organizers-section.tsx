@@ -12,6 +12,7 @@ const organizers = [
   { name: 'Start-Up Chile', file: 'startup-chile', width: 480, height: 43 },
   { name: 'Impacta VC', file: 'impacta-vc', width: 480, height: 132 },
   { name: 'DF MAS', file: 'df-mas', width: 480, height: 146 },
+  { name: 'PRenseable', file: 'prenseable', width: 480, height: 112 },
 ];
 
 export function OrganizersSection() {

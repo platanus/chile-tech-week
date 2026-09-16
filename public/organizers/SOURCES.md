@@ -8,3 +8,9 @@ Additional logos downloaded from the organizations' official sites:
 Rendered from SVG at 960px wide, trimmed to visible artwork, resized to 480px wide,
 and encoded as lossless WebP with transparency. The landing applies its existing
 white-logo filter and silhouette hover effect to both assets.
+
+- PRenseable: https://prenseable.cl/wp-content/uploads/2025/06/Blanco-normal-scaled.png
+
+Official transparent white PNG, trimmed to visible artwork, resized to 480px wide,
+and encoded as lossless WebP with transparency (480 × 112). Uses the same landing
+filter, entrance animation, and silhouette hover effect as the other logos.
