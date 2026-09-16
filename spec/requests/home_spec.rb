@@ -20,6 +20,7 @@ RSpec.describe "the landing" do
       expect(structured_node("WebSite")).to include("inLanguage" => "es-CL")
       expect(structured_node("Event")).to include("name" => "Chile Tech Week 2026", "startDate" => "2026-11-16", "endDate" => "2026-11-22",
         "image" => "https://techweek.cl/opengraph.png")
+      expect(structured_node("Event")["description"]).to end_with("Nov 16–22, 2026.")
     end
 
     it "carries the 2026 share image, a 1200×630 PNG under public" do

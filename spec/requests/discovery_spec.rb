@@ -46,6 +46,7 @@ RSpec.describe "discovery by crawlers and agents" do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to start_with("# Chile Tech Week 2026\n\n> La semana descentralizada")
+      expect(response.body).to include("\n\nChile Tech Week is a decentralized week of tech events across Chile, each hosted by a different company. Nov 16–22, 2026.\n\n")
       expect(response.body).to include("- **Fechas:** 16 al 22 de noviembre de 2026 (2026-11-16 a 2026-11-22)")
       expect(response.body).to include("**¿Qué es Chile Tech Week?** Chile Tech Week es una semana descentralizada")
       expect(response.body).to include("## Programa\n\n- [Programa completo](https://techweek.cl/events.md): los 1 eventos publicados, por día.\n" \

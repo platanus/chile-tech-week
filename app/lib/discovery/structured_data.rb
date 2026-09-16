@@ -38,7 +38,7 @@ module Discovery
       def week(week, events: nil)
         node = {
           "@type" => "Event", "@id" => Discovery.url("/##{week.year}"), "name" => "#{SITE_NAME} #{week.year}",
-          "description" => "#{TAGLINE} Del #{week.dates_label} de #{week.year}, en todo Chile.",
+          "description" => "#{TAGLINE} Del #{week.dates_label} de #{week.year}, en todo Chile. #{Discovery.english_summary(week)}",
           "url" => Discovery.url, "image" => Discovery.url(HomeController::OPENGRAPH_IMAGE),
           "startDate" => week.starts_on.iso8601, "endDate" => week.ends_on.iso8601, "inLanguage" => "es",
           "eventStatus" => "https://schema.org/EventScheduled",

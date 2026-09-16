@@ -9,6 +9,15 @@
 module Discovery
   SITE_NAME = "Chile Tech Week".freeze
   TAGLINE = "La semana descentralizada con los mejores eventos tech del país.".freeze
+  # One line in English so a question asked in English still finds the entity; the rest of
+  # every document stays Spanish, matching the pages.
+  ENGLISH_SUMMARY = "Chile Tech Week is a decentralized week of tech events across Chile, each hosted by a different company.".freeze
+
+  # "Chile Tech Week is … Nov 16–22, 2026."
+  def self.english_summary(week)
+    ending = (week.starts_on.month == week.ends_on.month) ? "%-d, %Y" : "%b %-d, %Y"
+    "#{ENGLISH_SUMMARY} #{week.starts_on.strftime("%b %-d")}–#{week.ends_on.strftime(ending)}."
+  end
 
   # https://techweek.cl/events — every URL in these documents is absolute.
   def self.url(path = "")

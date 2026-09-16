@@ -15,7 +15,7 @@ module Discovery
     end
 
     def render
-      lines = ["# #{SITE_NAME} #{@week.year}", "", "> #{summary}", ""]
+      lines = ["# #{SITE_NAME} #{@week.year}", "", "> #{summary}", "", Discovery.english_summary(@week), ""]
       lines.concat(facts.map { |label, value| "- **#{label}:** #{value}" })
       lines << ""
       FAQ.each { |entry| lines.push("**#{entry["question"]}** #{entry["answer"]}", "") }
