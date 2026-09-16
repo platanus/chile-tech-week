@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Check, ChevronLeft, ExternalLink, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, ChevronLeft, ExternalLink, Plus, Trash2, X } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
+import { EventEditDialog } from '@/components/admin/event-edit-dialog';
 import { Field, Flash, formatDateTime, LogoOnBlack, StateBadge, useWeek } from '@/components/admin/ui';
 import { LogoInput } from '@/components/events/logo-input';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -38,7 +38,7 @@ const CARD = 'gap-4 rounded-sm border-border py-5 shadow-none';
 const TITLE = 'label text-[10px] text-muted-foreground';
 
 // /admin/events/:id — everything about one submission, and every change the admin can make.
-export default function Show({ event, communes }: AdminEventsShow) {
+export default function Show({ event, communes, formats, themes, audiences }: AdminEventsShow) {
   const week = useWeek();
   const [busy, setBusy] = useState(false);
   const patch = (data: Record<string, string | boolean | File>) =>
@@ -69,7 +69,7 @@ export default function Show({ event, communes }: AdminEventsShow) {
         <div className="flex flex-col items-end gap-3">
           <StateBadge state={event.state} />
           <div className="flex flex-wrap gap-2">
-            <CommuneDialog current={event.commune} communes={communes} onSave={(commune) => patch({ commune })} />
+            <EventEditDialog event={event} communes={communes} formats={formats} formatLabels={FORMAT_LABELS} themes={themes} audiences={audiences} />
             {event.state === 'submitted' && <Moderation eventId={event.id} />}
           </div>
         </div>
@@ -81,8 +81,8 @@ export default function Show({ event, communes }: AdminEventsShow) {
             <CardTitle className={TITLE}>Evento</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
-            <Field label="Inicio"><span className="font-mono">{formatDateTime(event.startsAt)}</span></Field>
-            <Field label="Término"><span className="font-mono">{formatDateTime(event.endsAt)}</span></Field>
+            <Field label={event.lumaSynced ? 'Inicio (desde Luma)' : 'Inicio'}><span className="font-mono">{formatDateTime(event.startsAt)}</span></Field>
+            <Field label={event.lumaSynced ? 'Término (desde Luma)' : 'Término'}><span className="font-mono">{formatDateTime(event.endsAt)}</span></Field>
             <Field label="Formato">{FORMAT_LABELS[event.format]}</Field>
             <Field label="Comuna">{event.commune}</Field>
             <Field label="Capacidad">{event.capacity} personas</Field>
@@ -261,40 +261,6 @@ function Moderation({ eventId }: { eventId: string }) {
               </Button>
             </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-function CommuneDialog({ current, communes, onSave }: { current: string; communes: string[]; onSave: (commune: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [commune, setCommune] = useState(current);
-
-  return (
-    <>
-      <Button size="sm" variant="outline" onClick={() => { setCommune(current); setOpen(true); }}>
-        <Pencil /> Editar comuna
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-sm">
-          <DialogHeader>
-            <DialogTitle>Editar comuna</DialogTitle>
-            <DialogDescription>Actual: {current}</DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-2">
-            <Label>Comuna</Label>
-            <Select value={commune} onValueChange={setCommune}>
-              <SelectTrigger className="w-full" aria-label="Comuna"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {communes.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button disabled={commune === current} onClick={() => { onSave(commune); setOpen(false); }}>Guardar</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

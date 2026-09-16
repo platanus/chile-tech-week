@@ -8,6 +8,10 @@ module Admin
       :submitted_at, :approved_at, :rejected_at, :rejection_reason, :waiting_luma_edit_at, :published_at,
       :deleted_at, :logo_shown_at, :luma_cover_url, :created_at, :updated_at
 
+    # Whether the title and dates are Luma's to change now (Event::LUMA_SYNCED_ATTRIBUTES).
+    typelize :boolean
+    attribute :luma_synced, &:luma_synced?
+
     # What the site shows, and whether it is our own copy or still Luma's URL.
     typelize :string?
     attribute :cover_image_url, &:cover_image_url

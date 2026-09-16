@@ -93,6 +93,20 @@ RSpec.describe "admin events" do
       expect(inertia.props[:event]["cohosts"].first).to include("id" => cohost.id, "primaryContactEmail" => "co@host.cl")
       expect(inertia.props[:communes]).to include("Providencia", "Vitacura")
     end
+
+    it "gives the edit form the whole catalogue and says which fields Luma owns" do
+      create(:theme, name: "Fintech")
+      create(:theme, name: "AI")
+      create(:audience, name: "Founders")
+      event = create(:event, :published, luma_event_api_id: "evt-1")
+
+      get "/admin/25/events/#{event.id}"
+
+      expect(inertia.props[:event]).to include("lumaSynced" => true)
+      expect(inertia.props[:formats]).to eq(Event::FORMATS)
+      expect(inertia.props[:themes].map { |t| t["name"] }).to eq(["AI", "Fintech"])
+      expect(inertia.props[:audiences].map { |a| a["name"] }).to eq(["Founders"])
+    end
   end
 
   describe "PATCH /admin/:week/events/:id" do
@@ -105,6 +119,76 @@ RSpec.describe "admin events" do
       follow_redirect!
       expect(inertia).to have_flash(notice: "Evento actualizado.")
       expect(event.reload.commune).to eq("Vitacura")
+    end
+
+    it "edits every field the organiser submitted, the catalogue included" do
+      fintech, ai = create(:theme, name: "Fintech"), create(:theme, name: "AI")
+      founders = create(:audience, name: "Founders")
+      event = create(:event, themes: [fintech], audiences: [])
+
+      patch "/admin/25/events/#{event.id}", params: {event: {
+        title: "Fintech night", description: "Una noche.", author_name: "Ada", author_email: "ADA@acme.cl ",
+        author_phone_number: "+56 9 8765 4321", company_name: "Acme", company_website: "https://acme.cl",
+        starts_at: "2025-11-19T19:00", ends_at: "2025-11-19T21:30", commune: "Vitacura", format: "dinner",
+        capacity: "80", theme_ids: [ai.id], audience_ids: [founders.id]
+      }}, as: :json
+
+      follow_redirect!
+      expect(inertia).to have_flash(notice: "Evento actualizado.")
+      event.reload
+      expect(event).to have_attributes(
+        title: "Fintech night", description: "Una noche.", author_name: "Ada", author_email: "ada@acme.cl",
+        author_phone_number: "+56 9 8765 4321", company_name: "Acme", company_website: "https://acme.cl",
+        starts_at: Time.zone.local(2025, 11, 19, 19, 0), ends_at: Time.zone.local(2025, 11, 19, 21, 30),
+        commune: "Vitacura", format: "dinner", capacity: 80
+      )
+      expect(event.themes).to eq([ai])
+      expect(event.audiences).to eq([founders])
+    end
+
+    it "clears the catalogue picks when the form sends them empty" do
+      event = create(:event, themes: [create(:theme)], audiences: [create(:audience)])
+
+      patch "/admin/25/events/#{event.id}", params: {event: {theme_ids: [], audience_ids: []}}, as: :json
+
+      event.reload
+      expect(event.themes).to be_empty
+      expect(event.audiences).to be_empty
+    end
+
+    it "leaves the catalogue alone when the form does not mention it" do
+      theme = create(:theme)
+      event = create(:event, themes: [theme])
+
+      patch "/admin/25/events/#{event.id}", params: {event: {capacity: "50"}}
+
+      expect(event.reload.themes).to eq([theme])
+    end
+
+    it "refuses the title and dates once Luma owns them" do
+      event = create(:event, :published, luma_event_api_id: "evt-1", title: "Original")
+
+      patch "/admin/25/events/#{event.id}", params: {event: {title: "Renamed", commune: "Vitacura"}}
+
+      follow_redirect!
+      expect(inertia).to have_flash(alert: "El título y las fechas se editan en Luma; el sitio los sincroniza desde allá.")
+      expect(event.reload).to have_attributes(title: "Original", commune: "Providencia")
+    end
+
+    it "still edits the title and dates while the event has no Luma event" do
+      event = create(:event, title: "Original")
+
+      patch "/admin/25/events/#{event.id}", params: {event: {title: "Renamed"}}
+
+      expect(event.reload.title).to eq("Renamed")
+    end
+
+    it "never touches the Luma columns, the state or the 2025 import's coordinates" do
+      event = create(:event, :published, latitude: -33.4)
+
+      patch "/admin/25/events/#{event.id}", params: {event: {luma_event_url: "https://luma.com/other", state: "deleted", edition: 2026, latitude: "0", commune: "Vitacura"}}
+
+      expect(event.reload).to have_attributes(luma_event_url: "https://luma.com/example", state: "published", edition: 2025, latitude: -33.4, commune: "Vitacura")
     end
 
     it "sets and clears the custom url" do

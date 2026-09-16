@@ -17,13 +17,26 @@ module Admin
     def show
       @event = find_event
       @communes = Communes::ALL
+      @formats = Event::FORMATS
+      @themes = Theme.order(:name)
+      @audiences = Audience.order(:name)
     end
 
+    # Every field the organiser submitted, in one PATCH or one at a time. What Luma owns (the title
+    # and dates, once the Luma event exists) is refused outright rather than dropped, so a
+    # change never looks saved when it was not.
     def update
-      event = Event.find(params[:id])
+      event = find_event
       attributes = event_params.to_h
+      if event.luma_synced? && attributes.keys.intersect?(Event::LUMA_SYNCED_ATTRIBUTES)
+        return redirect_to admin_event_path(@week, event), alert: "El título y las fechas se editan en Luma; el sitio los sincroniza desde allá."
+      end
+
       attributes[:logo_shown_at] = ActiveModel::Type::Boolean.new.cast(attributes.delete(:logo_shown)) ? Time.current : nil if attributes.key?(:logo_shown)
       attributes[:custom_url] = attributes[:custom_url].presence if attributes.key?(:custom_url)
+      # The catalogue picks arrive whole: an empty list clears them, an absent key leaves them.
+      attributes[:themes] = Theme.where(id: attributes.delete(:theme_ids).compact_blank) if attributes.key?(:theme_ids)
+      attributes[:audiences] = Audience.where(id: attributes.delete(:audience_ids).compact_blank) if attributes.key?(:audience_ids)
 
       if event.update(attributes)
         redirect_to admin_event_path(@week, event), notice: "Evento actualizado."
@@ -35,7 +48,11 @@ module Admin
     private
 
     def event_params
-      params.require(:event).permit(:commune, :custom_url, :logo_upload, :logo_shown)
+      params.require(:event).permit(
+        :title, :description, :author_name, :author_email, :author_phone_number, :company_name, :company_website,
+        :starts_at, :ends_at, :commune, :format, :capacity,
+        :custom_url, :logo_upload, :logo_shown, theme_ids: [], audience_ids: []
+      )
     end
   end
 end

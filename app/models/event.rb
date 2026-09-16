@@ -11,6 +11,10 @@ class Event < ApplicationRecord
   # the Luma event the site created) → published. Deleted is the host's own withdrawal.
   STATES = %w[submitted rejected waiting_luma_edit published deleted].freeze
 
+  # What Luma::Sync copies from the host's Luma event once there is one: the admin edits
+  # these on Luma, not here, or the next sync would take the change back.
+  LUMA_SYNCED_ATTRIBUTES = %w[title starts_at ends_at].freeze
+
   # Root-level event URLs must not collide with application routes.
   RESERVED_SLUGS = %w[events admin brand luma luma-cover opengraph up rails assets
     flock cable vite-dev vite-test vite favicon robots sitemap 25].freeze
@@ -70,6 +74,12 @@ class Event < ApplicationRecord
   scope :chronological, -> { order(:starts_at, :ends_at, :title) }
   # Companies that agreed to appear in the landing's "participating companies" wall.
   scope :logo_shown, -> { where.not(logo_shown_at: nil) }
+
+  # Whether LUMA_SYNCED_ATTRIBUTES come from Luma: true from approval on, when the site
+  # created the host's Luma event.
+  def luma_synced?
+    luma_event_api_id.present?
+  end
 
   # Where attendees register: the host's own page when they gave one, else the Luma event.
   def registration_url
