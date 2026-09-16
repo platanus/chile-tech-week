@@ -25,6 +25,7 @@ set -euo pipefail
 
 usage() { echo "usage: bin/start-worktree <name> [--empty] [--base <ref>]" >&2; exit 1; }
 
+original_args=("$@")
 name="${1:-}"
 [ -n "$name" ] || usage
 shift
@@ -42,6 +43,24 @@ done
 # Always operate on the MAIN checkout, even when invoked from a worktree.
 main_dir=$(dirname -- "$(git rev-parse --path-format=absolute --git-common-dir)")
 cd "$main_dir"
+
+# Nobody works in the main checkout (AGENTS.md), so it should mirror origin/main — but
+# every push goes up from a worktree as `git push origin HEAD:main`, so nothing ever pulls
+# main back down and the scripts here, this one included, drift behind the ones on origin.
+# Fast-forward it when that is safe (on main, nothing modified) and re-run this script from
+# the fresh copy, so a step fixed on origin never fails again here. Fetch is best-effort:
+# offline stays on local main.
+git fetch --quiet origin main 2>/dev/null || echo "bin/start-worktree: could not fetch origin; basing on local main" >&2
+if [ -z "${TW_START_WORKTREE_SYNCED:-}" ] && [ "$(git symbolic-ref --quiet --short HEAD 2>/dev/null)" = main ] \
+  && git rev-parse --verify --quiet origin/main >/dev/null && [ -z "$(git status --porcelain --untracked-files=no)" ] \
+  && [ "$(git rev-parse main)" != "$(git rev-parse origin/main)" ] && git merge-base --is-ancestor main origin/main; then
+  echo "bin/start-worktree: fast-forwarding the main checkout to origin/main…"
+  if git merge --ff-only --quiet origin/main; then
+    TW_START_WORKTREE_SYNCED=1 exec "$main_dir/bin/start-worktree" "${original_args[@]}"
+  else
+    echo "bin/start-worktree: could not fast-forward the main checkout; continuing with its current scripts" >&2
+  fi
+fi
 
 slug=$(printf %s "$name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]+/-/g')
 path=".claude/worktrees/$slug"
@@ -68,14 +87,13 @@ if ! $empty; then
   fi
 fi
 
-# Base the worktree on the freshest origin/main, not local main — a checkout sitting
-# behind origin would birth every worktree stale and force a mid-work rebase. Fetch is
-# best-effort: offline falls back to local main.
+# Base the worktree on the freshest origin/main (fetched above), not local main — a
+# checkout sitting behind origin would birth every worktree stale and force a mid-work
+# rebase. Offline falls back to local main.
 if [ -n "$base_override" ]; then
   base="$base_override"
   git rev-parse --verify --quiet "$base^{commit}" >/dev/null || { echo "bin/start-worktree: unknown ref $base" >&2; exit 1; }
 else
-  git fetch --quiet origin main 2>/dev/null || echo "bin/start-worktree: could not fetch origin; basing on local main" >&2
   base=main
   if git rev-parse --verify --quiet origin/main >/dev/null; then base=origin/main; fi
 fi
