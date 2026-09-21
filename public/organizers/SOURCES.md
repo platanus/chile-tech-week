@@ -14,3 +14,10 @@ white-logo filter and silhouette hover effect to both assets.
 Official transparent white PNG, trimmed to visible artwork, resized to 480px wide,
 and encoded as lossless WebP with transparency (480 × 112). Uses the same landing
 filter, entrance animation, and silhouette hover effect as the other logos.
+
+- Emprende tu Mente (EtM): https://emprendetumente.org/media/etm-logo.svg
+
+Official ETM logo, replacing the combined EtMday artwork. Rendered from SVG at
+2× resolution, trimmed to visible artwork, resized to 480 × 106, and encoded as
+lossless WebP with transparency. The landing applies its existing white-logo
+filter and silhouette hover effect.

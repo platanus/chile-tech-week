@@ -2,7 +2,7 @@ import { type CSSProperties, useEffect, useId, useRef, useState } from 'react';
 
 // Optimized logos from /25 and official brand sites, independent of archived records.
 const organizers = [
-  { name: 'EtMday', file: 'etmday', width: 450, height: 158 },
+  { name: 'Emprende tu Mente (EtM)', file: 'etm', width: 480, height: 106 },
   { name: 'ACVC', file: 'acvc', width: 480, height: 159 },
   { name: 'Platanus', file: 'platanus', width: 480, height: 94 },
   { name: 'Endeavor', file: 'endeavor', width: 480, height: 63 },
