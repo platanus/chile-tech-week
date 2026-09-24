@@ -80,8 +80,10 @@ RSpec.describe "discovery by crawlers and agents" do
     end
   end
 
-  describe "the crawlers' user agents" do
+  describe "user agents" do
     {
+      "Safari on iOS 16" => "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
+      "Instagram's in-app browser" => "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 312.0.0.22.114",
       "OAI-SearchBot" => "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot",
       "GPTBot" => "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.2; +https://openai.com/gptbot",
       "ChatGPT-User" => "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot",
@@ -90,7 +92,7 @@ RSpec.describe "discovery by crawlers and agents" do
       "PerplexityBot" => "Mozilla/5.0 (compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)",
       "a bare HTTP client" => "python-requests/2.31"
     }.each do |name, user_agent|
-      it "lets #{name} through allow_browser" do
+      it "serves #{name}" do
         get "/demo-day", headers: {"User-Agent" => user_agent}
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("application/ld+json")
