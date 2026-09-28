@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { validateEvent } from './event-validation';
 
-const options = { weekDates: { from: '2026-11-16', to: '2026-11-22' }, descriptionLimit: 300, communes: ['Providencia'], formats: ['networking'] };
+const options = { weekDates: { from: '2026-11-16', to: '2026-11-22' }, descriptionLimit: 300, formats: ['networking'] };
 function validData() {
   const data = new FormData();
-  for (const [key, value] of Object.entries({ company_name: 'Platanus', company_website: 'https://platan.us', author_name: 'Ada', author_email: 'ada+event@platan.us', author_phone_number: '+56 9 8765 4321', title: 'Demo', description: 'Description', starts_at: '2026-11-16T00:00', ends_at: '2026-11-22T23:59', commune: 'Providencia', format: 'networking', capacity: '500000' })) data.set(`event[${key}]`, value);
+  for (const [key, value] of Object.entries({ company_name: 'Platanus', company_website: 'https://platan.us', author_name: 'Ada', author_email: 'ada+event@platan.us', author_phone_number: '+56 9 8765 4321', title: 'Demo', description: 'Description', starts_at: '2026-11-16T00:00', ends_at: '2026-11-22T23:59', address: 'Avenida Providencia 2124, Providencia', commune: 'Providencia', format: 'networking', capacity: '500000' })) data.set(`event[${key}]`, value);
   data.set('event[logo_upload]', new File(['image'], 'logo.png', { type: 'image/png' }));
   data.set('event[theme_ids][]', 'ai');
   data.set('event[audience_ids][]', 'founders');
@@ -25,6 +25,11 @@ describe('event submission validation', () => {
     data.delete('event[theme_ids][]');
     data.delete('event[audience_ids][]');
     expect(Object.keys(validateEvent(data, options))).toEqual(expect.arrayContaining(['title', 'description', 'company_website', 'capacity', 'starts_at', 'ends_at', 'themes', 'audiences']));
+  });
+  it('requires an address picked from the list, which carries its commune', () => {
+    const data = validData();
+    data.set('event[commune]', '');
+    expect(validateEvent(data, options).address).toContain('elígela de la lista');
   });
   it('requires the end to follow the start', () => {
     const data = validData();

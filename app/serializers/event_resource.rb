@@ -4,7 +4,7 @@ class EventResource < ApplicationResource
   typelize_from Event
 
   attributes :id, :title, :description, :company_name, :company_website, :company_logo_url,
-    :starts_at, :ends_at, :commune, :format, :capacity
+    :starts_at, :ends_at, :address, :commune, :format, :capacity
 
   typelize :string?
   attribute :public_url do |event|

@@ -2,7 +2,9 @@ import { Form } from '@inertiajs/react';
 import { Pencil } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useWeek } from '@/components/admin/ui';
+import { AddressInput } from '@/components/events/address-input';
 import { TIME_ZONE } from '@/components/events/dates';
+import { DateTimeField } from '@/components/events/date-time-field';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,7 +21,7 @@ import type { AdminEvent, Audience, EventFormat, Theme } from '@/types';
 
 const LUMA_NOTE = 'Se edita en Luma; el sitio lo sincroniza desde allá.';
 
-// ISO → the "YYYY-MM-DDTHH:MM" a datetime-local speaks, in Santiago time (which is how
+// ISO → the "YYYY-MM-DDTHH:MM" DateTimeField speaks, in Santiago time (which is how
 // the server reads it back).
 const localParts = new Intl.DateTimeFormat('en-CA', {
   timeZone: TIME_ZONE,
@@ -35,9 +37,8 @@ function toDateTimeLocal(iso: string): string {
   return `${part.year}-${part.month}-${part.day}T${part.hour}:${part.minute}`;
 }
 
-export function EventEditDialog({ event, communes, formats, formatLabels, themes, audiences }: {
+export function EventEditDialog({ event, formats, formatLabels, themes, audiences }: {
   event: AdminEvent;
-  communes: string[];
   formats: EventFormat[];
   formatLabels: Record<EventFormat, string>;
   themes: Theme[];
@@ -78,18 +79,17 @@ export function EventEditDialog({ event, communes, formats, formatLabels, themes
                     <Textarea id="edit_description" name="event[description]" defaultValue={event.description} className="min-h-28" required />
                   </FormField>
                   <FormField label="Inicio" htmlFor="edit_starts_at" error={errors.starts_at} hint={locked ? LUMA_NOTE : undefined}>
-                    <Input id="edit_starts_at" name="event[starts_at]" type="datetime-local" defaultValue={toDateTimeLocal(event.startsAt)} disabled={locked} required className="scheme-dark" />
+                    <DateTimeField id="edit_starts_at" name="event[starts_at]" value={toDateTimeLocal(event.startsAt)} disabled={locked} />
                   </FormField>
                   <FormField label="Término" htmlFor="edit_ends_at" error={errors.ends_at} hint={locked ? LUMA_NOTE : undefined}>
-                    <Input id="edit_ends_at" name="event[ends_at]" type="datetime-local" defaultValue={toDateTimeLocal(event.endsAt)} disabled={locked} required className="scheme-dark" />
+                    <DateTimeField id="edit_ends_at" name="event[ends_at]" value={toDateTimeLocal(event.endsAt)} disabled={locked} />
                   </FormField>
-                  <FormField label="Comuna" htmlFor="edit_commune" error={errors.commune}>
-                    <Select name="event[commune]" defaultValue={event.commune}>
-                      <SelectTrigger id="edit_commune" className="w-full"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {communes.map((commune) => <SelectItem key={commune} value={commune}>{commune}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                  <FormField label="Dirección" htmlFor="edit_address" error={errors.address ?? errors.commune} hint={`Comuna: ${event.commune}. Se toma de la dirección que elijas en la lista.`} className="sm:col-span-2">
+                    <AddressInput
+                      id="edit_address"
+                      prefix="event"
+                      initial={{ address: event.address ?? undefined, commune: event.commune, latitude: event.latitude ?? undefined, longitude: event.longitude ?? undefined }}
+                    />
                   </FormField>
                   <FormField label="Formato" htmlFor="edit_format" error={errors.format}>
                     <Select name="event[format]" defaultValue={event.format}>

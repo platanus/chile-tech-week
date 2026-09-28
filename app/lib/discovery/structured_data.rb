@@ -82,7 +82,7 @@ module Discovery
     def location
       place = {
         "@type" => "Place", "name" => @event.commune,
-        "address" => {"@type" => "PostalAddress", "addressLocality" => @event.commune, "addressCountry" => "CL"}
+        "address" => {"@type" => "PostalAddress", "streetAddress" => @event.address.presence, "addressLocality" => @event.commune, "addressCountry" => "CL"}.compact
       }
       if @event.latitude && @event.longitude
         place["geo"] = {"@type" => "GeoCoordinates", "latitude" => @event.latitude.to_f, "longitude" => @event.longitude.to_f}

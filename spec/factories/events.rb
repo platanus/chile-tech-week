@@ -11,6 +11,7 @@ FactoryBot.define do
     description { "An event." }
     starts_at { Time.zone.local(2025, 11, 18, 18, 0) }
     ends_at { starts_at + 2.hours }
+    address { "Avenida Providencia 2124, Providencia" }
     commune { "Providencia" }
     format { "networking" }
     state { "submitted" }

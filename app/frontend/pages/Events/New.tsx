@@ -1,6 +1,8 @@
 import { Form, Link } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, Check, Plus, Trash2 } from 'lucide-react';
 import { cloneElement, type ReactElement, type ReactNode, useEffect, useRef, useState } from 'react';
+import { AddressInput } from '@/components/events/address-input';
+import { DateTimeField } from '@/components/events/date-time-field';
 import { LogoInput } from '@/components/events/logo-input';
 import { FORMAT_LABELS } from '@/components/events/formats';
 import { PageHead } from '@/components/site/layout';
@@ -13,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { validateEvent, type EventErrors } from '@/lib/event-validation';
 import { cn } from '@/lib/utils';
 import { events_path } from '@/routes';
-import type { EventsNew } from '@/types';
+import type { EventPrefill, EventsNew } from '@/types';
 
 type Errors = Record<string, string[] | string | undefined>;
 
@@ -54,7 +56,7 @@ function Field({ label, htmlFor, hint, children, errors, name, className }: {
 // the flex utility on the same element.
 const STEPS = [
   {title: 'Organizador', fields: ['company_name', 'company_website', 'author_name', 'author_email', 'author_phone_number']},
-  {title: 'Evento', fields: ['title', 'description', 'starts_at', 'ends_at', 'commune', 'format', 'capacity', 'logo']},
+  {title: 'Evento', fields: ['title', 'description', 'starts_at', 'ends_at', 'address', 'commune', 'latitude', 'longitude', 'format', 'capacity', 'logo']},
   {title: 'Temas y audiencias', fields: ['themes', 'audiences']},
   {title: 'Co-hosts', fields: []}
 ] as const;
@@ -141,9 +143,10 @@ function LogoField({ name, label, errors, errorName, onValidation }: { name: str
 }
 
 // The catalogue pickers (temas, audiencias): a grid of checkboxes posting `name[]`.
-function CheckboxGrid({ name, options, errors, errorName }: {
+function CheckboxGrid({ name, options, checked = [], errors, errorName }: {
   name: string;
   options: { id: string; name: string }[];
+  checked?: string[];
   errors: Errors;
   errorName: string;
 }) {
@@ -152,7 +155,7 @@ function CheckboxGrid({ name, options, errors, errorName }: {
       <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2 md:grid-cols-3">
         {options.map((option) => (
           <label key={option.id} className="flex cursor-pointer items-center gap-2 text-sm">
-            <Checkbox name={name} value={option.id} aria-invalid={!!errors[errorName]} />
+            <Checkbox name={name} value={option.id} defaultChecked={checked.includes(option.id)} aria-invalid={!!errors[errorName]} />
             {option.name}
           </label>
         ))}
@@ -162,8 +165,8 @@ function CheckboxGrid({ name, options, errors, errorName }: {
   );
 }
 
-// datetime-local ↔ the "YYYY-MM-DDTHH:MM" strings it speaks, no zone (the server reads them
-// in Santiago time).
+// The "YYYY-MM-DDTHH:MM" strings DateTimeField speaks, no zone (the server reads them in
+// Santiago time).
 function addHours(value: string, hours: number) {
   const [date, time] = value.split('T');
   const [y, m, d] = date.split('-').map(Number);
@@ -177,25 +180,29 @@ function hoursBetween(start: string, end: string) {
   return (Date.parse(`${end}:00Z`) - Date.parse(`${start}:00Z`)) / 3_600_000;
 }
 
+// A prefilled address counts as picked only with its commune; coordinates are optional.
+function prefilledPlace(pre: EventPrefill) {
+  if (!pre.address) return undefined;
+  const coordinate = (value?: string) => (value ? Number(value) : undefined);
+  return { address: pre.address, commune: pre.commune, latitude: coordinate(pre.latitude), longitude: coordinate(pre.longitude) };
+}
+
 const inputClass = 'h-11 border-input bg-transparent px-3 text-base focus-visible:border-primary focus-visible:ring-0';
 const selectClass = 'h-11! w-full border-input bg-transparent px-3 text-base focus-visible:border-primary focus-visible:ring-0';
+const pickerClass = 'h-11! border-input bg-transparent px-3 text-base hover:bg-transparent focus-visible:border-primary focus-visible:ring-0';
+const popoverClass = 'site min-h-0 border-border bg-popover text-popover-foreground';
 
 // The submission form: the organiser, the event, the catalogue and the optional co-hosts,
 // posted as one Rails nested form (event[…], event[cohosts_attributes][i][…]).
-export default function New({ days, weekDates, communes, formats, themes, audiences, descriptionLimit, ...page }: EventsNew) {
-  const [description, setDescription] = useState('');
-  const [startsAt, setStartsAt] = useState('');
-  const [endsAt, setEndsAt] = useState('');
+export default function New({ days, weekDates, formats, themes, audiences, descriptionLimit, prefill, step: initialStep, ...page }: EventsNew) {
+  // `prefill`/`step` only arrive in development (EventsController#prefill_from_url).
+  const pre = prefill ?? {};
+  const [description, setDescription] = useState(pre.description ?? '');
+  const [startsAt, setStartsAt] = useState(pre.starts_at ?? '');
+  const [endsAt, setEndsAt] = useState(pre.ends_at ?? '');
   const [cohostIds, setCohostIds] = useState<number[]>([]);
   const [nextCohostId, setNextCohostId] = useState(0);
 
-  const min = `${weekDates.from}T00:00`;
-  const max = `${weekDates.to}T23:59`;
-
-  const onStartChange = (value: string) => {
-    setStartsAt(value);
-    if (value && (!endsAt || endsAt <= value)) setEndsAt(addHours(value, 2));
-  };
 
   const duration = startsAt && endsAt ? hoursBetween(startsAt, endsAt) : null;
   const durationWarning =
@@ -207,8 +214,8 @@ export default function New({ days, weekDates, communes, formats, themes, audien
           ? `Este evento dura ${Math.round(duration)} horas. ¿Es correcto? La mayoría dura 4 horas o menos.`
           : null;
 
-  const [step, setStep] = useState(0);
-  const [furthest, setFurthest] = useState(0);
+  const [step, setStep] = useState(initialStep ?? 0);
+  const [furthest, setFurthest] = useState(initialStep ?? 0);
   const formRef = useRef<HTMLDivElement>(null);
   const last = STEPS.length - 1;
 
@@ -224,7 +231,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
   const readErrors = () => {
     const form = formRef.current?.querySelector('form');
     if (!form) return {};
-    const errors = validateEvent(new FormData(form), { weekDates, descriptionLimit, communes, formats });
+    const errors = validateEvent(new FormData(form), { weekDates, descriptionLimit, formats });
     for (const input of form.querySelectorAll<HTMLInputElement>('input[type="file"]')) {
       const key = input.closest<HTMLElement>('[data-field]')?.dataset.field;
       if (key && input.validity.customError) errors[key] = input.validationMessage;
@@ -236,7 +243,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
     if (!(target instanceof HTMLElement)) return;
     const key = target.closest<HTMLElement>('[data-field]')?.dataset.field;
     if (!key) return;
-    if (blur || target.matches('input[type="file"], input[type="checkbox"], [role="checkbox"], [role="combobox"]')) touched.current.add(key);
+    if (blur || target.matches('input[type="file"], input[type="checkbox"], [role="checkbox"], button[role="combobox"]')) touched.current.add(key);
     // Radix's hidden controls and React's date autofill settle before reading FormData.
     setTimeout(() => {
       const errors = readErrors();
@@ -261,6 +268,26 @@ export default function New({ days, weekDates, communes, formats, themes, audien
     return false;
   };
 
+  // The date and address pickers change hidden fields, which fire no event the form hears.
+  const refreshById = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) refreshField(element, true);
+  };
+
+  const onStartChange = (value: string) => {
+    setStartsAt(value);
+    refreshById('starts_at');
+    if (value && (!endsAt || endsAt <= value)) {
+      setEndsAt(addHours(value, 2));
+      if (touched.current.has('ends_at')) refreshById('ends_at');
+    }
+  };
+
+  const onEndChange = (value: string) => {
+    setEndsAt(value);
+    refreshById('ends_at');
+  };
+
   const nextStep = (event: React.MouseEvent) => {
     event.preventDefault();
     if (validate(step)) goTo(Math.min(step + 1, last));
@@ -282,30 +309,36 @@ export default function New({ days, weekDates, communes, formats, themes, audien
       </header>
 
       <Form action={events_path()} method="post" className="flex flex-col gap-10" resetOnSuccess={false} noValidate onBefore={() => validate()}
-        onBlur={(event) => refreshField(event.target, true)}
+        onBlur={(event) => {
+          // Focus moving into a picker's popover (the calendar, the time list) is not leaving the field.
+          if (event.relatedTarget instanceof Element && event.relatedTarget.closest('[data-radix-popper-content-wrapper]')) return;
+          refreshField(event.target, true);
+        }}
         onChange={(event) => refreshField(event.target)}
         onError={() => { touched.current.clear(); setClientErrors({}); }}>
         {({ errors: serverErrors, processing, clearErrors }) => {
-          const errors = { ...serverErrors, ...clientErrors };
+          const errors: Errors = { ...serverErrors, ...clientErrors };
+          // The commune and coordinates come with the address; the address field speaks for them.
+          errors.address ??= serverErrors.commune ?? serverErrors.latitude ?? serverErrors.longitude;
           return (<>
             <Stepper current={step} furthest={furthest} onGo={goTo} />
             <Step index={0} current={step}>
               <SectionTitle title="Organizador" hint="Quién organiza y a quién le escribimos." />
               <div className="grid gap-6 sm:grid-cols-2">
                 <Field label="Nombre de la empresa" htmlFor="company_name" errors={errors} name="company_name">
-                  <Input id="company_name" name="event[company_name]" placeholder="Platanus" className={inputClass} />
+                  <Input id="company_name" name="event[company_name]" defaultValue={pre.company_name} placeholder="Platanus" className={inputClass} />
                 </Field>
                 <Field label="Sitio web" htmlFor="company_website" errors={errors} name="company_website">
-                  <Input id="company_website" name="event[company_website]" type="url" placeholder="https://empresa.cl" className={inputClass} />
+                  <Input id="company_website" name="event[company_website]" defaultValue={pre.company_website} type="url" placeholder="https://empresa.cl" className={inputClass} />
                 </Field>
                 <Field label="Nombre de contacto" htmlFor="author_name" errors={errors} name="author_name">
-                  <Input id="author_name" name="event[author_name]" placeholder="Ada Lovelace" className={inputClass} />
+                  <Input id="author_name" name="event[author_name]" defaultValue={pre.author_name} placeholder="Ada Lovelace" className={inputClass} />
                 </Field>
                 <Field label="Email de contacto" htmlFor="author_email" errors={errors} name="author_email" hint="A este email llegarán las novedades de tu evento.">
-                  <Input id="author_email" name="event[author_email]" type="email" placeholder="ada@empresa.cl" className={inputClass} />
+                  <Input id="author_email" name="event[author_email]" defaultValue={pre.author_email} type="email" placeholder="ada@empresa.cl" className={inputClass} />
                 </Field>
                 <Field label="Teléfono de contacto" htmlFor="author_phone_number" errors={errors} name="author_phone_number">
-                  <Input id="author_phone_number" name="event[author_phone_number]" type="tel" placeholder="+56 9 8765 4321" className={inputClass} />
+                  <Input id="author_phone_number" name="event[author_phone_number]" defaultValue={pre.author_phone_number} type="tel" placeholder="+56 9 8765 4321" className={inputClass} />
                 </Field>
               </div>
             </Step>
@@ -313,7 +346,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
             <Step index={1} current={step}>
               <SectionTitle title="Evento" hint="Qué es, cuándo y dónde." />
               <Field label="Título" htmlFor="title" errors={errors} name="title">
-                <Input id="title" name="event[title]" placeholder="Demo Day de fintechs" className={inputClass} />
+                <Input id="title" name="event[title]" defaultValue={pre.title} placeholder="Demo Day de fintechs" className={inputClass} />
               </Field>
               <Field label="Descripción" htmlFor="description" errors={errors} name="description" hint={`${description.length}/${descriptionLimit} caracteres`}>
                 <Textarea
@@ -341,32 +374,22 @@ export default function New({ days, weekDates, communes, formats, themes, audien
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2">
-                <Field label="Inicio" htmlFor="starts_at" errors={errors} name="starts_at">
-                  <Input id="starts_at" name="event[starts_at]" type="datetime-local" min={min} max={max} value={startsAt} onChange={(e) => onStartChange(e.target.value)} className={cn(inputClass, 'scheme-dark')} />
+                <Field label="Inicio" htmlFor="starts_at" errors={errors} name="starts_at" className="min-w-0">
+                  <DateTimeField id="starts_at" name="event[starts_at]" min={weekDates.from} max={weekDates.to} value={startsAt} onChange={onStartChange} className={pickerClass} popoverClassName={popoverClass} />
                 </Field>
-                <Field label="Término" htmlFor="ends_at" errors={errors} name="ends_at">
-                  <Input id="ends_at" name="event[ends_at]" type="datetime-local" min={min} max={max} value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className={cn(inputClass, 'scheme-dark')} />
+                <Field label="Término" htmlFor="ends_at" errors={errors} name="ends_at" className="min-w-0">
+                  <DateTimeField id="ends_at" name="event[ends_at]" min={weekDates.from} max={weekDates.to} value={endsAt} onChange={onEndChange} className={pickerClass} popoverClassName={popoverClass} />
                 </Field>
               </div>
               {durationWarning && <p className="text-sm text-primary">{durationWarning}</p>}
 
+              <Field label="Dirección" htmlFor="address" errors={errors} name="address" hint="Escribe la calle y el número, o el nombre del lugar, y elige una opción de la lista.">
+                <AddressInput id="address" prefix="event" initial={prefilledPlace(pre)} className={inputClass} onPick={() => refreshById('address')} />
+              </Field>
+
               <div className="grid gap-6 sm:grid-cols-2">
-                <Field label="Comuna" htmlFor="commune" errors={errors} name="commune">
-                  <Select name="event[commune]">
-                    <SelectTrigger aria-invalid={!!errors.commune} aria-describedby={errors.commune ? "commune-error" : undefined} id="commune" className={selectClass}>
-                      <SelectValue placeholder="Elige una comuna" />
-                    </SelectTrigger>
-                    <SelectContent className="site min-h-0 border-border bg-popover text-popover-foreground">
-                      {communes.map((commune) => (
-                        <SelectItem key={commune} value={commune}>
-                          {commune}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
                 <Field label="Formato" htmlFor="format" errors={errors} name="format">
-                  <Select name="event[format]">
+                  <Select name="event[format]" defaultValue={pre.format}>
                     <SelectTrigger aria-invalid={!!errors.format} aria-describedby={errors.format ? "format-error" : undefined} id="format" className={selectClass}>
                       <SelectValue placeholder="Elige un formato" />
                     </SelectTrigger>
@@ -380,7 +403,7 @@ export default function New({ days, weekDates, communes, formats, themes, audien
                   </Select>
                 </Field>
                 <Field label="Capacidad" htmlFor="capacity" errors={errors} name="capacity" hint="Cantidad aproximada de asistentes.">
-                  <Input id="capacity" name="event[capacity]" type="number" min={1} max={500000} step={1} placeholder="50" className={inputClass} />
+                  <Input id="capacity" name="event[capacity]" defaultValue={pre.capacity} type="number" min={1} max={500000} step={1} placeholder="50" className={inputClass} />
                 </Field>
               </div>
 
@@ -391,11 +414,11 @@ export default function New({ days, weekDates, communes, formats, themes, audien
               <SectionTitle title="Temas y audiencias" hint="Así la gente encuentra tu evento en el programa." />
               <div className="flex flex-col gap-2">
                 <div className="label text-[11px] text-muted-foreground">Temas · elige al menos uno</div>
-                <CheckboxGrid name="event[theme_ids][]" options={themes} errors={errors} errorName="themes" />
+                <CheckboxGrid name="event[theme_ids][]" options={themes} checked={pre.theme_ids} errors={errors} errorName="themes" />
               </div>
               <div className="flex flex-col gap-2">
                 <div className="label text-[11px] text-muted-foreground">Audiencias · elige al menos una</div>
-                <CheckboxGrid name="event[audience_ids][]" options={audiences} errors={errors} errorName="audiences" />
+                <CheckboxGrid name="event[audience_ids][]" options={audiences} checked={pre.audience_ids} errors={errors} errorName="audiences" />
               </div>
             </Step>
 

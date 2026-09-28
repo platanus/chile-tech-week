@@ -27,3 +27,7 @@ export type SharedProps = {
   week?: AdminWeek | null;
   weeks?: AdminWeek[];
 };
+
+// The development-only prefill of /events/new (EventsController#prefill_from_url), keyed by
+// the form's own param names.
+export type EventPrefill = Partial<Record<string, string> & { theme_ids: string[]; audience_ids: string[] }>;

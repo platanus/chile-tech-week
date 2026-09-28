@@ -57,7 +57,7 @@ RSpec.describe "the current edition's events" do
   end
 
   describe "GET /events/new" do
-    it "renders the form with the catalogue, the communes, the formats and the week" do
+    it "renders the form with the catalogue, the formats and the week" do
       theme
       audience
 
@@ -72,7 +72,26 @@ RSpec.describe "the current edition's events" do
         themes: [{id: theme.id, name: "Fintech", slug: "fintech"}],
         audiences: [{id: audience.id, name: "Investors", slug: "investors"}]
       )
-      expect(inertia.props.fetch(:communes)).to include("Providencia", "Las Condes")
+      expect(inertia.props).not_to have_key(:communes)
+    end
+  end
+
+  describe "GET /events/new with a prefill in the URL" do
+    let(:url) { "/events/new?step=2&event[company_name]=Platanus&event[author_email]=ada@platan.us&event[theme_ids][]=fintech" }
+
+    it "opens that step with the fields filled, themes by slug, in development" do
+      allow(Rails.env).to receive(:development?).and_return(true)
+      theme
+
+      get url
+
+      expect(inertia).to have_props(step: 1, prefill: {company_name: "Platanus", author_email: "ada@platan.us", theme_ids: [theme.id]})
+    end
+
+    it "ignores it everywhere else" do
+      get url
+
+      expect(inertia).to have_props(step: nil, prefill: nil)
     end
   end
 
@@ -83,7 +102,8 @@ RSpec.describe "the current edition's events" do
           company_name: "Platanus", company_website: "https://platan.us", author_name: "ada lovelace",
           author_email: "Ada@Platan.us", author_phone_number: "+56 9 8765 4321",
           title: "Demo Day", description: "Doce startups presentan.",
-          starts_at: "2026-11-18T18:00", ends_at: "2026-11-18T20:00", commune: "Providencia",
+          starts_at: "2026-11-18T18:00", ends_at: "2026-11-18T20:00",
+          address: "Avenida Providencia 2124, Providencia", commune: "Providencia", latitude: "-33.4220724", longitude: "-70.6114271",
           format: "pitch_event_demo_day", capacity: "80", logo_upload: logo,
           theme_ids: [theme.id], audience_ids: [audience.id],
           cohosts_attributes: {
@@ -101,7 +121,8 @@ RSpec.describe "the current edition's events" do
 
       event = Event.last
       expect(event).to have_attributes(edition: 2026, state: "submitted", author_email: "ada@platan.us", author_name: "ada lovelace",
-        title: "Demo Day", commune: "Providencia", format: "pitch_event_demo_day", capacity: 80)
+        title: "Demo Day", address: "Avenida Providencia 2124, Providencia", commune: "Providencia",
+        latitude: BigDecimal("-33.4220724"), longitude: BigDecimal("-70.6114271"), format: "pitch_event_demo_day", capacity: 80)
       expect(event.starts_at).to eq(Time.zone.local(2026, 11, 18, 18, 0))
       expect(event.ends_at).to eq(Time.zone.local(2026, 11, 18, 20, 0))
       expect(event.logo).to be_attached

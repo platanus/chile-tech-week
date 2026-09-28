@@ -3,7 +3,7 @@
 class EventsController < InertiaController
   EVENT_PARAMS = [
     :title, :description, :author_name, :author_email, :author_phone_number, :company_name,
-    :company_website, :starts_at, :ends_at, :commune, :format, :capacity, :logo_upload
+    :company_website, :starts_at, :ends_at, :address, :commune, :latitude, :longitude, :format, :capacity, :logo_upload
   ].freeze
   COHOST_PARAMS = [
     :company_name, :logo_upload, :primary_contact_name, :primary_contact_email,
@@ -34,11 +34,12 @@ class EventsController < InertiaController
     @description = "Inscribe tu evento en el programa de #{week_name}."
     @days = week_days
     @week_dates = {from: @week.starts_on.iso8601, to: @week.ends_on.iso8601}
-    @communes = Communes::ALL
     @formats = Event::FORMATS
     @themes = Theme.order(:name)
     @audiences = Audience.order(:name)
     @description_limit = Event::DESCRIPTION_LIMIT
+    @prefill = @step = nil
+    prefill_from_url if Rails.env.development?
   end
 
   def create
@@ -65,6 +66,17 @@ class EventsController < InertiaController
   end
 
   private
+
+  # Development only: /events/new?step=2&event[company_name]=… opens the form on that step
+  # (1–4) with those fields filled, so a page deep in the form is one URL away. Themes and
+  # audiences take slugs or ids; the logo cannot be prefilled (browsers refuse to).
+  def prefill_from_url
+    @step = params[:step].to_i.clamp(1, 4) - 1 if params[:step].present?
+    values = params.fetch(:event, {}).permit(*EVENT_PARAMS - [:logo_upload], theme_ids: [], audience_ids: []).to_h
+    values["theme_ids"] = Theme.where(slug: values["theme_ids"]).or(Theme.where(id: values["theme_ids"].grep(/\A\h{8}-/))).pluck(:id) if values["theme_ids"]
+    values["audience_ids"] = Audience.where(slug: values["audience_ids"]).or(Audience.where(id: values["audience_ids"].grep(/\A\h{8}-/))).pluck(:id) if values["audience_ids"]
+    @prefill = values.presence
+  end
 
   # The week the public site is about: the one running, or the nearest to today.
   def set_week

@@ -73,7 +73,7 @@ RSpec.describe "admin events" do
   end
 
   describe "GET /admin/:week/events/:id" do
-    it "shows the whole row, the co-hosts' contacts and the communes to pick from" do
+    it "shows the whole row and the co-hosts' contacts" do
       theme = create(:theme, name: "Fintech")
       event = create(:event, :published, themes: [theme], author_email: "host@acme.cl", rejection_reason: nil, custom_url: "https://acme.cl/e",
         luma_cover_url: "https://images.lumacdn.com/cover.png")
@@ -87,11 +87,10 @@ RSpec.describe "admin events" do
         id: event.id, authorEmail: "host@acme.cl", customUrl: "https://acme.cl/e", state: "published",
         lumaEventUrl: "https://luma.com/example", publishedAt: event.published_at.iso8601(3),
         lumaCoverUrl: "https://images.lumacdn.com/cover.png", coverImageUrl: "https://images.lumacdn.com/cover.png",
-        coverMirrored: false
+        coverMirrored: false, address: "Avenida Providencia 2124, Providencia"
       )
       expect(inertia.props[:event]["themes"].map { |t| t["name"] }).to eq(["Fintech"])
       expect(inertia.props[:event]["cohosts"].first).to include("id" => cohost.id, "primaryContactEmail" => "co@host.cl")
-      expect(inertia.props[:communes]).to include("Providencia", "Vitacura")
     end
 
     it "gives the edit form the whole catalogue and says which fields Luma owns" do
@@ -183,12 +182,20 @@ RSpec.describe "admin events" do
       expect(event.reload.title).to eq("Renamed")
     end
 
-    it "never touches the Luma columns, the state or the 2025 import's coordinates" do
+    it "never touches the Luma columns or the state" do
+      event = create(:event, :published)
+
+      patch "/admin/25/events/#{event.id}", params: {event: {luma_event_url: "https://luma.com/other", state: "deleted", edition: 2026}}
+
+      expect(event.reload).to have_attributes(luma_event_url: "https://luma.com/example", state: "published", edition: 2025)
+    end
+
+    it "moves the event to a picked address, with its commune and coordinates" do
       event = create(:event, :published, latitude: -33.4)
 
-      patch "/admin/25/events/#{event.id}", params: {event: {luma_event_url: "https://luma.com/other", state: "deleted", edition: 2026, latitude: "0", commune: "Vitacura"}}
+      patch "/admin/25/events/#{event.id}", params: {event: {address: "Avenida Vitacura 2939, Vitacura", commune: "Vitacura", latitude: "-33.4", longitude: "-70.6"}}
 
-      expect(event.reload).to have_attributes(luma_event_url: "https://luma.com/example", state: "published", edition: 2025, latitude: -33.4, commune: "Vitacura")
+      expect(event.reload).to have_attributes(address: "Avenida Vitacura 2939, Vitacura", commune: "Vitacura", latitude: BigDecimal("-33.4"), longitude: BigDecimal("-70.6"))
     end
 
     it "sets and clears the custom url" do

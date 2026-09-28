@@ -13,7 +13,7 @@ module Luma
       updated = cancelled = failed = 0
       scope = ::Event.where.not(luma_event_api_id: nil).where(state: %w[published waiting_luma_edit])
       scope.find_each do |event|
-        case sync(event)
+        case sync_event(event)
         when :updated then updated += 1
         when :cancelled then cancelled += 1
         when :failed then failed += 1
@@ -22,10 +22,11 @@ module Luma
       Outcome.new(synced: scope.count, updated: updated, cancelled: cancelled, failed: failed)
     end
 
-    private
-
-    def sync(event)
-      apply(event, @client.get_event(event.luma_event_api_id))
+    # One event, now: :updated, :unchanged, :cancelled or :failed. `notify: false` skips the
+    # host's "your event changed" mail — for when the host is the one who just made the change
+    # (Events::Publish syncs right before going public).
+    def sync_event(event, notify: true)
+      apply(event, @client.get_event(event.luma_event_api_id), notify:)
     rescue NotFound => e
       return take_down(event) if e.canceled?
 
@@ -36,7 +37,9 @@ module Luma
       :failed
     end
 
-    def apply(event, remote)
+    private
+
+    def apply(event, remote, notify:)
       changes = {}
       changes[:title] = {old: event.title, new: remote.name} if remote.name.present? && remote.name != event.title
       starts_at = Time.zone.parse(remote.start_at.to_s)
@@ -59,7 +62,7 @@ module Luma
       )
       # New artwork: fetch our own copy. The host is not told — the picture is theirs.
       MirrorLumaCoverJob.perform_later(event.id, event.luma_cover_url) if cover_changed
-      EventMailer.with(event: event, changes: changes).luma_updated.deliver_later if changes.any?
+      EventMailer.with(event: event, changes: changes).luma_updated.deliver_later if notify && changes.any?
       :updated
     end
 

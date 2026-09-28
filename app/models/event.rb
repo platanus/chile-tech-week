@@ -59,7 +59,11 @@ class Event < ApplicationRecord
     validates :author_phone_number, format: {with: PHONE_FORMAT}
     validates :company_website, format: {with: HTTPS_URL, message: :https_url}
     validates :capacity, numericality: {less_than_or_equal_to: CAPACITY_LIMIT}
-    validates :commune, inclusion: {in: ->(_) { Communes::ALL }}
+    # The address is picked from the form's Chile-only search (components/events/address-input),
+    # which fills the commune and coordinates from the same result.
+    validates :address, presence: true
+    validates :latitude, numericality: {in: -56.5..-17.4, message: :outside_chile}, allow_nil: true
+    validates :longitude, numericality: {in: -110..-66, message: :outside_chile}, allow_nil: true
     validate :within_the_week
     validate :logo_uploaded
     validates :themes, :audiences, presence: true
@@ -67,7 +71,7 @@ class Event < ApplicationRecord
 
   normalizes :author_email, with: ->(email) { email.strip.downcase }
   normalizes :author_name, with: ->(name) { name.strip.squeeze(" ") }
-  normalizes :title, :company_name, :commune, with: ->(value) { value.strip }
+  normalizes :title, :company_name, :commune, :address, with: ->(value) { value.strip }
   normalizes :author_phone_number, :company_website, with: ->(value) { value.strip }
 
   scope :for_edition, ->(year) { where(edition: year) }

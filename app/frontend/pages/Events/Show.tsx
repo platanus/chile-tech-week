@@ -35,7 +35,7 @@ function Summary({ event }: { event: EventStatus }) {
     ['Organiza', `${event.companyName}${event.cohosts.length ? ` + ${event.cohosts.map((c) => c.companyName).join(' + ')}` : ''}`],
     ['Fecha', formatLongDay(event.startsAt)],
     ['Hora', `${formatTime(event.startsAt)} – ${formatTime(event.endsAt)}`],
-    ['Comuna', event.commune],
+    ['Dirección', event.address ?? event.commune],
     ['Formato', FORMAT_LABELS[event.format]],
     ['Capacidad', `${event.capacity} personas`],
     ['Temas', event.themes.map((t) => t.name).join(', ')],

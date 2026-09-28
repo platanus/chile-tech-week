@@ -12,6 +12,10 @@ es:
             ends_at:
               outside_the_week: "debe estar dentro de la semana (%{week})"
               blank: "no puede estar en blanco"
+            latitude:
+              outside_chile: "no corresponde a un lugar en Chile"
+            longitude:
+              outside_chile: "no corresponde a un lugar en Chile"
     attributes:
       event:
         title: "El título"
@@ -25,7 +29,10 @@ es:
         logo: "El logo"
         starts_at: "El inicio"
         ends_at: "El término"
+        address: "La dirección"
         commune: "La comuna"
+        latitude: "La latitud"
+        longitude: "La longitud"
         format: "El formato"
         capacity: "La capacidad"
         themes: "Los temas"

@@ -26,8 +26,9 @@ module Luma
         description_md: Description.new(@event).to_md,
         cover_url: CoverUpload.new(client: @client, config: @config).call,
         tint_color: "#ee2b2b",
-        location: @event.commune,
-        geo_address_json: {type: "manual", address: "#{@event.commune}, Chile"},
+        location: place,
+        geo_address_json: {type: "manual", address: place},
+        coordinate: coordinate,
         visibility: "private",
         capacity: @event.capacity
       }
@@ -43,6 +44,17 @@ module Luma
     end
 
     private
+
+    # The address the host picked (it already names the commune), else just the commune.
+    # Luma shows it as typed and does not geocode a manual address: the map pin comes from
+    # `coordinate` — the house when OSM has its number, else a point on the street.
+    def place
+      "#{@event.address.presence || @event.commune}, Chile"
+    end
+
+    def coordinate
+      {latitude: @event.latitude.to_f, longitude: @event.longitude.to_f} if @event.latitude && @event.longitude
+    end
 
     def invite_hosts(api_id)
       invited = []

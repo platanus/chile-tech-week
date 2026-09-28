@@ -58,7 +58,7 @@ export default function Show({ title, description, opengraphImageUrl, event }: P
             </div>
             <div className="event-fact">
               <div className="event-location-icon"><MapPin size={27} aria-hidden="true" /></div>
-              <div><p className="event-fact-title">{event.commune}</p><p className="event-fact-detail">Chile</p></div>
+              <div><p className="event-fact-title">{event.commune}</p><p className="event-fact-detail">{event.address ?? 'Chile'}</p></div>
             </div>
           </div>
           {event.lumaEventUrl && (

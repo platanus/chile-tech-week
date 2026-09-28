@@ -16,7 +16,6 @@ module Admin
 
     def show
       @event = find_event
-      @communes = Communes::ALL
       @formats = Event::FORMATS
       @themes = Theme.order(:name)
       @audiences = Audience.order(:name)
@@ -50,7 +49,7 @@ module Admin
     def event_params
       params.require(:event).permit(
         :title, :description, :author_name, :author_email, :author_phone_number, :company_name, :company_website,
-        :starts_at, :ends_at, :commune, :format, :capacity,
+        :starts_at, :ends_at, :address, :commune, :latitude, :longitude, :format, :capacity,
         :custom_url, :logo_upload, :logo_shown, theme_ids: [], audience_ids: []
       )
     end

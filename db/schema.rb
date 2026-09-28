@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -87,6 +87,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_180000) do
   end
 
   create_table "events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "address"
     t.timestamptz "approved_at"
     t.string "author_email", null: false
     t.string "author_name", null: false

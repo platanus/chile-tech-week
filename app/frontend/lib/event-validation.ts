@@ -1,6 +1,6 @@
 import { logoPolicy } from './logo-upload';
 
-type Options = { weekDates: { from: string; to: string }; descriptionLimit: number; communes: string[]; formats: string[] };
+type Options = { weekDates: { from: string; to: string }; descriptionLimit: number; formats: string[] };
 export type EventErrors = Record<string, string | undefined>;
 
 // Match Event/Cohost's submission rules. Rails repeats these checks on submission.
@@ -35,7 +35,8 @@ export function validateEvent(data: FormData, options: Options): EventErrors {
     else if (value < `${options.weekDates.from}T00:00` || value > `${options.weekDates.to}T23:59`) errors[key] = 'La fecha debe estar dentro de la semana del evento.';
   }
   if (!errors.starts_at && !errors.ends_at && text('event[ends_at]') <= text('event[starts_at]')) errors.ends_at = 'El término debe ser después del inicio.';
-  if (!options.communes.includes(text('event[commune]'))) errors.commune = 'Elige una comuna.';
+  // AddressInput fills these only from a result picked in its list.
+  if (!text('event[address]') || !text('event[commune]')) errors.address = 'Busca la dirección y elígela de la lista.';
   if (!options.formats.includes(text('event[format]'))) errors.format = 'Elige un formato.';
   const capacity = text('event[capacity]');
   if (!/^\d+$/.test(capacity) || Number(capacity) < 1 || Number(capacity) > 500_000) errors.capacity = 'Ingresa un número entero entre 1 y 500.000.';

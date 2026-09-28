@@ -3,7 +3,8 @@ require "rails_helper"
 RSpec.describe Luma::EventCreator do
   let(:client) { Luma::FakeClient.instance }
   let(:event) do
-    create(:event, edition: 2026, title: "Demo Day", description: "Una demo.", author_email: "ada@example.com", commune: "Providencia", capacity: 80,
+    create(:event, edition: 2026, title: "Demo Day", description: "Una demo.", author_email: "ada@example.com",
+      address: "Avenida Providencia 2124, Providencia", commune: "Providencia", latitude: -33.4220724, longitude: -70.6114271, capacity: 80,
       starts_at: Time.zone.local(2026, 11, 18, 18, 0), ends_at: Time.zone.local(2026, 11, 18, 20, 0))
   end
 
@@ -23,8 +24,26 @@ RSpec.describe Luma::EventCreator do
     created = client.events.fetch(result.api_id)
     expect(created).to have_attributes(name: "Demo Day", start_at: "2026-11-18T21:00:00Z", end_at: "2026-11-18T23:00:00Z", visibility: "private")
     attributes = described_class.new(event, client: client, config: config).attributes
-    expect(attributes).to include(timezone: "America/Santiago", cover_url: client.upload_image(body: "cover-bytes", content_type: "image/png"), tint_color: "#ee2b2b", capacity: 80, location: "Providencia")
+    expect(attributes).to include(timezone: "America/Santiago", cover_url: client.upload_image(body: "cover-bytes", content_type: "image/png"), tint_color: "#ee2b2b", capacity: 80,
+      location: "Avenida Providencia 2124, Providencia, Chile", geo_address_json: {type: "manual", address: "Avenida Providencia 2124, Providencia, Chile"},
+      coordinate: {latitude: -33.4220724, longitude: -70.6114271})
     expect(attributes[:description_md]).to include("RECUERDA EDITAR", "Una demo.", "https://techweek.cl/events/#{event.id}?publish=true", "**BCI** — Bea (co@example.com)")
+  end
+
+  it "sends an address whose number OSM does not have as typed, pinned on its street" do
+    event.update!(address: "Camino Las Carretas 9930, Lo Barnechea", commune: "Lo Barnechea", latitude: -33.3332087, longitude: -70.5455596)
+
+    expect(described_class.new(event, client: client, config: AppConfig.new).attributes).to include(
+      location: "Camino Las Carretas 9930, Lo Barnechea, Chile",
+      geo_address_json: {type: "manual", address: "Camino Las Carretas 9930, Lo Barnechea, Chile"},
+      coordinate: {latitude: -33.3332087, longitude: -70.5455596}
+    )
+  end
+
+  it "sends no coordinate for an event without one" do
+    event.update!(latitude: nil, longitude: nil)
+
+    expect(described_class.new(event, client: client, config: AppConfig.new).attributes[:coordinate]).to be_nil
   end
 
   it "uploads a self-hosted cover before sending the CDN URL to the real API client" do

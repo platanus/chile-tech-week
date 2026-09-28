@@ -187,7 +187,10 @@ archive is that year's week, under `/25`.
 - **Public** (`pages/Events/*`, `SiteLayout` attached by prefix in `lib/resolve-page.ts`):
   `/events` the programme filtered in the browser (day, topic, start time, type, search);
   `/events/new` the submission form (Inertia `<Form>`, multipart; `Event#logo_upload=`
-  stores the logo with Active Storage and keeps its permanent URL in `company_logo_url`);
+  stores the logo with Active Storage and keeps its permanent URL in `company_logo_url`; the
+  venue comes from `components/events/address-input`, a Chile-only search over Photon — komoot's
+  free, keyless OSM geocoder — that fills `address`, `commune`, `latitude` and `longitude`
+  together; in development `/events/new?step=2&event[company_name]=…` opens a step prefilled);
   `/events/:id` the status page (the uuid is the host's link) with the publish dialog
   (`POST /events/:id/publish` → `Events::Publish`). The `:submission` validation context on
   `Event`/`Cohost` is the form's rule set; errors reach the page as full Spanish messages

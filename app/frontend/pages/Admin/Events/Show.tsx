@@ -38,7 +38,7 @@ const CARD = 'gap-4 rounded-sm border-border py-5 shadow-none';
 const TITLE = 'label text-[10px] text-muted-foreground';
 
 // /admin/events/:id — everything about one submission, and every change the admin can make.
-export default function Show({ event, communes, formats, themes, audiences }: AdminEventsShow) {
+export default function Show({ event, formats, themes, audiences }: AdminEventsShow) {
   const week = useWeek();
   const [busy, setBusy] = useState(false);
   const patch = (data: Record<string, string | boolean | File>) =>
@@ -69,7 +69,7 @@ export default function Show({ event, communes, formats, themes, audiences }: Ad
         <div className="flex flex-col items-end gap-3">
           <StateBadge state={event.state} />
           <div className="flex flex-wrap gap-2">
-            <EventEditDialog event={event} communes={communes} formats={formats} formatLabels={FORMAT_LABELS} themes={themes} audiences={audiences} />
+            <EventEditDialog event={event} formats={formats} formatLabels={FORMAT_LABELS} themes={themes} audiences={audiences} />
             {event.state === 'submitted' && <Moderation eventId={event.id} />}
           </div>
         </div>
@@ -84,6 +84,7 @@ export default function Show({ event, communes, formats, themes, audiences }: Ad
             <Field label={event.lumaSynced ? 'Inicio (desde Luma)' : 'Inicio'}><span className="font-mono">{formatDateTime(event.startsAt)}</span></Field>
             <Field label={event.lumaSynced ? 'Término (desde Luma)' : 'Término'}><span className="font-mono">{formatDateTime(event.endsAt)}</span></Field>
             <Field label="Formato">{FORMAT_LABELS[event.format]}</Field>
+            <Field label="Dirección" className="md:col-span-2">{event.address ?? '—'}</Field>
             <Field label="Comuna">{event.commune}</Field>
             <Field label="Capacidad">{event.capacity} personas</Field>
             <Field label="Edición">{event.edition}</Field>

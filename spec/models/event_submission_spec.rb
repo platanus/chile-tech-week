@@ -8,7 +8,8 @@ RSpec.describe Event, "on submission" do
     described_class.new(
       {edition: 2026, title: "Demo Day", description: "Una demo.", author_name: "ada lovelace", author_email: "Ada@Example.com ",
        author_phone_number: "+56 9 8765 4321", company_name: "Fintual", company_website: "https://fintual.com", company_logo_url: "/logo.png",
-       starts_at: Time.zone.local(2026, 11, 18, 18), ends_at: Time.zone.local(2026, 11, 18, 20), commune: "Providencia", format: "networking",
+       starts_at: Time.zone.local(2026, 11, 18, 18), ends_at: Time.zone.local(2026, 11, 18, 20), address: "Avenida Providencia 2124, Providencia",
+       commune: "Providencia", latitude: -33.4220724, longitude: -70.6114271, format: "networking",
        capacity: 50, themes: [theme], audiences: [audience]}.merge(overrides)
     )
   end
@@ -28,20 +29,25 @@ RSpec.describe Event, "on submission" do
     expect(late.errors.full_messages).to include("El término debe estar dentro de la semana (16 al 22 de noviembre)")
   end
 
-  it "wants an https website, a phone with a country code, a known commune, a short description, a logo, themes and audiences" do
-    event = submission(company_website: "fintual.com", author_phone_number: "98765432", commune: "Narnia", description: "x" * 301,
+  it "wants an https website, a phone with a country code, an address in Chile, a short description, a logo, themes and audiences" do
+    event = submission(company_website: "fintual.com", author_phone_number: "98765432", address: "", latitude: 48.85, description: "x" * 301,
       company_logo_url: "", themes: [], audiences: [], capacity: 600_000)
     expect(event.valid?(:submission)).to be(false)
     expect(event.errors.full_messages).to include(
       "El sitio web debe ser una URL que empiece con https://",
       "El teléfono de contacto no es válido",
-      "La comuna no está incluido en la lista",
+      "La dirección no puede estar en blanco",
+      "La latitud no corresponde a un lugar en Chile",
       "La descripción es demasiado largo (300 caracteres máximo)",
       "El logo no puede estar en blanco",
       "Los temas no puede estar en blanco",
       "Las audiencias no puede estar en blanco",
       "La capacidad debe ser menor que o igual a 500000"
     )
+  end
+
+  it "takes the commune from anywhere in Chile, not only Greater Santiago" do
+    expect(submission(address: "Blanco 951, Valparaíso", commune: "Valparaíso", latitude: -33.04, longitude: -71.62).valid?(:submission)).to be(true)
   end
 
   it "validates the co-hosts with their index so the form can place the errors" do
