@@ -13,6 +13,7 @@ const organizers = [
   { name: 'Impacta VC', file: 'impacta-vc', width: 480, height: 132 },
   { name: 'DF MAS', file: 'df-mas', width: 480, height: 146 },
   { name: 'PRenseable', file: 'prenseable', width: 480, height: 112 },
+  { name: 'The AI Adoption Project', file: 'ai-adoption-project', width: 341, height: 240 },
 ];
 
 export function OrganizersSection() {

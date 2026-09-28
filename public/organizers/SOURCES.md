@@ -21,3 +21,9 @@ Official ETM logo, replacing the combined EtMday artwork. Rendered from SVG at
 2× resolution, trimmed to visible artwork, resized to 480 × 106, and encoded as
 lossless WebP with transparency. The landing applies its existing white-logo
 filter and silhouette hover effect.
+
+- The AI Adoption Project: brandbook logo (negative, white on transparent, 2741 × 2034 PNG)
+
+Supplied by the organizer. Trimmed to visible artwork, resized to 341 × 240 (3× the
+landing's 80px max height, as the stacked logo is nearly square), and encoded as lossless
+WebP with transparency. Uses the landing's white-logo filter and silhouette hover effect.
