@@ -1,0 +1,3 @@
+<% ["Submit event", "Review and approval", "Edit Luma and publish", "Event published"].each_with_index do |step, i| %>
+<% n = i + 1 %><%= (n < current) ? "✓" : ((n == current) ? "→" : "○") %> <%= n %>. <%= step.upcase %><%= " — IN PROGRESS" if n == current %>
+<% end %>

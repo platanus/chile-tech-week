@@ -1,5 +1,11 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
-import { checkLogo, logoPolicy } from '@/lib/logo-upload';
+import { copy, useI18n } from '@/lib/i18n';
+import { checkLogo, logoCopy, logoPolicy } from '@/lib/logo-upload';
+
+const COPY = copy(
+  { wait: 'Espera mientras revisamos el logo.', preview: 'Vista previa del logo sobre fondo negro', checking: 'Revisando imagen…' },
+  { wait: 'Please wait while we check the logo.', preview: 'Preview of the logo on a black background', checking: 'Checking image…' },
+);
 
 // The browser blocks submission while decoding and on errors. The server repeats the
 // checks against the actual bytes. The same picker handles admin's immediate uploads.
@@ -12,6 +18,8 @@ export function LogoInput({ name, label, error, disabled, required, onFile, onVa
   onFile?: (file: File) => void;
   onValidation?: (input: HTMLInputElement) => void;
 }) {
+  const { t, locale } = useI18n(COPY);
+  const policyCopy = logoCopy(locale);
   const id = useId();
   const version = useRef(0);
   const [preview, setPreview] = useState<string | null>(null);
@@ -32,8 +40,8 @@ export function LogoInput({ name, label, error, disabled, required, onFile, onVa
     input.setCustomValidity('');
     if (!file) { setChecking(false); onValidation?.(input); return; }
     setChecking(true);
-    input.setCustomValidity('Espera mientras revisamos el logo.');
-    const result = await checkLogo(file);
+    input.setCustomValidity(t.wait);
+    const result = await checkLogo(file, locale);
     if (request !== version.current) return;
     setChecking(false);
     setProblem(result.error);
@@ -53,15 +61,15 @@ export function LogoInput({ name, label, error, disabled, required, onFile, onVa
         required={required} disabled={disabled} aria-invalid={!!problem || !!error} aria-describedby={`${id}-help ${id}-status`}
         className="w-full min-w-0 text-sm text-foreground file:mr-3 file:rounded-sm file:border file:border-border file:bg-transparent file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-foreground" />
       <div id={`${id}-help`} className="flex flex-col gap-1 text-xs text-muted-foreground">
-        <p>{logoPolicy.requirements}</p>
-        <p>{logoPolicy.recommendation}</p>
+        <p>{policyCopy.requirements}</p>
+        <p>{policyCopy.recommendation}</p>
       </div>
       {preview && <div className="flex h-24 w-48 items-center justify-center rounded-sm border border-input bg-black p-3">
-        <img src={preview} alt="Vista previa del logo sobre fondo negro" className="max-h-full max-w-full object-contain" />
+        <img src={preview} alt={t.preview} className="max-h-full max-w-full object-contain" />
       </div>}
       {details && <p className="break-all text-xs text-muted-foreground">{details}</p>}
       <div id={`${id}-status`} aria-live="polite">
-        {checking && <p className="text-xs text-muted-foreground">Revisando imagen…</p>}
+        {checking && <p className="text-xs text-muted-foreground">{t.checking}</p>}
         {(problem || error) && <p className="text-sm text-primary">{problem || error}</p>}
       </div>
     </div>

@@ -5,9 +5,43 @@ import { EventCard } from '@/components/events/event-card';
 import { EventFilters } from '@/components/events/event-filters';
 import { useFlipList } from '@/components/events/flip';
 import { PageHead } from '@/components/site/layout';
+import { copy, useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { new_event_path } from '@/routes';
 import type { Event, EventFormat, EventsIndex } from '@/types';
+
+const COPY = copy(
+  {
+    events: (n: number): string => (n === 1 ? 'evento' : 'eventos'),
+    kicker: 'Programa · 16 al 22 de noviembre',
+    title: 'Eventos',
+    intro: 'La semana descentralizada con los mejores eventos tech del país. Cada evento se inscribe en la página de su organizador.',
+    soonTitle: 'Pronto publicaremos el programa',
+    soonText: 'Los eventos aparecen aquí a medida que sus organizadores los publican. ¿Tienes uno?',
+    host: 'Organiza un evento',
+    day: 'Día',
+    all: 'Todos',
+    searchPlaceholder: 'Buscar por evento u organizador…',
+    search: 'Buscar',
+    noMatch: 'Ningún evento coincide con los filtros',
+    tryAgain: 'Prueba con otro día, tema o búsqueda.',
+  },
+  {
+    events: (n: number) => (n === 1 ? 'event' : 'events'),
+    kicker: 'Programme · November 16–22',
+    title: 'Events',
+    intro: "The decentralized week with Chile's best tech events. Each event takes registrations on its host's page.",
+    soonTitle: "We'll publish the programme soon",
+    soonText: 'Events show up here as their hosts publish them. Do you have one?',
+    host: 'Host an event',
+    day: 'Day',
+    all: 'All',
+    searchPlaceholder: 'Search by event or host…',
+    search: 'Search',
+    noMatch: 'No events match the filters',
+    tryAgain: 'Try another day, topic or search.',
+  },
+);
 
 function matchesSearch(event: Event, query: string) {
   const haystack = [event.title, event.companyName, ...event.cohosts.map((c) => c.companyName)]
@@ -19,6 +53,7 @@ function matchesSearch(event: Event, query: string) {
 // The programme of the week, filtered in the browser: by day, topic, start time, type and a
 // text search over titles and organizers. One page, no pagination.
 export default function Index({ events, days, ...page }: EventsIndex) {
+  const { t, lp } = useI18n(COPY);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -83,7 +118,7 @@ export default function Index({ events, days, ...page }: EventsIndex) {
       )}
     >
       <span className="font-display text-[13px] font-extrabold uppercase tracking-[-0.02em] md:text-sm">{label}</span>
-      {count !== undefined && <span className="label text-[10px]">{count} {count === 1 ? 'evento' : 'eventos'}</span>}
+      {count !== undefined && <span className="label text-[10px]">{count} {t.events(count)}</span>}
     </button>
   );
 
@@ -92,36 +127,31 @@ export default function Index({ events, days, ...page }: EventsIndex) {
       <PageHead {...page} />
 
       <header className="flex flex-col gap-4">
-        <div className="label text-primary">Programa · 16 al 22 de noviembre</div>
+        <div className="label text-primary">{t.kicker}</div>
         <h1 className="font-display text-[clamp(30px,4.6vw,64px)] font-extrabold uppercase leading-[.95] tracking-[-0.03em]">
-          Eventos
+          {t.title}
         </h1>
-        <p className="max-w-[44ch] text-muted-foreground">
-          La semana descentralizada con los mejores eventos tech del país. Cada evento se inscribe en
-          la página de su organizador.
-        </p>
+        <p className="max-w-[44ch] text-muted-foreground">{t.intro}</p>
       </header>
 
       {events.length === 0 ? (
         <div className="flex flex-col items-start gap-4 border-t border-border py-12">
           <h2 className="font-display text-xl font-extrabold uppercase tracking-[-0.02em]">
-            Pronto publicaremos el programa
+            {t.soonTitle}
           </h2>
-          <p className="max-w-[44ch] text-muted-foreground">
-            Los eventos aparecen aquí a medida que sus organizadores los publican. ¿Tienes uno?
-          </p>
+          <p className="max-w-[44ch] text-muted-foreground">{t.soonText}</p>
           <Link
-            href={new_event_path()}
+            href={new_event_path(lp)}
             className="inline-flex items-center rounded-sm border border-primary bg-primary px-5 py-3 font-display text-[12px] font-extrabold uppercase tracking-[.04em] text-white transition-colors hover:bg-[#ff3d3d]"
           >
-            Organiza un evento
+            {t.host}
           </Link>
         </div>
       ) : (
         <>
           <div className="-mx-[6vw] overflow-x-auto px-[6vw] md:mx-0 md:px-0">
-            <div className="flex min-w-max gap-5 border-b border-border md:gap-8" role="tablist" aria-label="Día">
-              {dayTab(null, 'Todos', events.length)}
+            <div className="flex min-w-max gap-5 border-b border-border md:gap-8" role="tablist" aria-label={t.day}>
+              {dayTab(null, t.all, events.length)}
               {days.map((day) => dayTab(day.date, day.label, day.count))}
             </div>
           </div>
@@ -132,8 +162,8 @@ export default function Index({ events, days, ...page }: EventsIndex) {
             <section className="flex min-w-0 flex-col gap-6">
               <input
                 type="search"
-                placeholder="Buscar por evento u organizador…"
-                aria-label="Buscar"
+                placeholder={t.searchPlaceholder}
+                aria-label={t.search}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full rounded-sm border border-input bg-transparent px-4 py-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
@@ -152,9 +182,9 @@ export default function Index({ events, days, ...page }: EventsIndex) {
               {filteredEvents.length === 0 && (
                 <div className="border-t border-border py-12">
                   <p className="font-display text-base font-extrabold uppercase tracking-[-0.02em]">
-                    Ningún evento coincide con los filtros
+                    {t.noMatch}
                   </p>
-                  <p className="mt-2 text-sm text-muted-foreground">Prueba con otro día, tema o búsqueda.</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{t.tryAgain}</p>
                 </div>
               )}
             </section>

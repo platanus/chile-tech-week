@@ -31,6 +31,14 @@ describe('event submission validation', () => {
     data.set('event[commune]', '');
     expect(validateEvent(data, options).address).toContain('elígela de la lista');
   });
+  it('explains itself in English on the English form', () => {
+    const data = validData();
+    data.set('event[commune]', '');
+    data.set('event[ends_at]', '2026-11-16T00:00');
+    const errors = validateEvent(data, { ...options, locale: 'en' });
+    expect(errors.address).toBe('Search for the address and pick it from the list.');
+    expect(errors.ends_at).toBe('The end must be after the start.');
+  });
   it('requires the end to follow the start', () => {
     const data = validData();
     data.set('event[ends_at]', '2026-11-16T00:00');

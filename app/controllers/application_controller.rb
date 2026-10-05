@@ -4,4 +4,7 @@ class ApplicationController < ActionController::Base
 
   # Surface Rails flash to every Inertia page.
   inertia_share flash: -> { {notice: flash.notice, alert: flash.alert} }
+
+  # The page's language: "es" everywhere but the public site's /en pages (Localized).
+  inertia_share locale: -> { I18n.locale.to_s }
 end

@@ -8,6 +8,12 @@ module Luma
     end
 
     def to_md
+      ((@event.locale == "en") ? english : spanish).join("\n")
+    end
+
+    private
+
+    def spanish
       [
         "## ⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️",
         "",
@@ -36,10 +42,41 @@ module Luma
         "*Este evento fue creado desde el formulario de Chile Tech Week #{@event.edition}.*",
         "",
         "⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️"
-      ].join("\n")
+      ]
     end
 
-    private
+    # The same for a host who submitted on /en.
+    def english
+      [
+        "## ⚠️ REMEMBER TO EDIT THIS DESCRIPTION ⚠️",
+        "",
+        "### EDITING CHECKLIST:",
+        "- [ ] Check the event's date and time",
+        "- [ ] Add images of the event",
+        "- [ ] Check the event's address",
+        "- [ ] [Edit your Luma profile](https://luma.com/settings) with your company's name and logo",
+        "",
+        "## DESCRIPTION",
+        @event.description.presence || "*Description pending*",
+        "",
+        "🚀 [Once you've completed the steps, publish the event here](#{status_url})",
+        "",
+        "---",
+        "",
+        "## HOST INFORMATION",
+        "",
+        "**Hosted by:** #{@event.author_name} (#{@event.author_email}) — #{@event.company_name}",
+        "**Format:** #{@event.format.humanize}",
+        *cohosts,
+        "",
+        "**Contact:** #{@event.author_phone_number}",
+        "",
+        "---",
+        "*This event was created from the Chile Tech Week #{@event.edition} form.*",
+        "",
+        "⚠️ END OF THE AUTO-GENERATED DESCRIPTION — DELETE THIS PART ⚠️"
+      ]
+    end
 
     def cohosts
       return [] if @event.cohosts.empty?
@@ -50,7 +87,8 @@ module Luma
     end
 
     def status_url
-      Rails.application.routes.url_helpers.event_url(@event, host: AppConfig.instance.site_url, publish: true)
+      # In the host's language; `locale` is always passed, or the event fills the (:locale) segment.
+      Rails.application.routes.url_helpers.event_url(@event, host: AppConfig.instance.site_url, publish: true, locale: (@event.locale == "en") ? "en" : nil)
     end
   end
 end

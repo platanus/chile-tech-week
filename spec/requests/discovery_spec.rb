@@ -38,6 +38,15 @@ RSpec.describe "discovery by crawlers and agents" do
       expect(response.body).not_to include("not-yet", pending.id)
       expect(response.body).to include("<loc>https://techweek.cl/demo-day</loc><lastmod>#{published.updated_at.utc.iso8601}</lastmod>")
     end
+
+    it "lists the bilingual pages in both languages, each naming the other" do
+      get "/sitemap.xml"
+
+      expect(response.body).to include("<loc>https://techweek.cl/en/demo-day</loc>", "<loc>https://techweek.cl/en</loc>")
+      expect(response.body).to include(%(<xhtml:link rel="alternate" hreflang="en" href="https://techweek.cl/en/events"/>))
+      expect(response.body).to include(%(<xhtml:link rel="alternate" hreflang="x-default" href="https://techweek.cl/events"/>))
+      expect(response.body).not_to include("https://techweek.cl/en/25")
+    end
   end
 
   describe "GET /llms.txt" do

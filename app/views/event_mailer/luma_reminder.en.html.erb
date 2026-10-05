@@ -1,0 +1,8 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Your Luma event is waiting</h1>
+<p style="margin:0 0 14px;color:#fff;">Hi <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">It's been <strong><%= pluralize(@days_waiting, "day") %></strong> since we created your Luma event for <strong><%= @event.title %></strong>.</p>
+<p style="margin:0 0 14px;color:#a3a3a3;">Remember to edit the event on Luma with the final details and then publish it on Chile Tech Week.</p>
+<p style="margin:0 0 14px;color:#fff;">📅 <a href="<%= @event.luma_event_url %>" style="color:#fff;">Edit the event on Luma</a><br>
+🌐 <a href="<%= @publish_url %>" style="color:#fff;">Publish on Chile Tech Week</a></p>
+<p style="margin:0 0 14px;color:#a3a3a3;">When you're done editing, press “Publish event” on your event's status page.</p>
+<%= render "button", url: @publish_url, label: "I've edited Luma · Publish event" %>

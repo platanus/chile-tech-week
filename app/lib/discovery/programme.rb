@@ -21,7 +21,7 @@ module Discovery
     end
 
     def summary
-      "#{(@events.size == 1) ? "1 evento publicado" : "#{@events.size} eventos publicados"} del #{@week.dates_label} de #{@week.year}, en todo Chile. " \
+      "#{(@events.size == 1) ? "1 evento publicado" : "#{@events.size} eventos publicados"} del #{@week.dates_label(:es)} de #{@week.year}, en todo Chile. " \
         "Cada uno lo organiza una empresa distinta y tiene su propia inscripción; cada enlace lleva a la versión Markdown del evento."
     end
   end

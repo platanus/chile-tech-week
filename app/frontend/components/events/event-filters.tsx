@@ -1,9 +1,15 @@
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { copy, useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { EventFormat } from '@/types';
-import { START_TIMES, type StartTime } from './dates';
+import { START_TIME_LABELS, START_TIMES, type StartTime } from './dates';
 import { FORMAT_LABELS } from './formats';
+
+const COPY = copy(
+  { filters: 'Filtros', clear: 'Limpiar filtros', topics: 'Temas', less: '− Ver menos', more: '+ Ver más', time: 'Horario', type: 'Tipo' },
+  { filters: 'Filters', clear: 'Clear filters', topics: 'Topics', less: '− Show less', more: '+ Show more', time: 'Start time', type: 'Type' },
+);
 
 interface EventFiltersProps {
   topics: string[];
@@ -58,6 +64,7 @@ export function EventFilters({
   selectedFormats,
   onFormatsChange,
 }: EventFiltersProps) {
+  const { t, locale } = useI18n(COPY);
   const [showMoreTopics, setShowMoreTopics] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -81,7 +88,7 @@ export function EventFilters({
         aria-expanded={isOpen}
       >
         <span>
-          Filtros
+          {t.filters}
           {active > 0 && <span className="ml-2 text-primary">{active}</span>}
         </span>
         <ChevronDown className={cn('size-4 transition-transform lg:hidden', isOpen && 'rotate-180')} />
@@ -99,12 +106,12 @@ export function EventFilters({
               }}
               className="label self-start text-primary hover:underline"
             >
-              Limpiar filtros
+              {t.clear}
             </button>
           )}
 
           {topics.length > 0 && (
-            <Section title="Temas">
+            <Section title={t.topics}>
               {visibleTopics.map((topic) => (
                 <Option key={topic} active={selectedTopics.includes(topic)} onClick={() => toggle(topic, selectedTopics, onTopicsChange)}>
                   {topic}
@@ -112,25 +119,25 @@ export function EventFilters({
               ))}
               {topics.length > 8 && (
                 <button type="button" onClick={() => setShowMoreTopics(!showMoreTopics)} className="label text-muted-foreground hover:text-foreground">
-                  {showMoreTopics ? '− Ver menos' : '+ Ver más'}
+                  {showMoreTopics ? t.less : t.more}
                 </button>
               )}
             </Section>
           )}
 
-          <Section title="Horario">
+          <Section title={t.time}>
             {START_TIMES.map((time) => (
               <Option key={time} active={selectedStartTimes.includes(time)} onClick={() => toggle(time, selectedStartTimes, onStartTimesChange)}>
-                {time}
+                {START_TIME_LABELS[locale][time]}
               </Option>
             ))}
           </Section>
 
           {formats.length > 0 && (
-            <Section title="Tipo">
+            <Section title={t.type}>
               {formats.map((format) => (
                 <Option key={format} active={selectedFormats.includes(format)} onClick={() => toggle(format, selectedFormats, onFormatsChange)}>
-                  {FORMAT_LABELS[format]}
+                  {FORMAT_LABELS[locale][format]}
                 </Option>
               ))}
             </Section>

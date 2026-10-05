@@ -1,0 +1,7 @@
+Hi <%= @event.author_name %>,
+
+It's been <%= pluralize(@days_waiting, "day") %> since we created your Luma event for "<%= @event.title %>".
+
+Remember to edit the event on Luma with the final details and then publish it on Chile Tech Week.
+- Edit the event on Luma: <%= @event.luma_event_url %>
+- Publish on Chile Tech Week: <%= @publish_url %>

@@ -1,0 +1,5 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Event taken down</h1>
+<p style="margin:0 0 14px;color:#fff;">Hi <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">We noticed your event <strong><%= @event.title %></strong> was cancelled on Luma, so we removed it from the Chile Tech Week programme.</p>
+<p style="margin:0 0 14px;color:#a3a3a3;">If it was a mistake or you want to bring it back, write to us at <a href="mailto:<%= contact_email %>" style="color:#fff;"><%= contact_email %></a>.</p>
+<%= render "button", url: @status_url, label: "See your event's status" %>

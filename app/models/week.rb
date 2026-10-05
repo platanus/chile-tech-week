@@ -10,7 +10,7 @@ class Week < ApplicationRecord
   self.primary_key = :year
 
   TIME_ZONE = "America/Santiago".freeze
-  DAY_NAMES = %w[Dom Lun Mar Mié Jue Vie Sáb].freeze
+  DAY_NAMES = {es: %w[Dom Lun Mar Mié Jue Vie Sáb], en: %w[Sun Mon Tue Wed Thu Fri Sat]}.freeze
 
   # The weeks the site knows about. Seeds write them; the CreateWeeks migration wrote the
   # same two rows so the events already in the table had something to point at.
@@ -57,9 +57,10 @@ class Week < ApplicationRecord
     ((date < starts_on) ? starts_on - date : date - ends_on).to_i
   end
 
-  # Every day of the week: `date` as "2026-11-16", `label` as "Lun 16".
-  def days
-    (starts_on..ends_on).map { |date| Day.new(date: date.iso8601, label: "#{DAY_NAMES[date.wday]} #{date.day}") }
+  # Every day of the week: `date` as "2026-11-16", `label` as "Lun 16" ("Mon 16" in English).
+  def days(locale = I18n.locale)
+    names = DAY_NAMES.fetch(locale.to_sym, DAY_NAMES[:es])
+    (starts_on..ends_on).map { |date| Day.new(date: date.iso8601, label: "#{names[date.wday]} #{date.day}") }
   end
 
   # [Monday 00:00, the Monday after 00:00) in Santiago: when an event may start and end.
@@ -72,8 +73,13 @@ class Week < ApplicationRecord
     time.present? && window.cover?(time)
   end
 
-  # "16 al 22 de noviembre"
-  def dates_label
-    "#{starts_on.day} al #{ends_on.day} de #{I18n.t("date.month_names", locale: :es)[starts_on.month]}"
+  # "16 al 22 de noviembre", or "November 16–22" in English. The documents written for agents
+  # (app/lib/discovery) are Spanish whatever the request, so they ask for :es by name.
+  def dates_label(locale = I18n.locale)
+    if locale.to_sym == :en
+      "#{I18n.t("date.month_names", locale: :en)[starts_on.month]} #{starts_on.day}–#{ends_on.day}"
+    else
+      "#{starts_on.day} al #{ends_on.day} de #{I18n.t("date.month_names", locale: :es)[starts_on.month]}"
+    end
   end
 end

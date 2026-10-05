@@ -1,0 +1,11 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Your event is published</h1>
+<p style="margin:0 0 14px;color:#fff;">Hi <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">Congratulations! Your event now appears in the Chile Tech Week programme and on the Luma calendar.</p>
+<%= render "event_summary" %>
+<p style="margin:0 0 14px;color:#fff;"><strong>Your event is on:</strong></p>
+<p style="margin:0 0 14px;color:#fff;">🎫 <a href="<%= @event.luma_event_url %>" style="color:#fff;">Your event on Luma</a><br>
+📅 <a href="<%= AppConfig.instance.luma_calendar_url %>" style="color:#fff;">The Chile Tech Week calendar on Luma</a><br>
+🌐 <a href="<%= events_url(host: site_url, **url_locale) %>" style="color:#fff;">The programme on techweek.cl</a></p>
+<p style="margin:0 0 14px;color:#a3a3a3;"><strong style="color:#fff;">Need to change something?</strong> Changes to the title, date and time you make on Luma show up on techweek.cl by themselves.</p>
+<%= render "button", url: @status_url, label: "See your event" %>
+<p style="margin:0 0 14px;color:#a3a3a3;">Thanks for being part of Chile Tech Week <%= @event.edition %>. See you at your event!</p>

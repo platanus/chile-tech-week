@@ -6,23 +6,119 @@ import { FORMAT_LABELS } from '@/components/events/formats';
 import { PageHead } from '@/components/site/layout';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { copy, useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { new_event_path, publish_event_path } from '@/routes';
 import type { EventStatus, EventsShow } from '@/types';
 
-const STEPS = [
-  { number: 1, title: 'Enviar evento', description: 'Recibimos tu evento.' },
-  { number: 2, title: 'Revisión y aprobación', description: 'El equipo revisa los datos.' },
-  { number: 3, title: 'Editar Luma y publicar', description: 'Creamos tu evento en Luma; tú lo terminas.' },
-  { number: 4, title: 'Evento publicado', description: 'En el programa de Chile Tech Week.' },
-];
-
-const STATUS_COPY: Record<number, string> = {
-  1: 'Estamos revisando tu evento. Cuando lo aprobemos, crearemos tu evento en Luma y te invitaremos a editarlo.',
-  2: 'Tu evento fue aprobado. Estamos preparando tu evento en Luma.',
-  3: 'Tu evento en Luma está listo para editar. Revisa tu correo: ahí están las instrucciones. Cuando termines, publícalo aquí.',
-  4: '¡Tu evento está publicado en Chile Tech Week! Los cambios que hagas en Luma (título, fecha, hora) se sincronizan solos.',
-};
+const COPY = copy(
+  {
+    steps: [
+      { number: 1, title: 'Enviar evento', description: 'Recibimos tu evento.' },
+      { number: 2, title: 'Revisión y aprobación', description: 'El equipo revisa los datos.' },
+      { number: 3, title: 'Editar Luma y publicar', description: 'Creamos tu evento en Luma; tú lo terminas.' },
+      { number: 4, title: 'Evento publicado', description: 'En el programa de Chile Tech Week.' },
+    ],
+    status: {
+      1: 'Estamos revisando tu evento. Cuando lo aprobemos, crearemos tu evento en Luma y te invitaremos a editarlo.',
+      2: 'Tu evento fue aprobado. Estamos preparando tu evento en Luma.',
+      3: 'Tu evento en Luma está listo para editar. Revisa tu correo: ahí están las instrucciones. Cuando termines, publícalo aquí.',
+      4: '¡Tu evento está publicado en Chile Tech Week! Los cambios que hagas en Luma (título, fecha, hora) se sincronizan solos.',
+    } as Record<number, string>,
+    summary: { hosts: 'Organiza', date: 'Fecha', time: 'Hora', address: 'Dirección', format: 'Formato', capacity: 'Capacidad', topics: 'Temas', audiences: 'Audiencias' },
+    people: (n: number) => `${n} personas`,
+    checklist: [
+      'Verificar la fecha y la hora del evento',
+      'Agregar imágenes del evento',
+      'Confirmar la dirección del lugar',
+      'Completar la descripción (y borrar el texto autogenerado)',
+      'Editar tu perfil de Luma con el nombre y el logo de la empresa',
+    ],
+    beforeTitle: 'Antes de publicar',
+    beforeText: 'Confirma que ya hiciste esto en tu evento de Luma:',
+    cancel: 'Cancelar',
+    next: 'Siguiente',
+    readyTitle: 'Listo para publicar',
+    readyText: 'Revisa los datos antes de publicar.',
+    seeOnLuma: 'Ver en Luma',
+    back: 'Atrás',
+    publishing: 'Publicando…',
+    publish: 'Publicar evento',
+    keepPage: 'Guarda esta página: aquí verás el avance de tu evento. También te escribiremos a tu email.',
+    kicker: 'Tu evento · Chile Tech Week 2026',
+    deletedTitle: 'Este evento fue dado de baja',
+    deletedText: 'El evento ya no está activo. Si fue un error, escríbenos; si quieres, envía uno nuevo.',
+    submitNew: 'Enviar un evento nuevo',
+    rejectedTitle: 'Tu evento necesita cambios',
+    rejectedText: 'Corrige lo indicado y vuelve a enviarlo.',
+    submitAgain: 'Enviar de nuevo',
+    stepOf: (step: number) => `Estado · paso ${step} de 4`,
+    editedPublish: 'Ya edité Luma · Publicar evento',
+    editOnLuma: 'Editar en Luma',
+    seeEvent: 'Ver evento',
+    process: 'Proceso',
+    done: 'Completado',
+    active: 'En curso',
+    pending: 'Pendiente',
+    image: 'Imagen del evento',
+    cover: (title: string) => `Portada de ${title}`,
+    coverNote: 'Es la portada de tu evento en Luma. Si la cambias allá, se actualiza acá.',
+    summaryTitle: 'Resumen',
+  },
+  {
+    steps: [
+      { number: 1, title: 'Submit event', description: 'We received your event.' },
+      { number: 2, title: 'Review and approval', description: 'The team reviews the details.' },
+      { number: 3, title: 'Edit Luma and publish', description: 'We create your event on Luma; you finish it.' },
+      { number: 4, title: 'Event published', description: 'In the Chile Tech Week programme.' },
+    ],
+    status: {
+      1: "We're reviewing your event. Once we approve it, we'll create your event on Luma and invite you to edit it.",
+      2: "Your event was approved. We're setting up your event on Luma.",
+      3: "Your Luma event is ready to edit. Check your email for the instructions. When you're done, publish it here.",
+      4: 'Your event is published on Chile Tech Week! Changes you make on Luma (title, date, time) sync by themselves.',
+    },
+    summary: { hosts: 'Hosted by', date: 'Date', time: 'Time', address: 'Address', format: 'Format', capacity: 'Capacity', topics: 'Topics', audiences: 'Audiences' },
+    people: (n: number) => `${n} people`,
+    checklist: [
+      "Check the event's date and time",
+      'Add images of the event',
+      "Confirm the venue's address",
+      'Complete the description (and delete the auto-generated text)',
+      "Edit your Luma profile with the company's name and logo",
+    ],
+    beforeTitle: 'Before publishing',
+    beforeText: "Confirm you've done this on your Luma event:",
+    cancel: 'Cancel',
+    next: 'Next',
+    readyTitle: 'Ready to publish',
+    readyText: 'Review the details before publishing.',
+    seeOnLuma: 'See on Luma',
+    back: 'Back',
+    publishing: 'Publishing…',
+    publish: 'Publish event',
+    keepPage: "Save this page: you'll follow your event's progress here. We'll also write to your email.",
+    kicker: 'Your event · Chile Tech Week 2026',
+    deletedTitle: 'This event was taken down',
+    deletedText: "The event is no longer active. If it was a mistake, write to us; if you'd like, submit a new one.",
+    submitNew: 'Submit a new event',
+    rejectedTitle: 'Your event needs changes',
+    rejectedText: 'Fix what we pointed out and submit it again.',
+    submitAgain: 'Submit again',
+    stepOf: (step: number) => `Status · step ${step} of 4`,
+    editedPublish: "I've edited Luma · Publish event",
+    editOnLuma: 'Edit on Luma',
+    seeEvent: 'See event',
+    process: 'Process',
+    done: 'Done',
+    active: 'In progress',
+    pending: 'Pending',
+    image: 'Event image',
+    cover: (title: string) => `Cover of ${title}`,
+    coverNote: "It's your event's cover on Luma. If you change it there, it updates here.",
+    summaryTitle: 'Summary',
+  },
+);
 
 function stepState(step: number, current: number): 'done' | 'active' | 'pending' {
   if (step < current || current === 4) return 'done';
@@ -31,15 +127,16 @@ function stepState(step: number, current: number): 'done' | 'active' | 'pending'
 }
 
 function Summary({ event }: { event: EventStatus }) {
+  const { t, locale } = useI18n(COPY);
   const rows: [string, React.ReactNode][] = [
-    ['Organiza', `${event.companyName}${event.cohosts.length ? ` + ${event.cohosts.map((c) => c.companyName).join(' + ')}` : ''}`],
-    ['Fecha', formatLongDay(event.startsAt)],
-    ['Hora', `${formatTime(event.startsAt)} – ${formatTime(event.endsAt)}`],
-    ['Dirección', event.address ?? event.commune],
-    ['Formato', FORMAT_LABELS[event.format]],
-    ['Capacidad', `${event.capacity} personas`],
-    ['Temas', event.themes.map((t) => t.name).join(', ')],
-    ['Audiencias', event.audiences.map((a) => a.name).join(', ')],
+    [t.summary.hosts, `${event.companyName}${event.cohosts.length ? ` + ${event.cohosts.map((c) => c.companyName).join(' + ')}` : ''}`],
+    [t.summary.date, formatLongDay(event.startsAt, locale)],
+    [t.summary.time, `${formatTime(event.startsAt)} – ${formatTime(event.endsAt)}`],
+    [t.summary.address, event.address ?? event.commune],
+    [t.summary.format, FORMAT_LABELS[locale][event.format]],
+    [t.summary.capacity, t.people(event.capacity)],
+    [t.summary.topics, event.themes.map((theme) => theme.name).join(', ')],
+    [t.summary.audiences, event.audiences.map((a) => a.name).join(', ')],
   ];
   return (
     <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-[8rem_1fr]">
@@ -55,6 +152,7 @@ function Summary({ event }: { event: EventStatus }) {
 
 // The publish dialog: the checklist of what to finish on Luma, then the summary and the button.
 function PublishDialog({ event, open, onOpenChange }: { event: EventStatus; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { t, lp } = useI18n(COPY);
   const [step, setStep] = useState<1 | 2>(1);
   const [publishing, setPublishing] = useState(false);
 
@@ -65,16 +163,8 @@ function PublishDialog({ event, open, onOpenChange }: { event: EventStatus; open
 
   const publish = () => {
     setPublishing(true);
-    router.post(publish_event_path(event.id), {}, { onFinish: () => setPublishing(false), onSuccess: () => close(false) });
+    router.post(publish_event_path(event.id, lp), {}, { onFinish: () => setPublishing(false), onSuccess: () => close(false) });
   };
-
-  const checklist = [
-    'Verificar la fecha y la hora del evento',
-    'Agregar imágenes del evento',
-    'Confirmar la dirección del lugar',
-    'Completar la descripción (y borrar el texto autogenerado)',
-    'Editar tu perfil de Luma con el nombre y el logo de la empresa',
-  ];
 
   return (
     <Dialog open={open} onOpenChange={close}>
@@ -82,11 +172,11 @@ function PublishDialog({ event, open, onOpenChange }: { event: EventStatus; open
         {step === 1 ? (
           <>
             <DialogHeader>
-              <DialogTitle className="font-display text-lg font-extrabold uppercase tracking-[-0.02em]">Antes de publicar</DialogTitle>
-              <DialogDescription>Confirma que ya hiciste esto en tu evento de Luma:</DialogDescription>
+              <DialogTitle className="font-display text-lg font-extrabold uppercase tracking-[-0.02em]">{t.beforeTitle}</DialogTitle>
+              <DialogDescription>{t.beforeText}</DialogDescription>
             </DialogHeader>
             <ul className="flex flex-col gap-3 py-2">
-              {checklist.map((item) => (
+              {t.checklist.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sm">
                   <span className="mt-0.5 size-4 shrink-0 rounded-sm border border-input" aria-hidden="true" />
                   {item}
@@ -95,34 +185,34 @@ function PublishDialog({ event, open, onOpenChange }: { event: EventStatus; open
             </ul>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => close(false)}>
-                Cancelar
+                {t.cancel}
               </Button>
               <Button type="button" onClick={() => setStep(2)}>
-                Siguiente
+                {t.next}
               </Button>
             </DialogFooter>
           </>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className="font-display text-lg font-extrabold uppercase tracking-[-0.02em]">Listo para publicar</DialogTitle>
-              <DialogDescription>Revisa los datos antes de publicar.</DialogDescription>
+              <DialogTitle className="font-display text-lg font-extrabold uppercase tracking-[-0.02em]">{t.readyTitle}</DialogTitle>
+              <DialogDescription>{t.readyText}</DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-2">
               <p className="font-display text-base font-extrabold uppercase tracking-[-0.02em]">{event.title}</p>
               <Summary event={event} />
               {event.lumaEventUrl && (
                 <a href={event.lumaEventUrl} target="_blank" rel="noopener noreferrer" className="label text-primary hover:underline">
-                  Ver en Luma
+                  {t.seeOnLuma}
                 </a>
               )}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={publishing}>
-                Atrás
+                {t.back}
               </Button>
               <Button type="button" onClick={publish} disabled={publishing}>
-                {publishing ? 'Publicando…' : 'Publicar evento'}
+                {publishing ? t.publishing : t.publish}
               </Button>
             </DialogFooter>
           </>
@@ -135,6 +225,7 @@ function PublishDialog({ event, open, onOpenChange }: { event: EventStatus; open
 // /events/:id — where the host follows the review: the current step, the four steps, the
 // event's summary, and at step 3 the publish dialog.
 export default function Show({ event, openPublish, ...page }: EventsShow) {
+  const { t, lp } = useI18n(COPY);
   const { flash } = usePage().props;
   const [publishOpen, setPublishOpen] = useState(openPublish);
   const rejected = event.state === 'rejected';
@@ -148,7 +239,7 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
         <div className="flex flex-col gap-1 rounded-sm border border-primary px-5 py-4" role="status">
           <p className="font-display text-base font-extrabold uppercase tracking-[-0.02em]">{flash.notice}</p>
           {event.step === 1 && !rejected && (
-            <p className="text-sm text-muted-foreground">Guarda esta página: aquí verás el avance de tu evento. También te escribiremos a tu email.</p>
+            <p className="text-sm text-muted-foreground">{t.keepPage}</p>
           )}
         </div>
       )}
@@ -159,7 +250,7 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
       )}
 
       <header className="flex flex-col gap-4">
-        <div className="label text-primary">Tu evento · Chile Tech Week 2026</div>
+        <div className="label text-primary">{t.kicker}</div>
         <h1 className="font-display text-[clamp(26px,3.6vw,44px)] font-extrabold uppercase leading-[.95] tracking-[-0.03em]">
           {event.title}
         </h1>
@@ -167,51 +258,49 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
 
       {deleted ? (
         <section className="flex flex-col items-start gap-4 border-t border-border pt-8">
-          <h2 className="font-display text-lg font-extrabold uppercase tracking-[-0.02em]">Este evento fue dado de baja</h2>
-          <p className="max-w-[48ch] text-sm text-muted-foreground">
-            El evento ya no está activo. Si fue un error, escríbenos; si quieres, envía uno nuevo.
-          </p>
+          <h2 className="font-display text-lg font-extrabold uppercase tracking-[-0.02em]">{t.deletedTitle}</h2>
+          <p className="max-w-[48ch] text-sm text-muted-foreground">{t.deletedText}</p>
           <Button asChild>
-            <Link href={new_event_path()}>Enviar un evento nuevo</Link>
+            <Link href={new_event_path(lp)}>{t.submitNew}</Link>
           </Button>
         </section>
       ) : rejected ? (
         <section className="flex flex-col items-start gap-4 border-t border-border pt-8">
-          <h2 className="font-display text-lg font-extrabold uppercase tracking-[-0.02em]">Tu evento necesita cambios</h2>
+          <h2 className="font-display text-lg font-extrabold uppercase tracking-[-0.02em]">{t.rejectedTitle}</h2>
           {event.rejectionReason && <p className="max-w-[56ch] whitespace-pre-wrap text-sm">{event.rejectionReason}</p>}
-          <p className="max-w-[48ch] text-sm text-muted-foreground">Corrige lo indicado y vuelve a enviarlo.</p>
+          <p className="max-w-[48ch] text-sm text-muted-foreground">{t.rejectedText}</p>
           <Button asChild>
-            <Link href={new_event_path()}>Enviar de nuevo</Link>
+            <Link href={new_event_path(lp)}>{t.submitAgain}</Link>
           </Button>
         </section>
       ) : (
         <>
           <section className="flex flex-col gap-3 border-t border-border pt-8">
-            <div className="label text-muted-foreground">Estado · paso {event.step} de 4</div>
-            <p className="max-w-[56ch] text-base">{STATUS_COPY[event.step]}</p>
+            <div className="label text-muted-foreground">{t.stepOf(event.step)}</div>
+            <p className="max-w-[56ch] text-base">{t.status[event.step]}</p>
             {event.step === 3 && (
               <div className="mt-2 flex flex-wrap items-center gap-4">
                 <Button type="button" onClick={() => setPublishOpen(true)}>
-                  Ya edité Luma · Publicar evento
+                  {t.editedPublish}
                 </Button>
                 {event.lumaEventUrl && (
                   <a href={event.lumaEventUrl} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-1 text-primary hover:underline">
-                    Editar en Luma <ArrowUpRight className="size-3" />
+                    {t.editOnLuma} <ArrowUpRight className="size-3" />
                   </a>
                 )}
               </div>
             )}
             {event.step === 4 && event.registrationUrl && (
               <a href={event.registrationUrl} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-1 self-start text-primary hover:underline">
-                Ver evento <ArrowUpRight className="size-3" />
+                {t.seeEvent} <ArrowUpRight className="size-3" />
               </a>
             )}
           </section>
 
           <section className="flex flex-col gap-4">
-            <h2 className="label text-muted-foreground">Proceso</h2>
+            <h2 className="label text-muted-foreground">{t.process}</h2>
             <ol className="flex flex-col">
-              {STEPS.map((step) => {
+              {t.steps.map((step) => {
                 const state = stepState(step.number, event.step);
                 return (
                   <li key={step.number} className={cn('flex items-start gap-4 border-b border-border py-4 first:border-t', state === 'pending' && 'text-muted-foreground')}>
@@ -225,7 +314,7 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
                       <span className="text-xs">{step.description}</span>
                     </div>
                     <span className="label text-[10px]">
-                      {state === 'done' ? 'Completado' : state === 'active' ? 'En curso' : 'Pendiente'}
+                      {state === 'done' ? t.done : state === 'active' ? t.active : t.pending}
                     </span>
                   </li>
                 );
@@ -237,20 +326,20 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
 
       {event.coverImageUrl && (
         <section className="flex flex-col gap-4">
-          <h2 className="label text-muted-foreground">Imagen del evento</h2>
+          <h2 className="label text-muted-foreground">{t.image}</h2>
           <img
             src={event.coverImageUrl}
-            alt={`Portada de ${event.title}`}
+            alt={t.cover(event.title)}
             className="w-full rounded-sm border border-border object-cover"
           />
           <p className="text-xs text-muted-foreground">
-            Es la portada de tu evento en Luma. Si la cambias allá, se actualiza acá.
+            {t.coverNote}
           </p>
         </section>
       )}
 
       <section className="flex flex-col gap-4">
-        <h2 className="label text-muted-foreground">Resumen</h2>
+        <h2 className="label text-muted-foreground">{t.summaryTitle}</h2>
         <div className="flex flex-col gap-6 rounded-sm border border-border p-5 sm:flex-row sm:items-start">
           <div className="flex size-20 shrink-0 items-center justify-center rounded-sm border border-border bg-black">
             <img src={event.companyLogoUrl} alt={event.companyName} className="max-h-full max-w-full object-contain p-2" />

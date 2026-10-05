@@ -1,18 +1,38 @@
-[
-  {
-    "question": "¿Qué es Chile Tech Week?",
-    "answer": "Chile Tech Week es una semana descentralizada en la que las principales empresas tecnológicas de Chile organizan eventos privados de tecnología en distintos lugares de Santiago. Es una vitrina de innovación, conexiones y colaboración en el ecosistema tecnológico chileno."
-  },
-  {
-    "question": "¿Quiénes pueden asistir?",
-    "answer": "Cada empresa organiza sus propios eventos y define sus criterios de admisión. Algunos son solo por invitación y otros están abiertos al público. Revisa los detalles de cada evento para conocer sus requisitos específicos."
-  },
-  {
-    "question": "¿Cómo puedo organizar un evento?",
-    "answer": "Cualquier empresa tecnológica, startup u organización puede organizar un evento durante Chile Tech Week. Solo tienes que enviar tu evento a través de nuestra plataforma y te ayudaremos a difundirlo entre la comunidad."
-  },
-  {
-    "question": "¿Es una conferencia oficial?",
-    "answer": "No, Chile Tech Week es una iniciativa descentralizada. Cada evento es organizado de forma independiente por distintas empresas y organizaciones. Nuestra plataforma reúne y da visibilidad a todos los eventos que se realizan durante la semana."
-  }
-]
+{
+  "es": [
+    {
+      "question": "¿Qué es Chile Tech Week?",
+      "answer": "Chile Tech Week es una semana descentralizada en la que las principales empresas tecnológicas de Chile organizan eventos privados de tecnología en distintos lugares de Santiago. Es una vitrina de innovación, conexiones y colaboración en el ecosistema tecnológico chileno."
+    },
+    {
+      "question": "¿Quiénes pueden asistir?",
+      "answer": "Cada empresa organiza sus propios eventos y define sus criterios de admisión. Algunos son solo por invitación y otros están abiertos al público. Revisa los detalles de cada evento para conocer sus requisitos específicos."
+    },
+    {
+      "question": "¿Cómo puedo organizar un evento?",
+      "answer": "Cualquier empresa tecnológica, startup u organización puede organizar un evento durante Chile Tech Week. Solo tienes que enviar tu evento a través de nuestra plataforma y te ayudaremos a difundirlo entre la comunidad."
+    },
+    {
+      "question": "¿Es una conferencia oficial?",
+      "answer": "No, Chile Tech Week es una iniciativa descentralizada. Cada evento es organizado de forma independiente por distintas empresas y organizaciones. Nuestra plataforma reúne y da visibilidad a todos los eventos que se realizan durante la semana."
+    }
+  ],
+  "en": [
+    {
+      "question": "What is Chile Tech Week?",
+      "answer": "Chile Tech Week is a decentralized week in which Chile's leading tech companies host private tech events at venues across Santiago. It is a showcase of innovation, connections and collaboration in the Chilean tech ecosystem."
+    },
+    {
+      "question": "Who can attend?",
+      "answer": "Each company organizes its own events and sets its own admission criteria. Some are invitation-only and others are open to the public. Check each event's details for its specific requirements."
+    },
+    {
+      "question": "How can I host an event?",
+      "answer": "Any tech company, startup or organization can host an event during Chile Tech Week. Just submit your event through our platform and we'll help you spread the word across the community."
+    },
+    {
+      "question": "Is it an official conference?",
+      "answer": "No, Chile Tech Week is a decentralized initiative. Each event is organized independently by different companies and organizations. Our platform brings together and gives visibility to every event happening during the week."
+    }
+  ]
+}

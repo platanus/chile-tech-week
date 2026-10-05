@@ -228,7 +228,7 @@ RSpec.describe "admin events" do
       old_url = event.company_logo_url
       patch "/admin/25/events/#{event.id}", params: {event: {logo_upload: fixture_file_upload("logo.png", "image/png")}}
       follow_redirect!
-      expect(inertia).to have_flash(alert: LogoUpload::POLICY["errors"]["small"])
+      expect(inertia).to have_flash(alert: LogoUpload.errors["small"])
       expect(event.reload.company_logo_url).to eq(old_url)
     end
 

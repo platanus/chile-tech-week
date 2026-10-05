@@ -8,16 +8,18 @@ class EventOpengraph
   FONT = Rails.root.join("app/assets/fonts/Unbounded.ttf").to_s
   BACKGROUND = Rails.root.join("app/assets/images/event-opengraph-base.png").to_s
 
-  def initialize(event)
+  # `locale` only changes the two detail lines: the date's month and "POR"/"BY" the host.
+  def initialize(event, locale: :es)
     @event = event
+    @locale = (locale.to_s == "en") ? :en : :es
   end
 
   def version
-    Digest::SHA256.hexdigest([VERSION, Digest::SHA256.file(BACKGROUND).hexdigest, @event.title, @event.starts_at.iso8601, @event.company_name, @event.cover.blob&.checksum].join("\0"))[0, 24]
+    Digest::SHA256.hexdigest([VERSION, Digest::SHA256.file(BACKGROUND).hexdigest, @event.title, @event.starts_at.iso8601, @event.company_name, @event.cover.blob&.checksum, @locale].join("\0"))[0, 24]
   end
 
   def render
-    Rails.cache.fetch(["event-opengraph", @event.id, version], expires_in: 7.days) do
+    Rails.cache.fetch(["event-opengraph", @event.id, @locale, version], expires_in: 7.days) do
       # Read fresh bytes: libvips caches file loaders by pathname, even after a rebuild.
       canvas = Vips::Image.new_from_buffer(File.binread(BACKGROUND), "")
       cover = if @event.cover.attached?
@@ -28,9 +30,9 @@ class EventOpengraph
       canvas = canvas.composite2(cover, :over, x: 94, y: 85)
       title = title_image
       canvas = canvas.composite2(title, :over, x: 648, y: 175 + (210 - title.height) / 2)
-      date = I18n.l(@event.starts_at.in_time_zone(Week::TIME_ZONE), format: "%-d %b %Y", locale: :es).upcase
+      date = I18n.l(@event.starts_at.in_time_zone(Week::TIME_ZONE), format: "%-d %b %Y", locale: @locale).upcase
       canvas = canvas.composite2(detail_image(date), :over, x: 648, y: 420)
-      canvas = canvas.composite2(detail_image("POR #{@event.company_name.upcase}"), :over, x: 648, y: 454)
+      canvas = canvas.composite2(detail_image(I18n.t("site.opengraph.by", company: @event.company_name.upcase, locale: @locale)), :over, x: 648, y: 454)
       canvas.pngsave_buffer
     end
   end

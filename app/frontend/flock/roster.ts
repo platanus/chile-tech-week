@@ -9,6 +9,7 @@ import { fmtKm } from './hud';
 import { relate } from './math';
 import type { PlaceIndex } from './places';
 import type { FlockStore, Other } from './store';
+import { words } from '@/landing/words';
 
 const DISTANCE_MS = 250;
 const ORDER_MS = 1000;
@@ -142,7 +143,7 @@ export class RosterPanel {
     }
     const hidden = ranked.length - shown.length;
     this.foot.textContent =
-      hidden > 0 ? `y ${hidden} más: filtra por nombre` : ranked.length === 0 ? (q ? 'Sin resultados' : 'Nadie más en vuelo') : '';
+      hidden > 0 ? words().andMore(hidden) : ranked.length === 0 ? (q ? words().noResults : words().nobodyElse) : '';
   }
 
   private addRow(id: number): Row {

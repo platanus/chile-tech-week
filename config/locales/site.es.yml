@@ -1,0 +1,36 @@
+# The public site's server-side copy (titles, descriptions, flash messages, the share image).
+# The pages' own copy lives with each React component; site.en.yml mirrors every key here.
+es:
+  site:
+    home:
+      title: "Chile Tech Week 2026 · 16 al 22 de noviembre"
+      description: "La semana descentralizada con los mejores eventos tech del país. En todo Chile, del 16 al 22 de noviembre de 2026."
+    events:
+      index:
+        title: "Eventos · %{week}"
+        description: "El programa de %{week}: los eventos tech de la semana, del %{dates}, en todo Chile."
+      new:
+        title: "Organiza un evento · %{week}"
+        description: "Inscribe tu evento en el programa de %{week}."
+      show:
+        description: "El estado de tu evento en Chile Tech Week %{edition}."
+      submitted: "¡Evento enviado! Lo revisaremos pronto."
+      published: "¡Tu evento está publicado!"
+      publish_errors:
+        not_ready: "El evento no está listo para publicarse."
+        cancelled: "El evento fue cancelado en Luma."
+        failed: "No se pudo publicar el evento en Luma: %{message}"
+    opengraph:
+      by: "POR %{company}"
+  # EventMailer: the subjects and the bits of copy its views share.
+  event_mailer:
+    no_themes: "Sin temas"
+    questions: "¿Dudas? Escríbenos a"
+    subjects:
+      submitted: "Recibimos tu evento · Chile Tech Week %{edition}"
+      approved: "Evento aprobado: edita tu evento en Luma · Chile Tech Week %{edition}"
+      published: "Evento publicado: %{title} · Chile Tech Week %{edition}"
+      rejected: "Tu evento necesita cambios · Chile Tech Week %{edition}"
+      luma_reminder: "Recordatorio: edita tu evento en Luma «%{title}»"
+      luma_cancelled: "Evento dado de baja: %{title}"
+      luma_updated: "Evento actualizado: %{title}"

@@ -1,0 +1,7 @@
+Hi <%= @event.author_name %>,
+
+We reviewed "<%= @event.title %>" and it needs a few changes before it can be approved:
+
+<%= @event.rejection_reason %>
+
+With those changes, submit your event again: <%= new_event_url(host: site_url, **url_locale) %>

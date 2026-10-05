@@ -1,0 +1,10 @@
+Hi <%= @event.author_name %>,
+
+We noticed changes to your Luma event and mirrored them on techweek.cl:
+<% {title: "Title", starts_at: "Start", ends_at: "End"}.each do |key, label| %>
+<% change = @changes[key] || @changes[key.to_s] %><% next unless change %>
+<% old_value, new_value = change.values_at(:old, :new).compact.presence || change.values_at("old", "new") %>
+- <%= label %>: <%= old_value.respond_to?(:strftime) ? long_date(old_value) : old_value %> → <%= new_value.respond_to?(:strftime) ? long_date(new_value) : new_value %>
+<% end %>
+See the event on Luma: <%= @event.luma_event_url %>
+See the event on Chile Tech Week: <%= @status_url %>

@@ -79,4 +79,23 @@ RSpec.describe EventMailer do
     expect(html).to include("Demo Night", "miércoles 18 de noviembre, 18:00", "miércoles 18 de noviembre, 19:00")
     expect(mail.text_part.decoded).to include("Título: Demo Day → Demo Night")
   end
+
+  it "writes to a host who submitted in English in English, with the /en links" do
+    event.update!(locale: "en")
+    mail = described_class.with(event: event).submitted
+
+    expect(mail.subject).to eq("We received your event · Chile Tech Week 2026")
+    html = mail.html_part.decoded
+    expect(html).to include("We received your event", "Wednesday, November 18, 18:00", "Questions? Write to us at", "November 16–22")
+    expect(html).to include("https://techweek.cl/en/events/#{event.id}")
+    expect(html).not_to include("Recibimos")
+    expect(mail.text_part.decoded).to include("See your event's status: https://techweek.cl/en/events/#{event.id}")
+  end
+
+  it "keeps the admin's notice in Spanish whatever the host's language" do
+    event.update!(locale: "en")
+    mail = described_class.with(event: event, user: create(:user)).new_submission
+
+    expect(mail.subject).to eq("Nuevo evento enviado: Demo Day")
+  end
 end

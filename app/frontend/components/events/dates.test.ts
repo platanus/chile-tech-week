@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   formatDateRange,
   formatDay,
+  formatLongDay,
   formatTime,
   happensOn,
   localDate,
@@ -33,6 +34,12 @@ describe('dates in Santiago time, in Spanish', () => {
     expect(formatDateRange(noon, '2026-11-20T20:00:00.000Z')).toBe('Mié 18 nov – Vie 20 nov');
   });
 
+  it('speaks English when asked', () => {
+    expect(formatDay(noon, 'en')).toBe('Wed Nov 18');
+    expect(formatDateRange(noon, '2026-11-20T20:00:00.000Z', 'en')).toBe('Wed Nov 18 – Fri Nov 20');
+    expect(formatLongDay(noon, 'en')).toBe('Wednesday, November 18, 2026');
+  });
+
   it('matches a day filter against every day the event touches', () => {
     expect(happensOn(noon, lateNight, '2026-11-18')).toBe(true);
     expect(happensOn(noon, lateNight, '2026-11-19')).toBe(false);
@@ -40,10 +47,10 @@ describe('dates in Santiago time, in Spanish', () => {
   });
 
   it('buckets start times like the 2025 filters', () => {
-    expect(startTimeOf('2026-11-18T12:00:00.000Z')).toBe('Mañana');
-    expect(startTimeOf(noon)).toBe('Mediodía');
-    expect(startTimeOf('2026-11-18T19:00:00.000Z')).toBe('Tarde');
-    expect(startTimeOf('2026-11-18T21:00:00.000Z')).toBe('Noche');
+    expect(startTimeOf('2026-11-18T12:00:00.000Z')).toBe('morning');
+    expect(startTimeOf(noon)).toBe('midday');
+    expect(startTimeOf('2026-11-18T19:00:00.000Z')).toBe('afternoon');
+    expect(startTimeOf('2026-11-18T21:00:00.000Z')).toBe('evening');
     expect(startTimeOf('2026-11-18T05:00:00.000Z')).toBeNull();
   });
 });

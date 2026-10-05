@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ArrowUpRight, MapPin } from 'lucide-react';
+import { useLocale } from '@/lib/i18n';
 import type { Event } from '@/types';
 import { formatDateRange, formatTime } from './dates';
 import { FORMAT_LABELS } from './formats';
@@ -7,12 +8,13 @@ import { FORMAT_LABELS } from './formats';
 // One row of the programme: the day and time on the left, the title, who hosts it, its
 // format and commune, and the event artwork. Opens our public event page when available.
 export function EventCard({ event }: { event: Event }) {
+  const locale = useLocale();
   const organizers = [event.companyName, ...event.cohosts.map((c) => c.companyName)].join(' + ');
 
   const body = (
     <div className="grid gap-3 md:grid-cols-[9.5rem_1fr_auto] md:gap-6">
       <div className="label flex flex-col gap-1 text-primary md:pt-1">
-        <span>{formatDateRange(event.startsAt, event.endsAt)}</span>
+        <span>{formatDateRange(event.startsAt, event.endsAt, locale)}</span>
         <span className="text-muted-foreground">
           {formatTime(event.startsAt)} – {formatTime(event.endsAt)}
         </span>
@@ -26,7 +28,7 @@ export function EventCard({ event }: { event: Event }) {
         </h3>
         <p className="text-sm text-muted-foreground">{organizers}</p>
         <div className="label flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-          <span className="text-foreground">{FORMAT_LABELS[event.format]}</span>
+          <span className="text-foreground">{FORMAT_LABELS[locale][event.format]}</span>
           <span className="inline-flex items-center gap-1">
             <MapPin className="size-3" />
             {event.commune}

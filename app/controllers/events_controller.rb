@@ -1,6 +1,8 @@
 # The current Tech Week's events, public side: the programme, the submission form and each
 # event's status page (its uuid is what the host receives by email).
 class EventsController < InertiaController
+  include Localized
+
   EVENT_PARAMS = [
     :title, :description, :author_name, :author_email, :author_phone_number, :company_name,
     :company_website, :starts_at, :ends_at, :address, :commune, :latitude, :longitude, :format, :capacity, :logo_upload
@@ -14,9 +16,8 @@ class EventsController < InertiaController
 
   # The programme; /events.md (or `Accept: text/markdown`) is the same list for agents.
   def index
-    @title = "Eventos · #{week_name}"
-    @description = "El programa de #{week_name}: los eventos tech de la semana, " \
-      "del #{@week.dates_label}, en todo Chile."
+    @title = t("site.events.index.title", week: week_name)
+    @description = t("site.events.index.description", week: week_name, dates: @week.dates_label)
     @events = published_events.includes(:themes, :audiences, :cohosts).with_attached_cover
 
     respond_to do |format|
@@ -30,8 +31,8 @@ class EventsController < InertiaController
   end
 
   def new
-    @title = "Organiza un evento · #{week_name}"
-    @description = "Inscribe tu evento en el programa de #{week_name}."
+    @title = t("site.events.new.title", week: week_name)
+    @description = t("site.events.new.description", week: week_name)
     @days = week_days
     @week_dates = {from: @week.starts_on.iso8601, to: @week.ends_on.iso8601}
     @formats = Event::FORMATS
@@ -43,13 +44,13 @@ class EventsController < InertiaController
   end
 
   def create
-    event = @week.events.new(event_params)
+    event = @week.events.new(event_params.merge(locale: I18n.locale.to_s))
     event.themes = Theme.where(id: ids_param(:theme_ids))
     event.audiences = Audience.where(id: ids_param(:audience_ids))
 
     if event.save(context: :submission)
       EventNotifications.submitted(event)
-      redirect_to event_path(event), notice: "¡Evento enviado! Lo revisaremos pronto."
+      redirect_to event_path(event), notice: t("site.events.submitted")
     else
       purge_uploads(event)
       redirect_to new_event_path, inertia: {errors: event.errors.to_hash(true)}
@@ -60,7 +61,7 @@ class EventsController < InertiaController
   def show
     @event = Event.includes(:themes, :audiences, :cohosts).with_attached_cover.find(params[:id])
     @title = "#{@event.title} · Chile Tech Week #{@event.edition}"
-    @description = "El estado de tu evento en Chile Tech Week #{@event.edition}."
+    @description = t("site.events.show.description", edition: @event.edition)
     @open_publish = params[:publish] == "true" && @event.step == 3
     @noindex = true
   end

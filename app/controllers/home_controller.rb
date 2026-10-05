@@ -2,15 +2,14 @@
 # Static — the page carries its own copy; the server only decides the document metadata
 # and which terrain dataset to preload (TerrainAssets, read by the inertia layout).
 class HomeController < InertiaController
-  TITLE = "Chile Tech Week 2026 · 16 al 22 de noviembre"
-  DESCRIPTION = "La semana descentralizada con los mejores eventos tech del país. " \
-    "En todo Chile, del 16 al 22 de noviembre de 2026."
+  include Localized
+
   # The share card (1200×630): a capture of /opengraph, resized and palette-compressed.
   OPENGRAPH_IMAGE = "/opengraph.png"
 
   def show
-    @title = TITLE
-    @description = DESCRIPTION
+    @title = t("site.home.title")
+    @description = t("site.home.description")
     @terrain_preloads = TerrainAssets.preload_paths
     current = week
     @structured_data = [Discovery::StructuredData.week(current)] if current

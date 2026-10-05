@@ -3,8 +3,6 @@ Rails.application.routes.draw do
   # otherwise 500. Load balancers and uptime monitors read it.
   get "up" => "rails/health#show", :as => :rails_health_check
 
-  root "home#show"
-
   # What crawlers and AI agents ask for by name (app/lib/discovery): all generated from the
   # published events. The Markdown twin of a page is the page's own route with `.md`.
   get "robots.txt", to: "discovery#robots"
@@ -12,10 +10,15 @@ Rails.application.routes.draw do
   get "llms.txt", to: "discovery#llms"
   get "llms-full.txt", to: "discovery#llms_full"
 
-  # The current edition: the programme, the submission form and each event's status page
-  # (its id is the unguessable uuid the host receives by email), where the host publishes.
-  resources :events, only: [:index, :new, :create, :show]
-  post "events/:id/publish", to: "event_publications#create", as: :publish_event
+  # The public site, in Spanish at / and in English under /en (Localized): the landing, the
+  # current edition's programme, the submission form and each event's status page (its id is
+  # the unguessable uuid the host receives by email), where the host publishes. The event
+  # pages themselves (/:slug) are at the end of this scope, below every named route.
+  scope "(:locale)", locale: /en/ do
+    root "home#show"
+    resources :events, only: [:index, :new, :create, :show]
+    post "events/:id/publish", to: "event_publications#create", as: :publish_event
+  end
 
   # The public Luma calendar every published event ends up in.
   get "luma", to: redirect(AppConfig.instance.luma_calendar_url)
@@ -70,6 +73,9 @@ Rails.application.routes.draw do
   mount MissionControl::Jobs::Engine, at: "/admin/jobs" if AppConfig.instance.mission_control?
 
   # Keep last: the host's UUID status page and every named application route take priority.
-  get ":slug/opengraph", to: "public_event_opengraph#show", as: :public_event_opengraph, constraints: {slug: /[a-z0-9]+(?:-[a-z0-9]+)*/}
-  get ":slug", to: "public_events#show", as: :public_event, constraints: {slug: /[a-z0-9]+(?:-[a-z0-9]+)*/}
+  # "en" is a reserved slug (Event::RESERVED_SLUGS), so /en is always the English landing.
+  scope "(:locale)", locale: /en/ do
+    get ":slug/opengraph", to: "public_event_opengraph#show", as: :public_event_opengraph, constraints: {slug: /[a-z0-9]+(?:-[a-z0-9]+)*/}
+    get ":slug", to: "public_events#show", as: :public_event, constraints: {slug: /[a-z0-9]+(?:-[a-z0-9]+)*/}
+  end
 end

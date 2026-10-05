@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_05_164328) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -105,6 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_120000) do
     t.timestamptz "ends_at", null: false
     t.string "format", null: false
     t.decimal "latitude", precision: 10, scale: 8
+    t.string "locale", default: "es", null: false
     t.timestamptz "logo_shown_at"
     t.decimal "longitude", precision: 11, scale: 8
     t.string "luma_cover_url"

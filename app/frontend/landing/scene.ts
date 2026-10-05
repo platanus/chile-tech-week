@@ -18,6 +18,7 @@ import GUI from 'lil-gui';
 import { ChileTerrain } from '@/terrain/chile';
 import { fold, fuzzySearch } from '@/landing/fuzzy';
 import { scatterSpawn } from '@/landing/spawn';
+import { words } from '@/landing/words';
 
 export async function startScene() {
 
@@ -1663,7 +1664,7 @@ function teleport(kmX, kmZ, label = null) {
   fadeEl.style.opacity = 1;
   const near = real.cities.filter((c) => Math.hypot(c.kmX - kmX, c.kmZ - kmZ) < 40).sort((a, b) => b.pop - a.pop)[0];
   const { lat, lon } = real.toLatLon(kmX, kmZ);
-  toast(label ? `→ ${label}` : near ? `→ ${near.name}` : `→ ${Math.abs(lat).toFixed(2)}° S · ${Math.abs(lon).toFixed(2)}° O`);
+  toast(label ? `→ ${label}` : near ? `→ ${near.name}` : `→ ${Math.abs(lat).toFixed(2)}° S · ${Math.abs(lon).toFixed(2)}° ${words().west}`);
 }
 // the same fade toward another condor (the flock, app/frontend/flock/visit.ts): `at()` gives the
 // landing (world units, local copy, with a heading) once the screen is black, since the target
@@ -2212,7 +2213,7 @@ function updatePeakLabels() {
         _pv.set(x, H.height(x, z) + 1, z).project(camera);
         const sx = ((_pv.x + 1) / 2) * W, sy = ((1 - _pv.y) / 2) * Hh;
         if (!onScreen(sx, sy, active)) continue;
-        const sub = `${Math.max(1, km).toFixed(0)} km · ${ct.pop >= 1e6 ? (ct.pop / 1e6).toFixed(1) + ' M' : Math.round(ct.pop / 1000) + ' mil'} hab.`;
+        const sub = `${Math.max(1, km).toFixed(0)} km · ${ct.pop >= 1e6 ? (ct.pop / 1e6).toFixed(1) + ' M' : Math.round(ct.pop / 1000) + ' ' + words().thousand} ${words().inhabitants}`;
         list.push({ id, kind: 'city', name: ct.name, sub, score: (Math.max(ct.pop, ct.always ? 200000 : 0) * ahead * ahead) / (km + 15), sx, sy, d, occ: false, km, ahead, opacity: 1 });
       }
     }
@@ -2441,10 +2442,10 @@ const search = {
 async function searchItems() {
   if (!search.items) {
     const [summits, lakes] = H?.real ? await Promise.all([real.loadSummits(), real.loadLakes()]) : [[], []];
-    const cities = real.cities.map((c) => ({ name: c.name, kind: 'ciudad', sub: c.pop >= 1000 ? `${Math.round(c.pop / 1000)} k hab.` : `${c.pop} hab.`, kmX: c.kmX, kmZ: c.kmZ }));
-    const peaks = summits.map((p) => ({ name: p.name, kind: 'cumbre', sub: `${p.ele} m`, kmX: p.kmX, kmZ: p.kmZ }));
-    const water = lakes.map((l) => ({ name: l.name, kind: /embalse|tranque|represa/i.test(l.name) ? 'embalse' : 'lago', sub: `${l.areaKm2 >= 10 ? l.areaKm2.toFixed(0) : l.areaKm2.toFixed(1)} km² · ${l.level} m`, kmX: l.kmX, kmZ: l.kmZ }));
-    const areas = real.parks.map((p) => ({ name: p.name, kind: p.title, sub: `${p.km} km de extensión`, kmX: p.kmX, kmZ: p.kmZ }));
+    const cities = real.cities.map((c) => ({ name: c.name, kind: words().city, sub: c.pop >= 1000 ? `${Math.round(c.pop / 1000)} k ${words().inhabitants}` : `${c.pop} ${words().inhabitants}`, kmX: c.kmX, kmZ: c.kmZ }));
+    const peaks = summits.map((p) => ({ name: p.name, kind: words().peak, sub: `${p.ele} m`, kmX: p.kmX, kmZ: p.kmZ }));
+    const water = lakes.map((l) => ({ name: l.name, kind: /embalse|tranque|represa/i.test(l.name) ? words().reservoir : words().lake, sub: `${l.areaKm2 >= 10 ? l.areaKm2.toFixed(0) : l.areaKm2.toFixed(1)} km² · ${l.level} m`, kmX: l.kmX, kmZ: l.kmZ }));
+    const areas = real.parks.map((p) => ({ name: p.name, kind: p.title, sub: `${p.km} ${words().extent}`, kmX: p.kmX, kmZ: p.kmZ }));
     search.items = [...cities, ...areas, ...peaks, ...water].map((it) => ({ ...it, key: fold(it.name) }));
   }
   return search.items;
@@ -2472,7 +2473,7 @@ function renderResults(results, q) {
   const list = search.list;
   list.textContent = '';
   if (!results.length) {
-    if (q) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Sin resultados'; list.append(li); }
+    if (q) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = words().noResults; list.append(li); }
     return;
   }
   results.forEach(({ item, match }, i) => {

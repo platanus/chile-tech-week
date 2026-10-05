@@ -13,11 +13,133 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { validateEvent, type EventErrors } from '@/lib/event-validation';
+import { copy, useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { events_path } from '@/routes';
 import type { EventPrefill, EventsNew } from '@/types';
 
 type Errors = Record<string, string[] | string | undefined>;
+
+const COPY = copy(
+  {
+    steps: ['Organizador', 'Evento', 'Temas y audiencias', 'Co-hosts'],
+    durationOrder: 'El término debe ser después del inicio.',
+    durationLong: (hours: number) => `Este evento dura ${hours} horas. ¿Es correcto? La mayoría dura 4 horas o menos.`,
+    kicker: '16 al 22 de noviembre',
+    title: 'Organiza un evento',
+    intro: 'Cuéntanos de tu evento. Lo revisamos, creamos su página en Luma para que la edites y lo publicamos en el programa.',
+    organizer: 'Organizador',
+    organizerHint: 'Quién organiza y a quién le escribimos.',
+    companyName: 'Nombre de la empresa',
+    website: 'Sitio web',
+    websitePlaceholder: 'https://empresa.cl',
+    contactName: 'Nombre de contacto',
+    contactEmail: 'Email de contacto',
+    contactEmailHint: 'A este email llegarán las novedades de tu evento.',
+    emailPlaceholder: 'ada@empresa.cl',
+    contactPhone: 'Teléfono de contacto',
+    event: 'Evento',
+    eventHint: 'Qué es, cuándo y dónde.',
+    eventTitle: 'Título',
+    eventTitlePlaceholder: 'Demo Day de fintechs',
+    description: 'Descripción',
+    characters: (count: number, limit: number) => `${count}/${limit} caracteres`,
+    descriptionPlaceholder: 'Una descripción corta de tu evento',
+    week: 'Así va la semana',
+    weekNote: 'Eventos ya publicados por día.',
+    start: 'Inicio',
+    end: 'Término',
+    address: 'Dirección',
+    addressHint: 'Escribe la calle y el número, o el nombre del lugar, y elige una opción de la lista.',
+    format: 'Formato',
+    formatPlaceholder: 'Elige un formato',
+    capacity: 'Capacidad',
+    capacityHint: 'Cantidad aproximada de asistentes.',
+    logo: 'Logo de la empresa',
+    catalogue: 'Temas y audiencias',
+    catalogueHint: 'Así la gente encuentra tu evento en el programa.',
+    themes: 'Temas',
+    themesPick: 'Temas · elige al menos uno',
+    audiences: 'Audiencias',
+    audiencesPick: 'Audiencias · elige al menos una',
+    cohosts: 'Co-hosts (opcional)',
+    cohostsIntro: 'Las empresas que organizan el evento contigo. Cada contacto recibe la invitación de editor en Luma.',
+    cohost: (n: number) => `Co-host ${n}`,
+    remove: 'Quitar',
+    cohostEmailHint: 'A este email llegará la invitación de editor en Luma.',
+    phoneOptional: 'Teléfono (opcional)',
+    websiteOptional: 'Sitio web (opcional)',
+    linkedinOptional: 'LinkedIn (opcional)',
+    linkedinPlaceholder: 'https://linkedin.com/in/usuario',
+    addCohost: 'Agregar co-host',
+    back: 'Atrás',
+    continue: 'Continuar',
+    sending: 'Enviando…',
+    submit: 'Enviar evento',
+    cancel: 'Cancelar',
+    stepOf: (step: number, total: number) => `Paso ${step} de ${total}`,
+    review: 'Revisa los campos marcados: hay datos que faltan o no son válidos.',
+  },
+  {
+    steps: ['Host', 'Event', 'Topics and audiences', 'Co-hosts'],
+    durationOrder: 'The end must be after the start.',
+    durationLong: (hours: number) => `This event lasts ${hours} hours. Is that right? Most last 4 hours or less.`,
+    kicker: 'November 16–22',
+    title: 'Host an event',
+    intro: "Tell us about your event. We review it, create its Luma page for you to edit and publish it in the programme.",
+    organizer: 'Host',
+    organizerHint: "Who's hosting and who we write to.",
+    companyName: 'Company name',
+    website: 'Website',
+    websitePlaceholder: 'https://company.com',
+    contactName: 'Contact name',
+    contactEmail: 'Contact email',
+    contactEmailHint: "Your event's updates will reach this email.",
+    emailPlaceholder: 'ada@company.com',
+    contactPhone: 'Contact phone',
+    event: 'Event',
+    eventHint: 'What it is, when and where.',
+    eventTitle: 'Title',
+    eventTitlePlaceholder: 'Fintech Demo Day',
+    description: 'Description',
+    characters: (count: number, limit: number) => `${count}/${limit} characters`,
+    descriptionPlaceholder: 'A short description of your event',
+    week: 'The week so far',
+    weekNote: 'Events already published per day.',
+    start: 'Start',
+    end: 'End',
+    address: 'Address',
+    addressHint: "Type the street and number, or the venue's name, and pick an option from the list.",
+    format: 'Format',
+    formatPlaceholder: 'Choose a format',
+    capacity: 'Capacity',
+    capacityHint: 'Approximate number of attendees.',
+    logo: "Company's logo",
+    catalogue: 'Topics and audiences',
+    catalogueHint: 'This is how people find your event in the programme.',
+    themes: 'Topics',
+    themesPick: 'Topics · choose at least one',
+    audiences: 'Audiences',
+    audiencesPick: 'Audiences · choose at least one',
+    cohosts: 'Co-hosts (optional)',
+    cohostsIntro: 'The companies hosting the event with you. Each contact gets the editor invitation on Luma.',
+    cohost: (n: number) => `Co-host ${n}`,
+    remove: 'Remove',
+    cohostEmailHint: 'The Luma editor invitation will reach this email.',
+    phoneOptional: 'Phone (optional)',
+    websiteOptional: 'Website (optional)',
+    linkedinOptional: 'LinkedIn (optional)',
+    linkedinPlaceholder: 'https://linkedin.com/in/username',
+    addCohost: 'Add co-host',
+    back: 'Back',
+    continue: 'Continue',
+    sending: 'Sending…',
+    submit: 'Submit event',
+    cancel: 'Cancel',
+    stepOf: (step: number, total: number) => `Step ${step} of ${total}`,
+    review: 'Check the highlighted fields: some details are missing or invalid.',
+  },
+);
 
 function FieldError({ errors, name }: { errors: Errors; name: string }) {
   const error = errors[name];
@@ -55,10 +177,10 @@ function Field({ label, htmlFor, hint, children, errors, name, className }: {
 // one submit sends the lot. `display: none` inline, since a `hidden` attribute would lose to
 // the flex utility on the same element.
 const STEPS = [
-  {title: 'Organizador', fields: ['company_name', 'company_website', 'author_name', 'author_email', 'author_phone_number']},
-  {title: 'Evento', fields: ['title', 'description', 'starts_at', 'ends_at', 'address', 'commune', 'latitude', 'longitude', 'format', 'capacity', 'logo']},
-  {title: 'Temas y audiencias', fields: ['themes', 'audiences']},
-  {title: 'Co-hosts', fields: []}
+  {fields: ['company_name', 'company_website', 'author_name', 'author_email', 'author_phone_number']},
+  {fields: ['title', 'description', 'starts_at', 'ends_at', 'address', 'commune', 'latitude', 'longitude', 'format', 'capacity', 'logo']},
+  {fields: ['themes', 'audiences']},
+  {fields: []}
 ] as const;
 
 // Anything the server complains about that is not named above is a co-host field
@@ -79,13 +201,14 @@ function Step({ index, current, children }: { index: number; current: number; ch
 // The progress bar: where the visitor is, what is left, and a way back to any step already
 // seen. Steps ahead are not links — the point is to keep the form short, not to police it.
 function Stepper({ current, furthest, onGo }: { current: number; furthest: number; onGo: (index: number) => void }) {
+  const { t } = useI18n(COPY);
   return (
     <ol className="flex flex-wrap gap-x-6 gap-y-2 border-b border-border pb-4">
-      {STEPS.map((step, index) => {
+      {t.steps.map((title, index) => {
         const done = index < furthest;
         const reachable = index <= furthest;
         return (
-          <li key={step.title}>
+          <li key={title}>
             <button
               type="button"
               disabled={!reachable}
@@ -104,7 +227,7 @@ function Stepper({ current, furthest, onGo }: { current: number; furthest: numbe
               >
                 {done ? <Check className="size-3" /> : index + 1}
               </span>
-              {step.title}
+              {title}
             </button>
           </li>
         );
@@ -143,15 +266,16 @@ function LogoField({ name, label, errors, errorName, onValidation }: { name: str
 }
 
 // The catalogue pickers (temas, audiencias): a grid of checkboxes posting `name[]`.
-function CheckboxGrid({ name, options, checked = [], errors, errorName }: {
+function CheckboxGrid({ name, options, checked = [], errors, errorName, label }: {
   name: string;
   options: { id: string; name: string }[];
   checked?: string[];
   errors: Errors;
   errorName: string;
+  label: string;
 }) {
   return (
-    <div data-field={errorName} role="group" aria-label={errorName === 'themes' ? 'Temas' : 'Audiencias'} aria-describedby={errors[errorName] ? `${errorName}-error` : undefined} className="flex flex-col gap-2">
+    <div data-field={errorName} role="group" aria-label={label} aria-describedby={errors[errorName] ? `${errorName}-error` : undefined} className="flex flex-col gap-2">
       <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2 md:grid-cols-3">
         {options.map((option) => (
           <label key={option.id} className="flex cursor-pointer items-center gap-2 text-sm">
@@ -195,6 +319,7 @@ const popoverClass = 'site min-h-0 border-border bg-popover text-popover-foregro
 // The submission form: the organiser, the event, the catalogue and the optional co-hosts,
 // posted as one Rails nested form (event[…], event[cohosts_attributes][i][…]).
 export default function New({ days, weekDates, formats, themes, audiences, descriptionLimit, prefill, step: initialStep, ...page }: EventsNew) {
+  const { t, locale, lp } = useI18n(COPY);
   // `prefill`/`step` only arrive in development (EventsController#prefill_from_url).
   const pre = prefill ?? {};
   const [description, setDescription] = useState(pre.description ?? '');
@@ -209,9 +334,9 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
     duration === null
       ? null
       : duration <= 0
-        ? 'El término debe ser después del inicio.'
+        ? t.durationOrder
         : duration > 4
-          ? `Este evento dura ${Math.round(duration)} horas. ¿Es correcto? La mayoría dura 4 horas o menos.`
+          ? t.durationLong(Math.round(duration))
           : null;
 
   const [step, setStep] = useState(initialStep ?? 0);
@@ -231,7 +356,7 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
   const readErrors = () => {
     const form = formRef.current?.querySelector('form');
     if (!form) return {};
-    const errors = validateEvent(new FormData(form), { weekDates, descriptionLimit, formats });
+    const errors = validateEvent(new FormData(form), { weekDates, descriptionLimit, formats, locale });
     for (const input of form.querySelectorAll<HTMLInputElement>('input[type="file"]')) {
       const key = input.closest<HTMLElement>('[data-field]')?.dataset.field;
       if (key && input.validity.customError) errors[key] = input.validationMessage;
@@ -298,17 +423,14 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
       <PageHead {...page} />
 
       <header className="flex flex-col gap-4">
-        <div className="label text-primary">16 al 22 de noviembre</div>
+        <div className="label text-primary">{t.kicker}</div>
         <h1 className="font-display text-[clamp(30px,4.6vw,56px)] font-extrabold uppercase leading-[.95] tracking-[-0.03em]">
-          Organiza un evento
+          {t.title}
         </h1>
-        <p className="max-w-[48ch] text-muted-foreground">
-          Cuéntanos de tu evento. Lo revisamos, creamos su página en Luma para que la edites y lo
-          publicamos en el programa.
-        </p>
+        <p className="max-w-[48ch] text-muted-foreground">{t.intro}</p>
       </header>
 
-      <Form action={events_path()} method="post" className="flex flex-col gap-10" resetOnSuccess={false} noValidate onBefore={() => validate()}
+      <Form action={events_path(lp)} method="post" className="flex flex-col gap-10" resetOnSuccess={false} noValidate onBefore={() => validate()}
         onBlur={(event) => {
           // Focus moving into a picker's popover (the calendar, the time list) is not leaving the field.
           if (event.relatedTarget instanceof Element && event.relatedTarget.closest('[data-radix-popper-content-wrapper]')) return;
@@ -323,36 +445,36 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
           return (<>
             <Stepper current={step} furthest={furthest} onGo={goTo} />
             <Step index={0} current={step}>
-              <SectionTitle title="Organizador" hint="Quién organiza y a quién le escribimos." />
+              <SectionTitle title={t.organizer} hint={t.organizerHint} />
               <div className="grid gap-6 sm:grid-cols-2">
-                <Field label="Nombre de la empresa" htmlFor="company_name" errors={errors} name="company_name">
+                <Field label={t.companyName} htmlFor="company_name" errors={errors} name="company_name">
                   <Input id="company_name" name="event[company_name]" defaultValue={pre.company_name} placeholder="Platanus" className={inputClass} />
                 </Field>
-                <Field label="Sitio web" htmlFor="company_website" errors={errors} name="company_website">
-                  <Input id="company_website" name="event[company_website]" defaultValue={pre.company_website} type="url" placeholder="https://empresa.cl" className={inputClass} />
+                <Field label={t.website} htmlFor="company_website" errors={errors} name="company_website">
+                  <Input id="company_website" name="event[company_website]" defaultValue={pre.company_website} type="url" placeholder={t.websitePlaceholder} className={inputClass} />
                 </Field>
-                <Field label="Nombre de contacto" htmlFor="author_name" errors={errors} name="author_name">
+                <Field label={t.contactName} htmlFor="author_name" errors={errors} name="author_name">
                   <Input id="author_name" name="event[author_name]" defaultValue={pre.author_name} placeholder="Ada Lovelace" className={inputClass} />
                 </Field>
-                <Field label="Email de contacto" htmlFor="author_email" errors={errors} name="author_email" hint="A este email llegarán las novedades de tu evento.">
-                  <Input id="author_email" name="event[author_email]" defaultValue={pre.author_email} type="email" placeholder="ada@empresa.cl" className={inputClass} />
+                <Field label={t.contactEmail} htmlFor="author_email" errors={errors} name="author_email" hint={t.contactEmailHint}>
+                  <Input id="author_email" name="event[author_email]" defaultValue={pre.author_email} type="email" placeholder={t.emailPlaceholder} className={inputClass} />
                 </Field>
-                <Field label="Teléfono de contacto" htmlFor="author_phone_number" errors={errors} name="author_phone_number">
+                <Field label={t.contactPhone} htmlFor="author_phone_number" errors={errors} name="author_phone_number">
                   <Input id="author_phone_number" name="event[author_phone_number]" defaultValue={pre.author_phone_number} type="tel" placeholder="+56 9 8765 4321" className={inputClass} />
                 </Field>
               </div>
             </Step>
 
             <Step index={1} current={step}>
-              <SectionTitle title="Evento" hint="Qué es, cuándo y dónde." />
-              <Field label="Título" htmlFor="title" errors={errors} name="title">
-                <Input id="title" name="event[title]" defaultValue={pre.title} placeholder="Demo Day de fintechs" className={inputClass} />
+              <SectionTitle title={t.event} hint={t.eventHint} />
+              <Field label={t.eventTitle} htmlFor="title" errors={errors} name="title">
+                <Input id="title" name="event[title]" defaultValue={pre.title} placeholder={t.eventTitlePlaceholder} className={inputClass} />
               </Field>
-              <Field label="Descripción" htmlFor="description" errors={errors} name="description" hint={`${description.length}/${descriptionLimit} caracteres`}>
+              <Field label={t.description} htmlFor="description" errors={errors} name="description" hint={t.characters(description.length, descriptionLimit)}>
                 <Textarea
                   id="description"
                   name="event[description]"
-                  placeholder="Una descripción corta de tu evento"
+                  placeholder={t.descriptionPlaceholder}
                   maxLength={descriptionLimit}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -361,7 +483,7 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
               </Field>
 
               <div className="flex flex-col gap-2 rounded-sm border border-border p-4">
-                <div className="label text-[11px] text-muted-foreground">Así va la semana</div>
+                <div className="label text-[11px] text-muted-foreground">{t.week}</div>
                 <div className="grid grid-cols-7 gap-1">
                   {days.map((day) => (
                     <div key={day.date} className="flex flex-col items-center gap-1 text-center">
@@ -370,71 +492,68 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground">Eventos ya publicados por día.</p>
+                <p className="text-xs text-muted-foreground">{t.weekNote}</p>
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2">
-                <Field label="Inicio" htmlFor="starts_at" errors={errors} name="starts_at" className="min-w-0">
+                <Field label={t.start} htmlFor="starts_at" errors={errors} name="starts_at" className="min-w-0">
                   <DateTimeField id="starts_at" name="event[starts_at]" min={weekDates.from} max={weekDates.to} value={startsAt} onChange={onStartChange} className={pickerClass} popoverClassName={popoverClass} />
                 </Field>
-                <Field label="Término" htmlFor="ends_at" errors={errors} name="ends_at" className="min-w-0">
+                <Field label={t.end} htmlFor="ends_at" errors={errors} name="ends_at" className="min-w-0">
                   <DateTimeField id="ends_at" name="event[ends_at]" min={weekDates.from} max={weekDates.to} value={endsAt} onChange={onEndChange} className={pickerClass} popoverClassName={popoverClass} />
                 </Field>
               </div>
               {durationWarning && <p className="text-sm text-primary">{durationWarning}</p>}
 
-              <Field label="Dirección" htmlFor="address" errors={errors} name="address" hint="Escribe la calle y el número, o el nombre del lugar, y elige una opción de la lista.">
+              <Field label={t.address} htmlFor="address" errors={errors} name="address" hint={t.addressHint}>
                 <AddressInput id="address" prefix="event" initial={prefilledPlace(pre)} className={inputClass} onPick={() => refreshById('address')} />
               </Field>
 
               <div className="grid gap-6 sm:grid-cols-2">
-                <Field label="Formato" htmlFor="format" errors={errors} name="format">
+                <Field label={t.format} htmlFor="format" errors={errors} name="format">
                   <Select name="event[format]" defaultValue={pre.format}>
                     <SelectTrigger aria-invalid={!!errors.format} aria-describedby={errors.format ? "format-error" : undefined} id="format" className={selectClass}>
-                      <SelectValue placeholder="Elige un formato" />
+                      <SelectValue placeholder={t.formatPlaceholder} />
                     </SelectTrigger>
                     <SelectContent className="site min-h-0 border-border bg-popover text-popover-foreground">
                       {formats.map((format) => (
                         <SelectItem key={format} value={format}>
-                          {FORMAT_LABELS[format]}
+                          {FORMAT_LABELS[locale][format]}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </Field>
-                <Field label="Capacidad" htmlFor="capacity" errors={errors} name="capacity" hint="Cantidad aproximada de asistentes.">
+                <Field label={t.capacity} htmlFor="capacity" errors={errors} name="capacity" hint={t.capacityHint}>
                   <Input id="capacity" name="event[capacity]" defaultValue={pre.capacity} type="number" min={1} max={500000} step={1} placeholder="50" className={inputClass} />
                 </Field>
               </div>
 
-              <LogoField onValidation={(input) => refreshField(input, true)} name="event[logo_upload]" label="Logo de la empresa" errors={errors} errorName="logo" />
+              <LogoField onValidation={(input) => refreshField(input, true)} name="event[logo_upload]" label={t.logo} errors={errors} errorName="logo" />
             </Step>
 
             <Step index={2} current={step}>
-              <SectionTitle title="Temas y audiencias" hint="Así la gente encuentra tu evento en el programa." />
+              <SectionTitle title={t.catalogue} hint={t.catalogueHint} />
               <div className="flex flex-col gap-2">
-                <div className="label text-[11px] text-muted-foreground">Temas · elige al menos uno</div>
-                <CheckboxGrid name="event[theme_ids][]" options={themes} checked={pre.theme_ids} errors={errors} errorName="themes" />
+                <div className="label text-[11px] text-muted-foreground">{t.themesPick}</div>
+                <CheckboxGrid name="event[theme_ids][]" options={themes} checked={pre.theme_ids} errors={errors} errorName="themes" label={t.themes} />
               </div>
               <div className="flex flex-col gap-2">
-                <div className="label text-[11px] text-muted-foreground">Audiencias · elige al menos una</div>
-                <CheckboxGrid name="event[audience_ids][]" options={audiences} checked={pre.audience_ids} errors={errors} errorName="audiences" />
+                <div className="label text-[11px] text-muted-foreground">{t.audiencesPick}</div>
+                <CheckboxGrid name="event[audience_ids][]" options={audiences} checked={pre.audience_ids} errors={errors} errorName="audiences" label={t.audiences} />
               </div>
             </Step>
 
             <Step index={3} current={step}>
-              <SectionTitle title="Co-hosts (opcional)" />
-              <p className="text-sm text-muted-foreground">
-                Las empresas que organizan el evento contigo. Cada contacto recibe la invitación de
-                editor en Luma.
-              </p>
+              <SectionTitle title={t.cohosts} />
+              <p className="text-sm text-muted-foreground">{t.cohostsIntro}</p>
               {cohostIds.map((cohostId, index) => {
                 const prefix = `event[cohosts_attributes][${index}]`;
                 const err = (field: string) => `cohosts[${index}].${field}`;
                 return (
                   <div key={cohostId} className="flex flex-col gap-6 rounded-sm border border-border p-5">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-display text-sm font-extrabold uppercase tracking-[-0.02em]">Co-host {index + 1}</h3>
+                      <h3 className="font-display text-sm font-extrabold uppercase tracking-[-0.02em]">{t.cohost(index + 1)}</h3>
                       <Button type="button" variant="ghost" size="sm" onClick={() => {
                         setCohostIds(cohostIds.filter((id) => id !== cohostId));
                         touched.current = new Set([...touched.current].filter((key) => !key.startsWith('cohosts[')));
@@ -442,30 +561,30 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
                         clearErrors(...Object.keys(serverErrors).filter((key) => key.startsWith('cohosts[')));
                       }}>
                         <Trash2 />
-                        Quitar
+                        {t.remove}
                       </Button>
                     </div>
                     <div className="grid gap-6 sm:grid-cols-2">
-                      <Field label="Nombre de la empresa" htmlFor={`cohost_${cohostId}_company_name`} errors={errors} name={err('company_name')}>
+                      <Field label={t.companyName} htmlFor={`cohost_${cohostId}_company_name`} errors={errors} name={err('company_name')}>
                         <Input id={`cohost_${cohostId}_company_name`} name={`${prefix}[company_name]`} className={inputClass} />
                       </Field>
-                      <Field label="Nombre de contacto" htmlFor={`cohost_${cohostId}_contact_name`} errors={errors} name={err('primary_contact_name')}>
+                      <Field label={t.contactName} htmlFor={`cohost_${cohostId}_contact_name`} errors={errors} name={err('primary_contact_name')}>
                         <Input id={`cohost_${cohostId}_contact_name`} name={`${prefix}[primary_contact_name]`} className={inputClass} />
                       </Field>
-                      <Field label="Email de contacto" htmlFor={`cohost_${cohostId}_contact_email`} errors={errors} name={err('primary_contact_email')} hint="A este email llegará la invitación de editor en Luma.">
+                      <Field label={t.contactEmail} htmlFor={`cohost_${cohostId}_contact_email`} errors={errors} name={err('primary_contact_email')} hint={t.cohostEmailHint}>
                         <Input id={`cohost_${cohostId}_contact_email`} name={`${prefix}[primary_contact_email]`} type="email" className={inputClass} />
                       </Field>
-                      <Field label="Teléfono (opcional)" htmlFor={`cohost_${cohostId}_phone`} errors={errors} name={err('primary_contact_phone_number')}>
+                      <Field label={t.phoneOptional} htmlFor={`cohost_${cohostId}_phone`} errors={errors} name={err('primary_contact_phone_number')}>
                         <Input id={`cohost_${cohostId}_phone`} name={`${prefix}[primary_contact_phone_number]`} type="tel" placeholder="+56 9 8765 4321" className={inputClass} />
                       </Field>
-                      <Field label="Sitio web (opcional)" htmlFor={`cohost_${cohostId}_website`} errors={errors} name={err('primary_contact_website')}>
-                        <Input id={`cohost_${cohostId}_website`} name={`${prefix}[primary_contact_website]`} type="url" placeholder="https://empresa.cl" className={inputClass} />
+                      <Field label={t.websiteOptional} htmlFor={`cohost_${cohostId}_website`} errors={errors} name={err('primary_contact_website')}>
+                        <Input id={`cohost_${cohostId}_website`} name={`${prefix}[primary_contact_website]`} type="url" placeholder={t.websitePlaceholder} className={inputClass} />
                       </Field>
-                      <Field label="LinkedIn (opcional)" htmlFor={`cohost_${cohostId}_linkedin`} errors={errors} name={err('primary_contact_linkedin')}>
-                        <Input id={`cohost_${cohostId}_linkedin`} name={`${prefix}[primary_contact_linkedin]`} type="url" placeholder="https://linkedin.com/in/usuario" className={inputClass} />
+                      <Field label={t.linkedinOptional} htmlFor={`cohost_${cohostId}_linkedin`} errors={errors} name={err('primary_contact_linkedin')}>
+                        <Input id={`cohost_${cohostId}_linkedin`} name={`${prefix}[primary_contact_linkedin]`} type="url" placeholder={t.linkedinPlaceholder} className={inputClass} />
                       </Field>
                     </div>
-                    <LogoField onValidation={(input) => refreshField(input, true)} name={`${prefix}[logo_upload]`} label="Logo de la empresa" errors={errors} errorName={err('company_logo_url')} />
+                    <LogoField onValidation={(input) => refreshField(input, true)} name={`${prefix}[logo_upload]`} label={t.logo} errors={errors} errorName={err('company_logo_url')} />
                   </div>
                 );
               })}
@@ -479,7 +598,7 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
                 }}
               >
                 <Plus />
-                Agregar co-host
+                {t.addCohost}
               </Button>
             </Step>
 
@@ -489,27 +608,27 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
               {step > 0 && (
                 <Button type="button" variant="outline" size="lg" onClick={() => goTo(step - 1)}>
                   <ArrowLeft />
-                  Atrás
+                  {t.back}
                 </Button>
               )}
               {step < last ? (
                 <Button key="next" type="button" size="lg" onClick={nextStep} className="font-display text-[12px] font-extrabold uppercase tracking-[.04em]">
-                  Continuar
+                  {t.continue}
                   <ArrowRight />
                 </Button>
               ) : (
                 <Button key="submit" type="submit" disabled={processing} size="lg" className="font-display text-[12px] font-extrabold uppercase tracking-[.04em]">
-                  {processing ? 'Enviando…' : 'Enviar evento'}
+                  {processing ? t.sending : t.submit}
                 </Button>
               )}
-              <Link href={events_path()} className="label text-muted-foreground hover:text-foreground">
-                Cancelar
+              <Link href={events_path(lp)} className="label text-muted-foreground hover:text-foreground">
+                {t.cancel}
               </Link>
               <p className="label w-full text-muted-foreground sm:w-auto sm:flex-1 sm:text-right">
-                Paso {step + 1} de {STEPS.length}
+                {t.stepOf(step + 1, STEPS.length)}
               </p>
               {Object.values(errors).some(Boolean) && (
-                <p className="w-full text-sm text-primary">Revisa los campos marcados: hay datos que faltan o no son válidos.</p>
+                <p className="w-full text-sm text-primary">{t.review}</p>
               )}
             </div>
           </>);

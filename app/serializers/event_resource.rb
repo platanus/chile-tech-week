@@ -8,7 +8,7 @@ class EventResource < ApplicationResource
 
   typelize :string?
   attribute :public_url do |event|
-    public_event_path(slug: event.slug) if event.slug.present?
+    public_event_path(slug: event.slug, **url_locale) if event.slug.present?
   end
 
   typelize :string?

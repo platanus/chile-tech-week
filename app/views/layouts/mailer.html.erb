@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<%= I18n.locale %>">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -43,7 +43,7 @@
             <tr>
               <td class="mail-content" style="padding:24px 28px;border-top:1px solid #262626;">
                 <p style="margin:0 0 12px;font-family:'Space Mono',Menlo,Consolas,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a3a3a3;">Chile Tech Week <%= week&.year %></p>
-                <p style="margin:0 0 8px;font-size:13px;color:#a3a3a3;">¿Dudas? Escríbenos a <a href="mailto:<%= contact_email %>" style="color:#fff;text-decoration:underline;"><%= contact_email %></a></p>
+                <p style="margin:0 0 8px;font-size:13px;color:#a3a3a3;"><%= t("event_mailer.questions") %> <a href="mailto:<%= contact_email %>" style="color:#fff;text-decoration:underline;"><%= contact_email %></a></p>
                 <a href="<%= site_url %>" style="font-size:13px;color:#a3a3a3;text-decoration:underline;">techweek.cl</a>
               </td>
             </tr>

@@ -1,16 +1,33 @@
 {
-  "types": ["image/png", "image/jpeg", "image/webp"],
+  "types": [
+    "image/png",
+    "image/jpeg",
+    "image/webp"
+  ],
   "maxBytes": 2097152,
   "minLongSide": 320,
   "minShortSide": 64,
   "maxPixels": 20000000,
-  "requirements": "PNG, WebP o JPEG · máximo 2 MB · al menos 320 px en el lado largo y 64 px en el corto.",
-  "recommendation": "Ideal: 800 px o más en el lado largo y fondo transparente (PNG o WebP). También aceptamos logos con fondo. Revisa que se vea bien sobre negro y evita capturas de pantalla o imágenes ampliadas.",
-  "errors": {
-    "type": "El logo debe ser PNG, WebP o JPEG.",
-    "size": "El logo debe pesar como máximo 2 MB.",
-    "small": "El logo es muy pequeño: usa al menos 320 px en el lado largo y 64 px en el corto. Exporta una versión de mayor resolución desde el original.",
-    "large": "El logo es demasiado grande: usa una imagen de hasta 20 megapíxeles.",
-    "invalid": "No pudimos leer la imagen. Exporta nuevamente el logo como PNG, WebP o JPEG."
+  "es": {
+    "requirements": "PNG, WebP o JPEG · máximo 2 MB · al menos 320 px en el lado largo y 64 px en el corto.",
+    "recommendation": "Ideal: 800 px o más en el lado largo y fondo transparente (PNG o WebP). También aceptamos logos con fondo. Revisa que se vea bien sobre negro y evita capturas de pantalla o imágenes ampliadas.",
+    "errors": {
+      "type": "El logo debe ser PNG, WebP o JPEG.",
+      "size": "El logo debe pesar como máximo 2 MB.",
+      "small": "El logo es muy pequeño: usa al menos 320 px en el lado largo y 64 px en el corto. Exporta una versión de mayor resolución desde el original.",
+      "large": "El logo es demasiado grande: usa una imagen de hasta 20 megapíxeles.",
+      "invalid": "No pudimos leer la imagen. Exporta nuevamente el logo como PNG, WebP o JPEG."
+    }
+  },
+  "en": {
+    "requirements": "PNG, WebP or JPEG · 2 MB max · at least 320 px on the long side and 64 px on the short one.",
+    "recommendation": "Ideal: 800 px or more on the long side with a transparent background (PNG or WebP). Logos with a background are fine too. Check that it looks good on black and avoid screenshots or upscaled images.",
+    "errors": {
+      "type": "The logo must be a PNG, WebP or JPEG.",
+      "size": "The logo must be 2 MB or smaller.",
+      "small": "The logo is too small: use at least 320 px on the long side and 64 px on the short one. Export a higher-resolution version from the original.",
+      "large": "The logo is too large: use an image of up to 20 megapixels.",
+      "invalid": "We couldn't read the image. Export the logo again as PNG, WebP or JPEG."
+    }
   }
 }

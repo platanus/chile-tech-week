@@ -20,9 +20,18 @@ export type AdminWeek = {
   year: number;
 };
 
+// The public site's two languages (Localized `inertia_share`), on its pages only: the same
+// page in each language, and the one to offer a visitor who has not chosen, if any.
+export type LocaleSwitch = {
+  alternates: Record<'es' | 'en', string>;
+  suggestion: 'es' | 'en' | null;
+};
+
 // Props shared with every Inertia page (see ApplicationController `inertia_share`).
 export type SharedProps = {
   flash: FlashData;
+  locale: 'es' | 'en';
+  localeSwitch?: LocaleSwitch;
   currentUser?: CurrentUser | null;
   week?: AdminWeek | null;
   weeks?: AdminWeek[];

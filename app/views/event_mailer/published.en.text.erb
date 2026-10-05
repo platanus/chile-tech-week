@@ -1,0 +1,14 @@
+Hi <%= @event.author_name %>,
+
+Congratulations! Your event now appears in the Chile Tech Week programme and on the Luma calendar.
+
+<%= render "event_summary" %>
+Your event is on:
+- Luma: <%= @event.luma_event_url %>
+- The Chile Tech Week calendar: <%= AppConfig.instance.luma_calendar_url %>
+- The programme: <%= events_url(host: site_url, **url_locale) %>
+
+Changes to the title, date and time you make on Luma show up on techweek.cl by themselves.
+See your event: <%= @status_url %>
+
+Thanks for being part of Chile Tech Week <%= @event.edition %>. See you at your event!

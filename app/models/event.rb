@@ -2,10 +2,13 @@
 # 2025 site's "Events" table (see db/migrate/*_create_events.rb); `edition` is the year, and
 # the foreign key to weeks, so the archive and the editions to come share the table.
 class Event < ApplicationRecord
-  # The formats and their Spanish names, shared with the browser (config/event_formats.json):
-  # the programme's filters and the agent-facing documents (Discovery::*) print the same names.
+  # The formats and their names in each language ({"es" => {…}, "en" => {…}}), shared with the
+  # browser (config/event_formats.json): the programme's filters and the agent-facing
+  # documents (Discovery::*) print the same names.
   FORMAT_LABELS = JSON.parse(Rails.root.join("config/event_formats.json").read).freeze
-  FORMATS = FORMAT_LABELS.keys.freeze
+  FORMATS = FORMAT_LABELS.fetch("es").keys.freeze
+  # The languages a host can submit in: /events/new and /en/events/new (Localized).
+  LOCALES = %w[es en].freeze
 
   # The 2025 review workflow: submitted → rejected, or approved (waiting for the host to edit
   # the Luma event the site created) → published. Deleted is the host's own withdrawal.
@@ -17,7 +20,7 @@ class Event < ApplicationRecord
 
   # Root-level event URLs must not collide with application routes.
   RESERVED_SLUGS = %w[events admin brand luma luma-cover opengraph up rails assets
-    flock cable vite-dev vite-test vite favicon robots sitemap llms llms-full 25].freeze
+    flock cable vite-dev vite-test vite favicon robots sitemap llms llms-full 25 en].freeze
 
   before_create :assign_public_slug
   attr_readonly :slug
@@ -49,6 +52,7 @@ class Event < ApplicationRecord
   validates :author_email, :author_name, :author_phone_number, :company_name, :company_website,
     :company_logo_url, :title, :description, :starts_at, :ends_at, :commune, presence: true
   validates :capacity, numericality: {only_integer: true, greater_than: 0}
+  validates :locale, inclusion: {in: LOCALES}
   validate :ends_after_it_starts
 
   # What the submission form enforces on top (Events::Submit saves with `context: :submission`).
@@ -85,9 +89,9 @@ class Event < ApplicationRecord
     luma_event_api_id.present?
   end
 
-  # "Networking", "Pitch / Demo day": the format as the site names it.
-  def format_label
-    FORMAT_LABELS.fetch(format)
+  # "Mesa redonda / Taller", "Roundtable / Workshop": the format as the site names it.
+  def format_label(locale = I18n.locale)
+    FORMAT_LABELS.fetch(locale.to_s, FORMAT_LABELS["es"]).fetch(format)
   end
 
   # Where attendees register: the host's own page when they gave one, else the Luma event.
@@ -150,6 +154,6 @@ class Event < ApplicationRecord
   def ends_after_it_starts
     return if starts_at.blank? || ends_at.blank? || ends_at > starts_at
 
-    errors.add(:ends_at, "must be after the start")
+    errors.add(:ends_at, :after_the_start)
   end
 end

@@ -45,7 +45,7 @@ module Discovery
         ["Capacidad", "#{@event.capacity} personas"],
         ["Inscripción", @event.registration_url],
         ["Página", page_url],
-        ["Parte de", "[#{SITE_NAME} #{week.year}](#{Discovery.url}), #{week.dates_label} de #{week.year}"]
+        ["Parte de", "[#{SITE_NAME} #{week.year}](#{Discovery.url}), #{week.dates_label(:es)} de #{week.year}"]
       ].select { |_label, value| value.present? }
     end
 

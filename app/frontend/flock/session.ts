@@ -1,6 +1,7 @@
 // Who this pilot is, over HTTP: FlockSessionsController creates them on the first flight and
 // keeps the id in a signed cookie; the socket only ever presents that cookie. The last known
 // pilot is cached in localStorage so the HUD can show a name before the request returns.
+import { documentLocale } from '@/lib/i18n';
 import { flock_session_path } from '@/routes';
 import type { Pilot } from './protocol';
 
@@ -31,7 +32,7 @@ async function call(method: 'POST' | 'PATCH', body?: Record<string, string>): Pr
     method,
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-Token': token },
-    body: body ? JSON.stringify(body) : undefined,
+    body: body ? JSON.stringify({ ...body, locale: documentLocale() }) : undefined,
   });
   const data = (await res.json().catch(() => ({}))) as Pilot & { error?: string };
   if (!res.ok) throw new SessionError(data.error ?? `error ${res.status}`);
@@ -43,5 +44,5 @@ async function call(method: 'POST' | 'PATCH', body?: Record<string, string>): Pr
  *  someone online and they got a fresh one. */
 export const openSession = () => call('POST');
 
-/** A new codename and/or colour; rejects with the server's Spanish reason. */
+/** A new codename and/or colour; rejects with the server's reason, in the page's language. */
 export const updateSession = (patch: { codename?: string; color?: string }) => call('PATCH', patch);

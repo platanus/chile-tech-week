@@ -6,6 +6,7 @@
 import { relate } from './math';
 import type { Pilot } from './protocol';
 import type { FlockStore, Other } from './store';
+import { words } from '@/landing/words';
 
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -81,12 +82,12 @@ export class PilotHud {
     for (const b of this.swatches.children) {
       (b as HTMLButtonElement).setAttribute('aria-pressed', String((b as HTMLButtonElement).style.background === this.cssColor(pilot.color)));
     }
-    if (pilot.renamed) this.say(`tu nombre estaba en uso: ahora eres ${pilot.codename}`, 'ok', 6000);
+    if (pilot.renamed) this.say(words().renamedTaken(pilot.codename), 'ok', 6000);
   }
 
   setOnline(n: number, playing: boolean) {
     const others = playing ? Math.max(0, n - 1) : n;
-    const text = others === 0 ? (playing ? 'vuelas solo' : '') : others === 1 ? '1 cóndor más en vuelo' : `${others} cóndores en vuelo`;
+    const text = others === 0 ? (playing ? words().flyingAlone : '') : others === 1 ? words().oneMore : words().flying(others);
     // touch layout: just the count, not the sentence — the corner has no room to spare
     const compact = matchMedia('(pointer: coarse)').matches;
     this.count.textContent = !playing ? '' : compact ? (others ? String(others) : '') : text;
@@ -97,8 +98,8 @@ export class PilotHud {
 
   setStatus(status: 'connecting' | 'online' | 'offline') {
     this.root.dataset.status = status;
-    if (status === 'offline') this.say('sin conexión, reintentando…', 'error', 0);
-    else if (this.msg.textContent?.startsWith('sin conexión')) this.say('', 'ok', 0);
+    if (status === 'offline') this.say(words().offline, 'error', 0);
+    else if (this.msg.textContent === words().offline) this.say('', 'ok', 0);
   }
 
   setRosterOpen(open: boolean) {
@@ -139,7 +140,7 @@ export class PilotHud {
     const name = document.createElement('button');
     name.type = 'button';
     name.className = 'name';
-    name.title = 'Volar a su lado';
+    name.title = words().flyBeside;
     const dir = arrow('dir');
     const km = document.createElement('span');
     km.className = 'km';
@@ -167,7 +168,7 @@ export class PilotHud {
     input.type = 'text';
     input.maxLength = 24;
     input.value = this.pilot.codename;
-    input.setAttribute('aria-label', 'Tu nombre de cóndor');
+    input.setAttribute('aria-label', words().yourName);
     input.spellcheck = false;
     this.nameButton.hidden = true;
     this.nameButton.after(input);
@@ -186,10 +187,10 @@ export class PilotHud {
       input.disabled = true;
       try {
         this.setPilot(await this.actions.rename(value));
-        this.say(`ahora eres ${this.pilot?.codename}`, 'ok');
+        this.say(words().nowYouAre(this.pilot?.codename ?? ''), 'ok');
         close();
       } catch (err) {
-        this.say(err instanceof Error ? err.message : 'no se pudo cambiar', 'error');
+        this.say(err instanceof Error ? err.message : words().couldNotChange, 'error');
         input.disabled = false;
         input.focus();
       }
@@ -202,7 +203,7 @@ export class PilotHud {
       this.setPilot(await this.actions.recolor(color));
       this.swatches.hidden = true;
     } catch (err) {
-      this.say(err instanceof Error ? err.message : 'no se pudo cambiar', 'error');
+      this.say(err instanceof Error ? err.message : words().couldNotChange, 'error');
     }
   }
 

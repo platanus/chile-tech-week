@@ -1,0 +1,34 @@
+# English twin of site.es.yml: the same keys, the English site (/en).
+en:
+  site:
+    home:
+      title: "Chile Tech Week 2026 · November 16–22"
+      description: "The decentralized week with Chile's best tech events. All over Chile, November 16–22, 2026."
+    events:
+      index:
+        title: "Events · %{week}"
+        description: "The %{week} programme: the week's tech events, %{dates}, all over Chile."
+      new:
+        title: "Host an event · %{week}"
+        description: "Add your event to the %{week} programme."
+      show:
+        description: "Your event's status at Chile Tech Week %{edition}."
+      submitted: "Event submitted! We'll review it soon."
+      published: "Your event is published!"
+      publish_errors:
+        not_ready: "The event is not ready to be published."
+        cancelled: "The event was cancelled on Luma."
+        failed: "Could not publish the event on Luma: %{message}"
+    opengraph:
+      by: "BY %{company}"
+  event_mailer:
+    no_themes: "No topics"
+    questions: "Questions? Write to us at"
+    subjects:
+      submitted: "We received your event · Chile Tech Week %{edition}"
+      approved: "Event approved: edit your event on Luma · Chile Tech Week %{edition}"
+      published: "Event published: %{title} · Chile Tech Week %{edition}"
+      rejected: "Your event needs changes · Chile Tech Week %{edition}"
+      luma_reminder: "Reminder: edit your event on Luma “%{title}”"
+      luma_cancelled: "Event taken down: %{title}"
+      luma_updated: "Event updated: %{title}"

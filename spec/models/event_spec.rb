@@ -28,7 +28,7 @@ RSpec.describe Event do
     event = build(:event, starts_at: Time.zone.local(2025, 11, 18, 18), ends_at: Time.zone.local(2025, 11, 18, 17))
 
     expect(event).not_to be_valid
-    expect(event.errors[:ends_at]).to include("must be after the start")
+    expect(event.errors[:ends_at]).to include("debe ser después del inicio")
   end
 
   describe ".chronological" do

@@ -37,4 +37,13 @@ RSpec.describe EventOpengraph do
     event.cover.attach(io: File.open(Rails.root.join("spec/fixtures/files/logo.png")), filename: "cover.png", content_type: "image/png")
     expect(described_class.new(event).version).not_to eq(renamed)
   end
+
+  it "names the host in the page's language, each language its own cache version" do
+    event = create(:event)
+    spanish = described_class.new(event)
+    english = described_class.new(event, locale: :en)
+
+    expect(english.version).not_to eq(spanish.version)
+    expect(english.render).to start_with("\x89PNG".b)
+  end
 end

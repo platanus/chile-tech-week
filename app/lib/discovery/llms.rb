@@ -6,7 +6,7 @@ module Discovery
   class Llms
     include Rails.application.routes.url_helpers
 
-    FAQ = JSON.parse(Rails.root.join("config/faq.json").read).freeze
+    FAQ = JSON.parse(Rails.root.join("config/faq.json").read).fetch("es").freeze
 
     def initialize(week, full: false)
       @week = week
@@ -27,13 +27,13 @@ module Discovery
     private
 
     def summary
-      "#{TAGLINE} Del #{@week.dates_label} de #{@week.year}, en todo Chile: cada empresa organiza " \
+      "#{TAGLINE} Del #{@week.dates_label(:es)} de #{@week.year}, en todo Chile: cada empresa organiza " \
         "su propio evento y este sitio reúne el programa completo, con la inscripción de cada uno."
     end
 
     def facts
       [
-        ["Fechas", "#{@week.dates_label} de #{@week.year} (#{@week.starts_on.iso8601} a #{@week.ends_on.iso8601})"],
+        ["Fechas", "#{@week.dates_label(:es)} de #{@week.year} (#{@week.starts_on.iso8601} a #{@week.ends_on.iso8601})"],
         ["Lugar", "Chile, principalmente Santiago; cada evento indica su comuna"],
         ["Eventos publicados", @events.size.to_s],
         ["Sitio", Discovery.url],

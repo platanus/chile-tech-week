@@ -23,6 +23,9 @@ module HasUploadedLogo
   def uploaded_logo_quality
     return unless @logo_upload_error
 
-    errors.add(:logo, @logo_upload_error.delete_prefix("El logo ").sub("No pudimos leer la imagen.", "no se pudo leer."))
+    # The policy's sentences name the logo themselves; the full message adds it back.
+    message = @logo_upload_error.delete_prefix("El logo ").delete_prefix("The logo ")
+      .sub("No pudimos leer la imagen.", "no se pudo leer.").sub("We couldn't read the image.", "could not be read.")
+    errors.add(:logo, message)
   end
 end

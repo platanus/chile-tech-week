@@ -9,7 +9,7 @@ RSpec.describe "the landing" do
       expect(inertia).to render_component("Home/Show")
       expect(inertia).to have_props(
         title: "Chile Tech Week 2026 · 16 al 22 de noviembre",
-        description: HomeController::DESCRIPTION
+        description: I18n.t("site.home.description", locale: :es)
       )
     end
 

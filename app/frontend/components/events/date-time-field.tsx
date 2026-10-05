@@ -1,10 +1,11 @@
 import { CalendarIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { es } from 'react-day-picker/locale';
+import { enUS, es } from 'react-day-picker/locale';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { copy, useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 // A day from a calendar and a time from a list, posted as one hidden `name` field in the
@@ -18,8 +19,11 @@ const fromDay = (day: string) => {
   const [y, m, d] = day.split('-').map(Number);
   return new Date(y, m - 1, d);
 };
-// "mié, 18 de noviembre": short enough for half a form row on a phone.
-const dayLabel = new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'long' });
+// "mié, 18 de noviembre" / "Wed, November 18": short enough for half a form row on a phone.
+const COPY = copy(
+  { dayLabel: new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'long' }), calendar: es, pickDay: 'Elige un día', time: 'Hora' },
+  { dayLabel: new Intl.DateTimeFormat('en-US', { weekday: 'short', day: 'numeric', month: 'long' }), calendar: enUS, pickDay: 'Pick a day', time: 'Time' },
+);
 
 // Every quarter hour of the day.
 const TIMES = Array.from({ length: 96 }, (_, i) => `${pad(Math.floor(i / 4))}:${pad((i % 4) * 15)}`);
@@ -38,6 +42,7 @@ export function DateTimeField({ id, name, value, onChange, min, max, disabled, c
   'aria-invalid'?: boolean;
   'aria-describedby'?: string;
 }) {
+  const { t } = useI18n(COPY);
   const [day, setDay] = useState(value.split('T')[0] ?? '');
   const [time, setTime] = useState(value.split('T')[1] ?? '');
   const [open, setOpen] = useState(false);
@@ -66,13 +71,13 @@ export function DateTimeField({ id, name, value, onChange, min, max, disabled, c
         <PopoverTrigger asChild>
           <Button id={id} type="button" variant="outline" disabled={disabled} className={cn('w-full min-w-0 justify-start font-normal', !day && 'text-muted-foreground', className)} {...aria}>
             <CalendarIcon />
-            <span className="truncate first-letter:uppercase">{selected ? dayLabel.format(selected) : 'Elige un día'}</span>
+            <span className="truncate first-letter:uppercase">{selected ? t.dayLabel.format(selected) : t.pickDay}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" className={cn('w-auto p-0', popoverClassName)}>
           <Calendar
             mode="single"
-            locale={es}
+            locale={t.calendar}
             selected={selected}
             defaultMonth={selected ?? (min ? fromDay(min) : undefined)}
             startMonth={min ? fromDay(min) : undefined}
@@ -87,8 +92,8 @@ export function DateTimeField({ id, name, value, onChange, min, max, disabled, c
         </PopoverContent>
       </Popover>
       <Select value={time} onValueChange={(next) => update(day, next)} disabled={disabled}>
-        <SelectTrigger aria-label="Hora" className={cn('w-full', className)} aria-invalid={aria['aria-invalid']}>
-          <SelectValue placeholder="Hora" />
+        <SelectTrigger aria-label={t.time} className={cn('w-full', className)} aria-invalid={aria['aria-invalid']}>
+          <SelectValue placeholder={t.time} />
         </SelectTrigger>
         <SelectContent className={cn('max-h-72', popoverClassName)}>
           {times.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}

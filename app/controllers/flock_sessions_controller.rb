@@ -23,12 +23,12 @@ class FlockSessionsController < ApplicationController
     attrs = {}
     if params.key?(:codename)
       name = Flock::Codename.normalize(params[:codename])
-      return render(json: {error: "entre #{Flock::Codename::MIN_LENGTH} y #{Flock::Codename::MAX_LENGTH} caracteres: letras, números y guiones"}, status: :unprocessable_entity) unless Flock::Codename.valid?(name)
-      return render(json: {error: "ese nombre está en uso"}, status: :unprocessable_entity) if world.name_in_use?(name, except_id: player.id)
+      return render(json: {error: message(:invalid_name)}, status: :unprocessable_entity) unless Flock::Codename.valid?(name)
+      return render(json: {error: message(:name_taken)}, status: :unprocessable_entity) if world.name_in_use?(name, except_id: player.id)
       attrs[:codename] = name
     end
     if params.key?(:color)
-      return render(json: {error: "color desconocido"}, status: :unprocessable_entity) unless Flock::Palette.valid?(params[:color])
+      return render(json: {error: message(:unknown_color)}, status: :unprocessable_entity) unless Flock::Palette.valid?(params[:color])
       attrs[:color] = params[:color]
     end
     player.update!(attrs)
@@ -37,6 +37,23 @@ class FlockSessionsController < ApplicationController
   end
 
   private
+
+  # The reasons a rename fails, in the landing's language (the game sends `locale`, from
+  # <html lang>).
+  MESSAGES = {
+    "es" => {
+      invalid_name: "entre #{Flock::Codename::MIN_LENGTH} y #{Flock::Codename::MAX_LENGTH} caracteres: letras, números y guiones",
+      name_taken: "ese nombre está en uso", unknown_color: "color desconocido"
+    },
+    "en" => {
+      invalid_name: "#{Flock::Codename::MIN_LENGTH} to #{Flock::Codename::MAX_LENGTH} characters: letters, numbers and hyphens",
+      name_taken: "that name is taken", unknown_color: "unknown colour"
+    }
+  }.freeze
+
+  def message(key)
+    MESSAGES.fetch(params[:locale].to_s, MESSAGES["es"]).fetch(key)
+  end
 
   def current_player
     id = cookies.signed[COOKIE]

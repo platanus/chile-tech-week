@@ -48,29 +48,29 @@ RSpec.describe "uploaded logo quality" do
 
   it "checks actual bytes rather than trusting the filename or declared type" do
     fake = Rack::Test::UploadedFile.new(StringIO.new("<svg xmlns='http://www.w3.org/2000/svg'></svg>"), "image/png", original_filename: "logo.png")
-    expect(LogoUpload.error_for(fake)).to eq(LogoUpload::POLICY["errors"]["type"])
+    expect(LogoUpload.error_for(fake)).to eq(LogoUpload.errors["type"])
   end
 
   it "rejects corrupt images even when their PNG signature is present" do
     fake = Rack::Test::UploadedFile.new(StringIO.new("\x89PNG\r\n\x1a\n" + "x" * 64), "image/png", original_filename: "logo.png")
-    expect(LogoUpload.error_for(fake)).to eq(LogoUpload::POLICY["errors"]["invalid"])
+    expect(LogoUpload.error_for(fake)).to eq(LogoUpload.errors["invalid"])
   end
 
   it "decodes the pixels instead of trusting a valid header" do
     file = upload
     bytes = file.read
     truncated = Rack::Test::UploadedFile.new(StringIO.new(bytes[0, bytes.size / 2]), "image/png", original_filename: "logo.png")
-    expect(LogoUpload.error_for(truncated)).to eq(LogoUpload::POLICY["errors"]["invalid"])
+    expect(LogoUpload.error_for(truncated)).to eq(LogoUpload.errors["invalid"])
   end
 
   it "rejects oversized files before attempting to decode them" do
     file = upload
     allow(file).to receive(:size).and_return(2.megabytes + 1)
     expect(file).not_to receive(:read)
-    expect(LogoUpload.error_for(file)).to eq(LogoUpload::POLICY["errors"]["size"])
+    expect(LogoUpload.error_for(file)).to eq(LogoUpload.errors["size"])
   end
 
   it "rejects excessive pixel counts before decoding pixels" do
-    expect(LogoUpload.error_for(upload(width: 5000, height: 4001))).to eq(LogoUpload::POLICY["errors"]["large"])
+    expect(LogoUpload.error_for(upload(width: 5000, height: 4001))).to eq(LogoUpload.errors["large"])
   end
 end

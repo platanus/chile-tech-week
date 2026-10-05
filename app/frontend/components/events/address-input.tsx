@@ -1,7 +1,13 @@
 import { MapPin } from 'lucide-react';
 import { type KeyboardEvent, useEffect, useId, useState } from 'react';
 import { Input } from '@/components/ui/input';
+import { copy, useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+
+const COPY = copy(
+  { placeholder: 'Busca la dirección del evento', failed: 'No pudimos buscar direcciones. Intenta de nuevo.', credit: 'Direcciones de © OpenStreetMap' },
+  { placeholder: "Search for the event's address", failed: "We couldn't search for addresses. Try again.", credit: 'Addresses from © OpenStreetMap' },
+);
 
 // The venue, searched as the host types and picked from a list: Photon (komoot's geocoder
 // over OpenStreetMap — free, no key, built for search-as-you-type), limited to Chile and
@@ -125,7 +131,7 @@ async function search(query: string, signal: AbortSignal) {
   return rank(query, nearSantiago, anywhere, street);
 }
 
-export function AddressInput({ id, prefix, initial, placeholder = 'Busca la dirección del evento', className, onPick, ...aria }: {
+export function AddressInput({ id, prefix, initial, placeholder, className, onPick, ...aria }: {
   id: string;
   // The form's param prefix: the hidden fields post as `${prefix}[address]` and so on.
   prefix: string;
@@ -137,6 +143,7 @@ export function AddressInput({ id, prefix, initial, placeholder = 'Busca la dire
   'aria-invalid'?: boolean;
   'aria-describedby'?: string;
 }) {
+  const { t } = useI18n(COPY);
   const [query, setQuery] = useState(initial?.address ?? '');
   const [picked, setPicked] = useState<Partial<Place> | null>(initial?.commune ? initial : null);
   const [results, setResults] = useState<Suggestion[]>([]);
@@ -196,7 +203,7 @@ export function AddressInput({ id, prefix, initial, placeholder = 'Busca la dire
         aria-autocomplete="list"
         aria-activedescendant={showList && results[active] ? `${listId}-${active}` : undefined}
         autoComplete="off"
-        placeholder={placeholder}
+        placeholder={placeholder ?? t.placeholder}
         value={query}
         onChange={(event) => onType(event.target.value)}
         onFocus={() => setOpen(true)}
@@ -236,8 +243,8 @@ export function AddressInput({ id, prefix, initial, placeholder = 'Busca la dire
               </span>
             </li>
           ))}
-          {failed && results.length === 0 && <li className="px-3 py-2 text-sm text-muted-foreground">No pudimos buscar direcciones. Intenta de nuevo.</li>}
-          <li className="px-3 pt-1 text-[10px] text-muted-foreground">Direcciones de © OpenStreetMap</li>
+          {failed && results.length === 0 && <li className="px-3 py-2 text-sm text-muted-foreground">{t.failed}</li>}
+          <li className="px-3 pt-1 text-[10px] text-muted-foreground">{t.credit}</li>
         </ul>
       )}
     </div>

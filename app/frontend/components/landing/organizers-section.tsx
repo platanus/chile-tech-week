@@ -1,4 +1,10 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react';
+import { copy, useI18n } from '@/lib/i18n';
+
+const COPY = copy(
+  { title: 'La semana tech descentralizada', subtitle: 'Organizada por el centro del ecosistema tech chileno' },
+  { title: 'The decentralized tech week', subtitle: 'Organized by the heart of the Chilean tech ecosystem' },
+);
 
 // Optimized logos from /25 and official brand sites, independent of archived records.
 const organizers = [
@@ -17,6 +23,7 @@ const organizers = [
 ];
 
 export function OrganizersSection() {
+  const { t } = useI18n(COPY);
   const maskId = useId();
   const section = useRef<HTMLElement>(null);
   const [cutout, setCutout] = useState<{ src: string; x: number; y: number; width: number; height: number } | null>(null);
@@ -86,8 +93,8 @@ export function OrganizersSection() {
         )}
       </svg>
       <header>
-        <h2 id="organizers-title">La semana tech descentralizada</h2>
-        <p>Organizada por el centro del ecosistema tech chileno</p>
+        <h2 id="organizers-title">{t.title}</h2>
+        <p>{t.subtitle}</p>
       </header>
       <ul className="organizers-grid" ref={grid}>
         {organizers.map(({ name, file, width, height }, index) => (

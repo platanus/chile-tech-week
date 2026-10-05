@@ -12,6 +12,7 @@ es:
             ends_at:
               outside_the_week: "debe estar dentro de la semana (%{week})"
               blank: "no puede estar en blanco"
+              after_the_start: "debe ser después del inicio"
             latitude:
               outside_chile: "no corresponde a un lugar en Chile"
             longitude:

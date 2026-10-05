@@ -1,31 +1,51 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
+# English for the public site (/en): what Rails itself prints there — the submission form's
+# validation messages. The attribute names match es.yml's; the messages are Rails' own.
 en:
-  hello: "Hello world"
+  errors:
+    messages:
+      https_url: "must be a URL starting with https://"
+  activerecord:
+    errors:
+      models:
+        event:
+          attributes:
+            starts_at:
+              outside_the_week: "must fall within the week (%{week})"
+            ends_at:
+              outside_the_week: "must fall within the week (%{week})"
+              after_the_start: "must be after the start"
+            latitude:
+              outside_chile: "is not a place in Chile"
+            longitude:
+              outside_chile: "is not a place in Chile"
+    attributes:
+      event:
+        title: "Title"
+        description: "Description"
+        author_name: "Contact name"
+        author_email: "Contact email"
+        author_phone_number: "Contact phone"
+        company_name: "Company name"
+        company_website: "Website"
+        company_logo_url: "Logo"
+        logo: "Logo"
+        starts_at: "Start"
+        ends_at: "End"
+        address: "Address"
+        commune: "Commune"
+        latitude: "Latitude"
+        longitude: "Longitude"
+        format: "Format"
+        capacity: "Capacity"
+        themes: "Topics"
+        audiences: "Audiences"
+        custom_url: "URL"
+      cohost:
+        logo: "Logo"
+        company_name: "Company name"
+        company_logo_url: "Logo"
+        primary_contact_name: "Contact name"
+        primary_contact_email: "Contact email"
+        primary_contact_phone_number: "Phone"
+        primary_contact_website: "Website"
+        primary_contact_linkedin: "LinkedIn"
