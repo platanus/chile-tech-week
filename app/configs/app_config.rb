@@ -38,7 +38,13 @@ class AppConfig < Anyway::Config
 
     # New submissions are announced in Slack when a bot token and a channel are set.
     slack_bot_token: "",
-    slack_channel: ""
+    slack_channel: "",
+
+    # …and in the organisers' WhatsApp group, through wpp-server (wpp.rafafdz.dev): an API key
+    # with the `send` scope and the group's JID ("1203…@g.us"). Either one empty = off.
+    wpp_api_url: "https://wpp.rafafdz.dev",
+    wpp_api_key: "",
+    wpp_chat_jid: ""
   )
 
   coerce_types send_emails: :boolean, smtp_port: :integer
@@ -72,6 +78,10 @@ class AppConfig < Anyway::Config
 
   def slack?
     slack_bot_token.present? && slack_channel.present?
+  end
+
+  def whatsapp?
+    wpp_api_key.present? && wpp_chat_jid.present?
   end
 
   # anyway_config already splits a comma-separated ENV value into an array.

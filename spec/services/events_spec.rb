@@ -76,5 +76,13 @@ RSpec.describe "the moderation services" do
         .and have_enqueued_mail(EventMailer, :new_submission).with(params: {event: event, user: notified}, args: [])
       expect(SlackNotifier).to have_received(:new_submission).with(event)
     end
+
+    it "queues the WhatsApp post only when wpp-server is configured" do
+      allow(SlackNotifier).to receive(:new_submission)
+      expect { described_class.submitted(event) }.not_to have_enqueued_job(WhatsappNotificationJob)
+
+      allow(AppConfig).to receive(:instance).and_return(AppConfig.new(wpp_api_key: "wpp_abc_secret", wpp_chat_jid: "123@g.us"))
+      expect { described_class.submitted(event) }.to have_enqueued_job(WhatsappNotificationJob).with(event.id)
+    end
   end
 end

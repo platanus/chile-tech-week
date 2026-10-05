@@ -226,6 +226,11 @@ archive is that year's week, under `/25`.
   `include RecordsTaskRun` so the admin sees its last outcome (`TaskRun`).
 - **Slack**: `SlackNotifier` posts new submissions when `SLACK_BOT_TOKEN` + `SLACK_CHANNEL`
   are set.
+- **WhatsApp**: `WhatsappNotifier` (via `WhatsappNotificationJob`) posts each new submission —
+  the logo, the summary and the admin link — to the organisers' group through wpp-server
+  (`wpp.rafafdz.dev` on the `vps` host, `WppClient`), when `WPP_API_KEY` (a `send`-scoped key)
+  + `WPP_CHAT_JID` are set. Production points at "CHILE TECHWEEK ORGANIZACIÓN"
+  (`120363404995734096@g.us`); smoke-test against "Yo solo" (`56968335697-1566861964@g.us`).
 - **Discovery** (`app/lib/discovery/`, `DiscoveryController`): what search engines and AI
   assistants (ChatGPT search, Claude, Perplexity) read, all generated from the published
   events — `/robots.txt` (everyone allowed, the AI crawlers by name, `/admin` and the hosts'
@@ -244,7 +249,8 @@ archive is that year's week, under `/25`.
   `spec/support/weeks.rb` — a database loaded from `db/schema.rb` has none.
 - **Settings** (all through `AppConfig`, sampled in `.env.sample`): `LUMA_API_KEY`, `LUMA_COVER_URL`,
   `LUMA_ALLOWED_COHOST_DEV`, `SEND_EMAILS`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
-  `EMAIL_CATCH_ALL`, `CONTACT_EMAIL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL`.
+  `EMAIL_CATCH_ALL`, `CONTACT_EMAIL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL`, `WPP_API_URL`, `WPP_API_KEY`,
+  `WPP_CHAT_JID`.
 - **End-to-end**: Playwright specs under `e2e/` run against a live dev stack —
   `PLAYWRIGHT_BASE_URL=http://localhost:$PORT npm run e2e` (Chromium via
   `npx playwright install chromium`). They are not part of `bin/ci`.

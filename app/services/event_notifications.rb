@@ -1,5 +1,5 @@
 # What goes out when an event changes hands: the host's emails (EventMailer), the admins'
-# heads-up and the Slack post. Every call is fire-and-forget through Active Job.
+# heads-up, the Slack post and the WhatsApp group's. Every call is fire-and-forget through Active Job.
 module EventNotifications
   module_function
 
@@ -7,6 +7,7 @@ module EventNotifications
     EventMailer.with(event: event).submitted.deliver_later
     User.notified.find_each { |user| EventMailer.with(event: event, user: user).new_submission.deliver_later }
     SlackNotifier.new_submission(event)
+    WhatsappNotificationJob.perform_later(event.id) if AppConfig.instance.whatsapp?
   end
 
   def approved(event)
