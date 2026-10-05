@@ -30,6 +30,8 @@ module WhatsappNotifier
       Capacidad: #{event.capacity}
 
       Revisar: #{admin_url}
+
+      Total de eventos enviados #{event.edition}: #{Event.for_edition(event.edition).count}
     TEXT
   end
 

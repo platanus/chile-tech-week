@@ -16,6 +16,7 @@ RSpec.describe WhatsappNotifier do
   end
 
   it "sends the summary and the admin link to the group, with the logo URL" do
+    create(:event, state: "rejected")
     request = stub_request(:post, endpoint)
       .with(headers: {"Authorization" => "Bearer wpp_abc_secret", "Idempotency-Key" => "techweek-submitted-#{event.id}"})
       .to_return(status: 202, body: {id: 1, status: "queued"}.to_json)
@@ -26,7 +27,8 @@ RSpec.describe WhatsappNotifier do
       body = JSON.parse(req.body)
       body["to"] == "123@g.us" && body["file"] == {"url" => "https://example.com/logo.png", "kind" => "image"} &&
         body["text"].include?("*Demo Day*") && body["text"].include?("Av. Apoquindo 3000, Las Condes") && body["text"].match?(/Cuándo: \S+ \d+ de \S+, \d\d:\d\d – \d\d:\d\d\n/) &&
-        body["text"].include?("https://techweek.cl/admin/25/events/#{event.id}")
+        body["text"].include?("https://techweek.cl/admin/25/events/#{event.id}") &&
+        body["text"].end_with?("Total de eventos enviados 2025: 2")
     }).to have_been_requested
   end
 
