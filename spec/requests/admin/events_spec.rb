@@ -221,7 +221,7 @@ RSpec.describe "admin events" do
 
       follow_redirect!
       expect(event.reload.logo).to be_attached
-      expect(event.company_logo_url).to match(%r{\A/rails/active_storage/blobs/redirect/})
+      expect(event.company_logo_url).to match(%r{\A/rails/active_storage/blobs/proxy/})
     end
 
     it "rejects an invalid logo replacement and keeps the previous logo URL" do

@@ -18,6 +18,8 @@ class EventResource < ApplicationResource
   # Event#cover_image_url). Nil until the event has a Luma event.
   typelize :string?
   attribute :cover_image_url, &:cover_image_url
+  typelize :string?
+  attribute :cover_thumb_url, &:cover_thumb_url
 
   has_many :themes, resource: ThemeResource
   has_many :audiences, resource: AudienceResource

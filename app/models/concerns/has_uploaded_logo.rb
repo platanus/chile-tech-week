@@ -15,7 +15,7 @@ module HasUploadedLogo
 
     blob = ActiveStorage::Blob.create_and_upload!(io: file, filename: file.original_filename, content_type: file.content_type)
     self.logo = blob
-    self.company_logo_url = Rails.application.routes.url_helpers.rails_blob_path(blob, only_path: true)
+    self.company_logo_url = Rails.application.routes.url_helpers.rails_storage_proxy_path(blob, only_path: true)
   end
 
   private

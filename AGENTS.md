@@ -243,6 +243,13 @@ archive is that year's week, under `/25`.
   passkey whose counter did not grow, so the counter is the current time. No bot check guards that
   path; if Luma ever adds one, `Luma::Error` surfaces — do not work around it. Without
   `LUMA_PASSKEY` it is `Luma::FakeInternal` (`add_guest` in specs).
+- **Images**: Luma's covers are ~2 MB PNGs, so `MirrorLumaCoverJob` stores two WebP copies instead
+  of the file — `cover` (≤1200 px, the event pages) and `cover_thumb` (≤360 px, the programme's
+  cards: `Event#cover_thumb_url`). Every stored image — covers and the logos' `company_logo_url` —
+  is served through Active Storage's **proxy** route (`rails_storage_proxy_path`), which answers
+  `Cache-Control: public, max-age=1y` so Cloudflare and browsers keep it; the redirect route
+  (`rails_blob_path`) is `private` and hops to a signed URL every time, so do not use it for
+  anything a page shows.
 - **Scheduled tasks**: `config/recurring.yml` (Solid Queue, production) and
   `ScheduledTask` (`app/services/scheduled_task.rb`) must list the same jobs; each job
   `include RecordsTaskRun` so the admin sees its last outcome (`TaskRun`).

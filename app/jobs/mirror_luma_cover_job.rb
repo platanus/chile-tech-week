@@ -4,7 +4,14 @@ require "net/http"
 # instead of hotlinking images.lumacdn.com, which may block us or move the file. Enqueued by
 # Luma::Sync whenever an event's `luma_cover_url` changes. Failure is logged and dropped —
 # `Event#cover_image_url` falls back to Luma's URL, so a missed mirror only costs the copy.
+#
+# Luma's covers are 2048-pixel PNGs of ~2 MB; the site shows them at 1200 pixels at most (the
+# event page) and at ~100 in the programme. So two WebP copies are stored instead of the file:
+# `cover` (the page) and `cover_thumb` (the programme's cards, at twice their size).
 class MirrorLumaCoverJob < ApplicationJob
+  COVER_SIZE = 1200
+  THUMB_SIZE = 360
+  WEBP_QUALITY = 80
   MAX_BYTES = 5.megabytes
   MAX_REDIRECTS = 3
   OPEN_TIMEOUT = 5
@@ -19,12 +26,28 @@ class MirrorLumaCoverJob < ApplicationJob
     image = fetch(url)
     return if image.nil?
 
-    event.cover.attach(io: StringIO.new(image[:body]), filename: filename_for(url, image[:content_type]),
-      content_type: image[:content_type])
+    attach(event, image, url)
     Rails.logger.info("Mirrored Luma cover for event #{event.id} (#{image[:body].bytesize} bytes)")
   end
 
   private
+
+  # The two WebP copies; when the file cannot be resized (an odd format), the original is kept as
+  # the cover and the programme falls back to it.
+  def attach(event, image, url)
+    name = File.basename(filename_for(url, image[:content_type]), ".*")
+    event.cover.attach(io: StringIO.new(resized(image[:body], COVER_SIZE)), filename: "#{name}.webp", content_type: "image/webp")
+    event.cover_thumb.attach(io: StringIO.new(resized(image[:body], THUMB_SIZE)), filename: "#{name}-thumb.webp", content_type: "image/webp")
+  rescue Vips::Error => e
+    log("could not resize #{url}: #{e.message.lines.first&.strip}")
+    event.cover_thumb.purge if event.cover_thumb.attached?
+    event.cover.attach(io: StringIO.new(image[:body]), filename: filename_for(url, image[:content_type]), content_type: image[:content_type])
+  end
+
+  # Fits the image inside `size` pixels without cropping or enlarging it, as WebP with no metadata.
+  def resized(body, size)
+    Vips::Image.thumbnail_buffer(body, size, height: size, size: :down).write_to_buffer(".webp", Q: WEBP_QUALITY, strip: true)
+  end
 
   def fetch(url, redirects_left = MAX_REDIRECTS)
     uri = URI.parse(url)

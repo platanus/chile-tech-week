@@ -189,12 +189,12 @@ RSpec.describe "the current edition's events" do
       expect(event.starts_at).to eq(Time.zone.local(2026, 11, 18, 18, 0))
       expect(event.ends_at).to eq(Time.zone.local(2026, 11, 18, 20, 0))
       expect(event.logo).to be_attached
-      expect(event.company_logo_url).to match(%r{\A/rails/active_storage/blobs/redirect/})
+      expect(event.company_logo_url).to match(%r{\A/rails/active_storage/blobs/proxy/})
       expect(event.themes).to eq([theme])
       expect(event.audiences).to eq([audience])
       expect(event.cohosts.map(&:company_name)).to eq(["BCI"])
       expect(event.cohosts.first.logo).to be_attached
-      expect(event.cohosts.first.company_logo_url).to match(%r{\A/rails/active_storage/blobs/redirect/})
+      expect(event.cohosts.first.company_logo_url).to match(%r{\A/rails/active_storage/blobs/proxy/})
       expect(EventNotifications).to have_received(:submitted).with(event)
 
       expect(response).to redirect_to("/events/#{event.id}")

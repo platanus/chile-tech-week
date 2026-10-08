@@ -38,9 +38,9 @@ export function EventCard({ event }: { event: Event }) {
           ))}
         </div>
       </div>
-      {event.coverImageUrl && (
+      {event.coverThumbUrl && (
         <img
-          src={event.coverImageUrl}
+          src={event.coverThumbUrl}
           alt=""
           loading="lazy"
           width={144}

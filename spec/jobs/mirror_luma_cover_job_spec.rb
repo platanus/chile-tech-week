@@ -5,15 +5,51 @@ RSpec.describe MirrorLumaCoverJob do
   let(:event) { create(:event, luma_cover_url: url) }
   let(:png) { Rails.root.join("spec/fixtures/files/logo.png").binread }
 
-  it "downloads the cover and keeps it as the event's own copy" do
+  def width_of(attachment)
+    Vips::Image.new_from_buffer(attachment.download, "").width
+  end
+
+  it "downloads the cover and keeps it as the event's own copy, as a web-sized WebP" do
     stub_request(:get, url).to_return(status: 200, body: png, headers: {"Content-Type" => "image/png"})
 
     described_class.perform_now(event.id, url)
 
     expect(event.reload.cover).to be_attached
+    expect(event.cover.content_type).to eq("image/webp")
+    expect(event.cover.filename.to_s).to eq("abc.webp")
+    expect(event.cover_image_url).to match(%r{\A/rails/active_storage/blobs/proxy/})
+    expect(event.cover_thumb).to be_attached
+    expect(event.cover_thumb_url).to match(%r{\A/rails/active_storage/blobs/proxy/.*abc-thumb\.webp\z})
+  end
+
+  it "shrinks Luma's 2048-pixel covers to the page size and a small card size" do
+    big = Vips::Image.black(2048, 2048).write_to_buffer(".png")
+    stub_request(:get, url).to_return(status: 200, body: big, headers: {"Content-Type" => "image/png"})
+
+    described_class.perform_now(event.id, url)
+
+    expect(width_of(event.reload.cover)).to eq(1200)
+    expect(width_of(event.cover_thumb)).to eq(360)
+    expect(event.cover.byte_size).to be < big.bytesize
+  end
+
+  it "never enlarges a small cover" do
+    stub_request(:get, url).to_return(status: 200, body: Vips::Image.black(200, 100).write_to_buffer(".png"), headers: {"Content-Type" => "image/png"})
+
+    described_class.perform_now(event.id, url)
+
+    expect(width_of(event.reload.cover)).to eq(200)
+  end
+
+  it "keeps the original as the cover when the image cannot be resized" do
+    stub_request(:get, url).to_return(status: 200, body: "not really a png", headers: {"Content-Type" => "image/png"})
+
+    described_class.perform_now(event.id, url)
+
+    expect(event.reload.cover).to be_attached
     expect(event.cover.content_type).to eq("image/png")
-    expect(event.cover.filename.to_s).to eq("abc.png")
-    expect(event.cover_image_url).to match(%r{\A/rails/active_storage/blobs/redirect/})
+    expect(event.cover_thumb).not_to be_attached
+    expect(event.cover_thumb_url).to eq(event.cover_image_url)
   end
 
   it "follows a redirect to the real file" do

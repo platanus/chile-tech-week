@@ -41,6 +41,8 @@ class Event < ApplicationRecord
   has_one_attached :logo
   # The Luma cover, mirrored by MirrorLumaCoverJob so the programme does not hotlink Luma's CDN.
   has_one_attached :cover
+  # …and its small copy, which the programme's cards show (MirrorLumaCoverJob).
+  has_one_attached :cover_thumb
   has_many :event_themes, dependent: :destroy
   has_many :themes, through: :event_themes
   has_many :event_audiences, dependent: :destroy
@@ -118,9 +120,14 @@ class Event < ApplicationRecord
   # Luma's own URL while the mirror job has not run (or could not fetch it). Nil until the
   # event has a Luma event of its own.
   def cover_image_url
-    return Rails.application.routes.url_helpers.rails_blob_path(cover, only_path: true) if cover.attached?
+    return storage_path(cover) if cover.attached?
 
     luma_cover_url.presence
+  end
+
+  # The same picture, small: for the programme's cards. The full one until the small one exists.
+  def cover_thumb_url
+    cover_thumb.attached? ? storage_path(cover_thumb) : cover_image_url
   end
 
   # The host's progress through the review: 1 submitted, 2 approved, 3 editing the Luma event,
@@ -140,6 +147,13 @@ class Event < ApplicationRecord
   end
 
   private
+
+  # Active Storage's proxy route, not its redirect one: the proxy answers with the image and a
+  # public, year-long Cache-Control (the file never changes under its URL), so Cloudflare and the
+  # browser keep it. The redirect route answers `private` and hops to a signed URL every time.
+  def storage_path(attachment)
+    Rails.application.routes.url_helpers.rails_storage_proxy_path(attachment, only_path: true)
+  end
 
   def assign_public_slug
     base = title.to_s.parameterize.truncate(100, omission: "").sub(/-+\z/, "").presence || "evento"
