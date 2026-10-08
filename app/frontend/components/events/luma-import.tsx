@@ -10,7 +10,7 @@ import type { LumaImport } from '@/types';
 const COPY = copy(
   {
     banner: '¿Ya creaste tu evento en Luma?',
-    bannerLink: 'Impórtalo y ahorra el formulario',
+    bannerLink: 'Impórtalo aquí',
     title: 'Trae tu evento de Luma',
     intro: 'Pega el link de tu evento y llenamos el formulario con sus datos.',
     placeholder: 'luma.com/mi-evento',
@@ -31,7 +31,7 @@ const COPY = copy(
   },
   {
     banner: 'Already created your event on Luma?',
-    bannerLink: 'Import it and skip most of the form',
+    bannerLink: 'Import it here',
     title: 'Bring your event from Luma',
     intro: 'Paste your event link and we fill the form with its details.',
     placeholder: 'luma.com/my-event',

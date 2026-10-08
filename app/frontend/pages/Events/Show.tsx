@@ -53,7 +53,7 @@ const COPY = copy(
     rejectedTitle: 'Tu evento necesita cambios',
     rejectedText: 'Corrige lo indicado y vuelve a enviarlo.',
     submitAgain: 'Enviar de nuevo',
-    stepOf: (step: number) => `Estado · paso ${step} de 4`,
+    stepOf: (step: number, total: number) => `Estado · paso ${step} de ${total}`,
     editedPublish: 'Ya edité Luma · Publicar evento',
     editOnLuma: 'Editar en Luma',
     seeEvent: 'Ver evento',
@@ -107,7 +107,7 @@ const COPY = copy(
     rejectedTitle: 'Your event needs changes',
     rejectedText: 'Fix what we pointed out and submit it again.',
     submitAgain: 'Submit again',
-    stepOf: (step: number) => `Status · step ${step} of 4`,
+    stepOf: (step: number, total: number) => `Status · step ${step} of ${total}`,
     editedPublish: "I've edited Luma · Publish event",
     editOnLuma: 'Edit on Luma',
     seeEvent: 'See event',
@@ -278,7 +278,7 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
       ) : (
         <>
           <section className="flex flex-col gap-3 border-t border-border pt-8">
-            <div className="label text-muted-foreground">{t.stepOf(event.step)}</div>
+            <div className="label text-muted-foreground">{event.lumaImported ? t.stepOf(Math.min(event.step, 3), 3) : t.stepOf(event.step, 4)}</div>
             <p className="max-w-[56ch] text-base">{event.lumaImported && event.step === 1 ? t.statusImported : t.status[event.step]}</p>
             {event.step === 3 && (
               <div className="mt-2 flex flex-wrap items-center gap-4">
@@ -332,7 +332,7 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
           <img
             src={event.coverImageUrl}
             alt={t.cover(event.title)}
-            className="w-full rounded-sm border border-border object-cover"
+            className="max-h-72 w-auto max-w-full self-start rounded-sm border border-border object-contain"
           />
           <p className="text-xs text-muted-foreground">
             {t.coverNote}
