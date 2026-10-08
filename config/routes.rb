@@ -58,6 +58,7 @@ Rails.application.routes.draw do
       resources :events, only: [:index, :show, :update] do
         resource :approval, only: :create, controller: "event_approvals"
         resource :rejection, only: :create, controller: "event_rejections"
+        resource :takedown, only: :create, controller: "event_takedowns"
         resources :cohosts, only: [:create, :update, :destroy]
       end
       resources :outbound_emails, only: [:index, :show], path: "emails" do

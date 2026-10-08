@@ -33,4 +33,5 @@ es:
       rejected: "Tu evento necesita cambios · Chile Tech Week %{edition}"
       luma_reminder: "Recordatorio: edita tu evento en Luma «%{title}»"
       luma_cancelled: "Evento dado de baja: %{title}"
+      taken_down: "Tu evento fue dado de baja: %{title}"
       luma_updated: "Evento actualizado: %{title}"

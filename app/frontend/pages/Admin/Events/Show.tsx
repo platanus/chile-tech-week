@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Check, ChevronLeft, ExternalLink, Plus, Trash2, X } from 'lucide-react';
+import { Ban, Check, ChevronLeft, ExternalLink, Plus, Trash2, X } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { EventEditDialog } from '@/components/admin/event-edit-dialog';
 import { Field, Flash, formatDateTime, LogoOnBlack, StateBadge, useWeek } from '@/components/admin/ui';
@@ -17,6 +17,7 @@ import {
   admin_event_cohosts_path,
   admin_event_path,
   admin_event_rejection_path,
+  admin_event_takedown_path,
   admin_events_path,
 } from '@/routes';
 import type { AdminCohost, AdminEventsShow, EventFormat } from '@/types';
@@ -71,6 +72,7 @@ export default function Show({ event, formats, themes, audiences }: AdminEventsS
           <div className="flex flex-wrap gap-2">
             <EventEditDialog event={event} formats={formats} formatLabels={FORMAT_LABELS} themes={themes} audiences={audiences} />
             {event.state === 'submitted' && <Moderation eventId={event.id} />}
+            {(event.state === 'waiting_luma_edit' || event.state === 'published') && <TakeDown eventId={event.id} />}
           </div>
         </div>
       </div>
@@ -210,6 +212,7 @@ export default function Show({ event, formats, themes, audiences }: AdminEventsS
             {event.publishedAt && <Field label="Publicado"><span className="font-mono">{formatDateTime(event.publishedAt)}</span></Field>}
             {event.deletedAt && <Field label="Dado de baja"><span className="font-mono">{formatDateTime(event.deletedAt)}</span></Field>}
             {event.rejectionReason && <Field label="Motivo del rechazo" className="md:col-span-2"><p className="text-primary">{event.rejectionReason}</p></Field>}
+            {event.deletionReason && <Field label="Motivo de la baja" className="md:col-span-2"><p className="whitespace-pre-wrap text-primary">{event.deletionReason}</p></Field>}
           </CardContent>
         </Card>
       </div>
@@ -259,6 +262,55 @@ function Moderation({ eventId }: { eventId: string }) {
               <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending === 'reject'}>Cancelar</Button>
               <Button type="submit" variant="destructive" disabled={pending === 'reject' || !reason.trim()}>
                 {pending === 'reject' ? 'Rechazando…' : 'Rechazar evento'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+// Dar de baja: cancels the Luma event (irreversible, Luma tells its guests) and mails the host the reason.
+function TakeDown({ eventId }: { eventId: string }) {
+  const week = useWeek();
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [pending, setPending] = useState(false);
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!reason.trim()) return;
+    router.post(
+      admin_event_takedown_path(week.slug, eventId),
+      { reason: reason.trim() },
+      { onStart: () => setPending(true), onFinish: () => setPending(false), onSuccess: () => setOpen(false) },
+    );
+  };
+
+  return (
+    <>
+      <Button size="sm" variant="destructive" onClick={() => setOpen(true)}>
+        <Ban /> Dar de baja
+      </Button>
+      <Dialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
+        <DialogContent className="rounded-sm">
+          <form onSubmit={submit} className="flex flex-col gap-4">
+            <DialogHeader>
+              <DialogTitle>Dar de baja el evento</DialogTitle>
+              <DialogDescription>
+                Se cancelará en Luma (no se puede deshacer: se borra el evento y se avisa a sus invitados), saldrá del programa y el
+                organizador recibirá el motivo por correo. Si fue un error, habrá que aprobar un evento nuevo.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="takedown_reason">Motivo de la baja</Label>
+              <Textarea id="takedown_reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ej.: el organizador nos pidió cancelarlo…" className="min-h-28" required />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>Volver</Button>
+              <Button type="submit" variant="destructive" disabled={pending || !reason.trim()}>
+                {pending ? 'Dando de baja…' : 'Dar de baja y cancelar en Luma'}
               </Button>
             </DialogFooter>
           </form>

@@ -6,7 +6,7 @@ module Admin
       :company_name, :company_website, :company_logo_url, :starts_at, :ends_at, :address, :commune, :format, :capacity,
       :latitude, :longitude, :state, :custom_url, :luma_event_api_id, :luma_event_url, :luma_event_created_at,
       :submitted_at, :approved_at, :rejected_at, :rejection_reason, :waiting_luma_edit_at, :published_at,
-      :deleted_at, :logo_shown_at, :luma_cover_url, :created_at, :updated_at
+      :deleted_at, :deletion_reason, :logo_shown_at, :luma_cover_url, :created_at, :updated_at
 
     # Whether the title and dates are Luma's to change now (Event::LUMA_SYNCED_ATTRIBUTES).
     typelize :boolean

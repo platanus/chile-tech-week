@@ -1,0 +1,8 @@
+Hola <%= @event.author_name %>,
+
+Dimos de baja tu evento "<%= @event.title %>": lo quitamos del programa de Chile Tech Week y lo cancelamos en Luma, donde se avisó a sus invitados.
+
+<%= @event.deletion_reason %>
+
+Si crees que fue un error, escríbenos a <%= contact_email %>.
+Ver el estado de tu evento: <%= @status_url %>

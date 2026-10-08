@@ -18,6 +18,10 @@ module EventNotifications
     EventMailer.with(event: event).rejected.deliver_later
   end
 
+  def taken_down(event)
+    EventMailer.with(event: event).taken_down.deliver_later
+  end
+
   def published(event)
     EventMailer.with(event: event).published.deliver_later
   end

@@ -5,6 +5,9 @@
 module Luma
   class Error < StandardError; end
 
+  # Cancelling would refund paid guests, which is decided on Luma, not from a button here.
+  class PaidEvent < Error; end
+
   # Luma answers 404 with "canceled" in the body once a host cancels an event.
   class NotFound < Error
     def canceled?

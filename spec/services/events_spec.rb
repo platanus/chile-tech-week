@@ -33,6 +33,67 @@ RSpec.describe "the moderation services" do
     end
   end
 
+  describe Events::TakeDown do
+    def published_on_luma
+      luma = client.create_event(name: "Demo Day", start_at: "2026-11-18T21:00:00Z", end_at: "2026-11-18T23:00:00Z", visibility: "public")
+      create(:event, :published, edition: 2026, author_email: "ada@example.com", luma_event_api_id: luma.api_id)
+    end
+
+    it "cancels the Luma event, marks the event deleted with the reason and mails the host" do
+      event = published_on_luma
+
+      result = nil
+      expect { result = described_class.new(event, reason: " Duplicado ").call }.to have_enqueued_mail(EventMailer, :taken_down)
+
+      expect(result.ok).to be(true)
+      expect(event.reload).to have_attributes(state: "deleted", deletion_reason: "Duplicado", deleted_at: be_present)
+      expect { client.get_event(event.luma_event_api_id) }.to raise_error(Luma::NotFound)
+    end
+
+    it "leaves the event untouched when Luma refuses" do
+      event = published_on_luma
+      allow(client).to receive(:cancel_event).and_raise(Luma::Error, "timeout")
+
+      result = described_class.new(event, reason: "Duplicado").call
+
+      expect(result).to have_attributes(ok: false, error: "No se pudo cancelar el evento en Luma: timeout")
+      expect(event.reload).to have_attributes(state: "published", deletion_reason: nil)
+    end
+
+    it "refuses an event with paid guests: refunds are decided on Luma" do
+      event = published_on_luma
+      client.mark_paid(event.luma_event_api_id)
+
+      result = described_class.new(event, reason: "Duplicado").call
+
+      expect(result.ok).to be(false)
+      expect(result.error).to include("invitados que pagaron")
+      expect(event.reload.state).to eq("published")
+    end
+
+    it "carries on when the Luma event is already gone" do
+      event = published_on_luma
+      client.cancel(event.luma_event_api_id)
+
+      expect(described_class.new(event, reason: "Duplicado").call.ok).to be(true)
+      expect(event.reload.state).to eq("deleted")
+    end
+
+    it "only takes down events that are being edited or published" do
+      submitted = create(:event, state: "submitted")
+
+      expect(described_class.new(submitted, reason: "x").call.ok).to be(false)
+      expect(submitted.reload.state).to eq("submitted")
+    end
+
+    it "needs a reason" do
+      event = published_on_luma
+
+      expect(described_class.new(event, reason: "  ").call).to have_attributes(ok: false, error: "Escribe el motivo de la baja.")
+      expect(event.reload.state).to eq("published")
+    end
+  end
+
   describe Events::Reject do
     it "rejects with the reason and mails the host" do
       expect { described_class.new(event, reason: " Falta la dirección ").call }.to have_enqueued_mail(EventMailer, :rejected)

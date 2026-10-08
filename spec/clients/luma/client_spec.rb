@@ -58,6 +58,26 @@ RSpec.describe Luma::Client do
     expect(update).to have_been_requested
   end
 
+  it "cancels an event in two steps: a token, then the cancellation" do
+    request = stub_request(:post, "https://public-api.luma.com/v1/events/cancel/request").with(body: {event_id: "evt-1"}.to_json)
+      .to_return(status: 200, body: {cancellation_token: "tok", is_paid: false, guest_count: 3}.to_json)
+    cancel = stub_request(:post, "https://public-api.luma.com/v1/events/cancel").with(body: {event_id: "evt-1", cancellation_token: "tok"}.to_json)
+      .to_return(status: 200, body: "{}")
+
+    expect(client.cancel_event("evt-1")).to eq(guest_count: 3)
+    expect(request).to have_been_requested
+    expect(cancel).to have_been_requested
+  end
+
+  it "refuses to cancel an event with paid guests" do
+    stub_request(:post, "https://public-api.luma.com/v1/events/cancel/request")
+      .to_return(status: 200, body: {cancellation_token: "tok", is_paid: true, guest_count: 3}.to_json)
+    cancel = stub_request(:post, "https://public-api.luma.com/v1/events/cancel")
+
+    expect { client.cancel_event("evt-1") }.to raise_error(Luma::PaidEvent)
+    expect(cancel).not_to have_been_requested
+  end
+
   it "reads Markdown from an unwrapped event response, including an empty body" do
     stub_request(:get, "https://public-api.luma.com/v1/event/get?api_id=evt-1")
       .to_return(status: 200, body: {api_id: "evt-1", description_md: "## Agenda\n\n**Demo**"}.to_json)

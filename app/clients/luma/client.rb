@@ -61,6 +61,19 @@ module Luma
       post("/event/update", {event_api_id: api_id}.merge(attributes))
     end
 
+    # Cancelling is irreversible (the event is deleted and every guest is notified), so Luma
+    # asks for a short-lived token first. An event with paid guests is refused: the refunds are
+    # for a person to decide on Luma.
+    def cancel_event(api_id)
+      request = post("/events/cancel/request", event_id: api_id)
+      raise PaidEvent, "El evento tiene invitados que pagaron: cancélalo directamente en Luma." if request["is_paid"]
+
+      post("/events/cancel", event_id: api_id, cancellation_token: request.fetch("cancellation_token"))
+      {guest_count: request["guest_count"].to_i}
+    rescue KeyError
+      raise Error, "Luma devolvió una respuesta de cancelación inválida."
+    end
+
     def add_host(api_id, email)
       post("/event/add-host", event_api_id: api_id, email: email)
     end

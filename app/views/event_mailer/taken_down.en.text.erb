@@ -1,0 +1,8 @@
+Hi <%= @event.author_name %>,
+
+We took your event "<%= @event.title %>" down: it is off the Chile Tech Week programme and cancelled on Luma, where its guests were notified.
+
+<%= @event.deletion_reason %>
+
+If you think this was a mistake, write to us at <%= contact_email %>.
+See your event's status: <%= @status_url %>

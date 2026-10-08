@@ -298,6 +298,32 @@ RSpec.describe "admin events" do
     end
   end
 
+  describe "POST /admin/:week/events/:id/takedown" do
+    let(:client) { Luma::FakeClient.instance }
+    let(:event) do
+      luma = client.create_event(name: "Demo Day", start_at: "2026-11-18T21:00:00Z", end_at: "2026-11-18T23:00:00Z", visibility: "public")
+      create(:event, :published, luma_event_api_id: luma.api_id)
+    end
+
+    before { client.reset! }
+
+    it "takes the event down through Events::TakeDown" do
+      post "/admin/25/events/#{event.id}/takedown", params: {reason: " Duplicado "}
+
+      expect(event.reload).to have_attributes(state: "deleted", deletion_reason: "Duplicado")
+      follow_redirect!
+      expect(inertia).to have_flash(notice: "Evento dado de baja, cancelado en Luma y correo enviado.")
+    end
+
+    it "needs a reason and leaves the event alone" do
+      post "/admin/25/events/#{event.id}/takedown", params: {reason: ""}
+
+      expect(event.reload.state).to eq("published")
+      follow_redirect!
+      expect(inertia).to have_flash(alert: "Escribe el motivo de la baja.")
+    end
+  end
+
   describe "co-hosts" do
     let(:event) { create(:event) }
 

@@ -46,6 +46,12 @@ class EventMailer < ApplicationMailer
     mail(to: @event.author_email, subject: subject(:luma_reminder))
   end
 
+  # An admin took the event down (Events::TakeDown); the reason is theirs to read.
+  def taken_down
+    template(:event_taken_down, event_id: @event.id)
+    mail(to: @event.author_email, subject: subject(:taken_down))
+  end
+
   # Luma::Sync found the host cancelled the event on Luma.
   def luma_cancelled
     template(:luma_cancelled, event_id: @event.id)

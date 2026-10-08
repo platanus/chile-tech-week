@@ -15,6 +15,7 @@ module Luma
       @events = {}
       @hosts = Hash.new { |hash, key| hash[key] = [] }
       @cancelled = Set.new
+      @paid = Set.new
     end
 
     def get_self
@@ -53,6 +54,19 @@ module Luma
       get_event(api_id)
       @hosts[api_id] << email
       {"success" => true}
+    end
+
+    def cancel_event(api_id)
+      get_event(api_id)
+      raise PaidEvent, "El evento tiene invitados que pagaron: cancélalo directamente en Luma." if @paid.include?(api_id)
+
+      @cancelled << api_id
+      {guest_count: 0}
+    end
+
+    # Test helper: the event has paid guests, so cancel_event refuses it.
+    def mark_paid(api_id)
+      @paid << api_id
     end
 
     # Test helper: make Luma answer like the host cancelled the event.

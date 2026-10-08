@@ -70,6 +70,16 @@ RSpec.describe EventMailer do
     expect(mail.html_part.decoded).to include("cancelado en Luma", "hola@techweek.cl")
   end
 
+  it "tells the host an admin took the event down, with the reason" do
+    event.update!(state: "deleted", deletion_reason: "Duplicado de otro evento")
+    mail = described_class.with(event: event).taken_down
+
+    expect(mail.to).to eq(["ada@example.com"])
+    expect(mail.subject).to eq("Tu evento fue dado de baja: Demo Day")
+    expect(mail.html_part.decoded).to include("Duplicado de otro evento", "hola@techweek.cl")
+    expect(mail.text_part.decoded).to include("Duplicado de otro evento", "https://techweek.cl/events/#{event.id}")
+  end
+
   it "lists what Luma changed, old and new" do
     changes = {title: {old: "Demo Day", new: "Demo Night"}, starts_at: {old: event.starts_at, new: event.starts_at + 1.hour}}
     mail = described_class.with(event: event, changes: changes).luma_updated
