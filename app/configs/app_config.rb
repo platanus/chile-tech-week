@@ -20,6 +20,9 @@ class AppConfig < Anyway::Config
     # Development only: co-host emails Luma is allowed to invite (comma-separated), so a local
     # run never mails a real submitter. Empty means invite nobody.
     luma_allowed_cohost_dev: "",
+    # The passkey of the site's Luma account (base64 of its exported JSON, see Luma::Passkey): how
+    # Luma::Internal signs in to Luma's web API. Empty = the in-memory fake.
+    luma_passkey: "",
     # The Luma account a host must add to an event they created on Luma before the site takes it
     # (Luma::Import): its user id (`usr-…`, checked against the event's hosts) and the email the
     # host sees in the instructions. An empty id skips the check (development, the fake client).
@@ -83,6 +86,10 @@ class AppConfig < Anyway::Config
 
   def luma?
     luma_api_key.present?
+  end
+
+  def luma_passkey?
+    luma_passkey.present?
   end
 
   def slack?

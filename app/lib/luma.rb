@@ -48,4 +48,13 @@ module Luma
     config = AppConfig.instance
     config.luma? ? Client.new(config.luma_api_key) : FakeClient.instance
   end
+
+  # Luma's own web API, signed in with the site's passkey; one per process, so the session
+  # cookie is kept between calls. Without LUMA_PASSKEY it is the in-memory fake.
+  def self.internal
+    config = AppConfig.instance
+    return FakeInternal.instance unless config.luma_passkey?
+
+    @internal ||= Internal.new(passkey: Passkey.from_encoded(config.luma_passkey))
+  end
 end

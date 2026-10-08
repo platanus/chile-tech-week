@@ -234,6 +234,15 @@ archive is that year's week, under `/25`.
   removes it from the calendar (`remove_from_calendar`): the event stays on Luma, it is the
   host's. `Luma::Sync` reads it through the same read-only route. The how-to GIF for hosts lives
   at `public/luma/add-host.gif` (the panel hides the image while it is missing).
+- **Luma's web API** (`Luma::Internal`, `Luma.internal`): what the public API does not offer a
+  calendar key — chiefly `guests(evt-…)`, the guest list of an event whose host added the site's
+  account (the feedback system's input). It has no contract: it signs in as the website does, with
+  the site's **passkey** (`Luma::Passkey` signs the WebAuthn challenge; `LUMA_PASSKEY` is the base64
+  of the exported passkey's JSON — `credentialId`, `userHandle`, `keyValue` — kept in the password
+  manager), holds the session cookie in memory and signs in again on a 401/403. Luma refuses a
+  passkey whose counter did not grow, so the counter is the current time. No bot check guards that
+  path; if Luma ever adds one, `Luma::Error` surfaces — do not work around it. Without
+  `LUMA_PASSKEY` it is `Luma::FakeInternal` (`add_guest` in specs).
 - **Scheduled tasks**: `config/recurring.yml` (Solid Queue, production) and
   `ScheduledTask` (`app/services/scheduled_task.rb`) must list the same jobs; each job
   `include RecordsTaskRun` so the admin sees its last outcome (`TaskRun`).
@@ -260,7 +269,7 @@ archive is that year's week, under `/25`.
   (`Week.seed!`) and the themes and audiences catalogue; in development also the admin and a
   sample programme for `Week.current`. Specs get the same two weeks from
   `spec/support/weeks.rb` — a database loaded from `db/schema.rb` has none.
-- **Settings** (all through `AppConfig`, sampled in `.env.sample`): `LUMA_API_KEY`, `LUMA_COVER_URL`, `LUMA_HOST_USER_ID`,
+- **Settings** (all through `AppConfig`, sampled in `.env.sample`): `LUMA_API_KEY`, `LUMA_COVER_URL`, `LUMA_HOST_USER_ID`, `LUMA_PASSKEY`,
   `LUMA_ALLOWED_COHOST_DEV`, `SEND_EMAILS`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
   `EMAIL_CATCH_ALL`, `CONTACT_EMAIL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL`, `WPP_API_URL`, `WPP_API_KEY`,
   `WPP_CHAT_JID`.
