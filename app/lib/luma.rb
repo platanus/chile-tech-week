@@ -8,10 +8,17 @@ module Luma
   # Cancelling would refund paid guests, which is decided on Luma, not from a button here.
   class PaidEvent < Error; end
 
-  # Luma answers 404 with "canceled" in the body once a host cancels an event.
+  # Luma answers 404 for an event that is no longer there. A cancellation by API leaves
+  # "Sorry, we could not find what you were looking for." (checked against the live API,
+  # 2026-10-08); an older shape carried "canceled" in the body.
   class NotFound < Error
     def canceled?
       message.include?("canceled") || message.include?("cancelled")
+    end
+
+    # The event is gone from Luma (cancelled or deleted), as opposed to a 404 on some other path.
+    def gone?
+      canceled? || message.include?("could not find")
     end
   end
 

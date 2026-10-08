@@ -108,6 +108,18 @@ RSpec.describe Luma::Sync do
     expect(event.deleted_at).to be_present
   end
 
+  it "takes down an event Luma no longer finds, the way a cancellation by API answers" do
+    event = linked(state: "published")
+    linked
+    stub_request(:get, "https://public-api.luma.com/v1/event/get?api_id=#{event.luma_event_api_id}")
+      .to_return(status: 404, body: {message: "Sorry, we could not find what you were looking for.", code: nil}.to_json)
+    http = Luma::Client.new("luma-key")
+    allow(http).to receive(:get_event).and_wrap_original { |m, api_id| (api_id == event.luma_event_api_id) ? m.call(api_id) : client.get_event(api_id) }
+
+    expect { described_class.new(client: http).call }.to have_enqueued_mail(EventMailer, :luma_cancelled).once
+    expect(event.reload.state).to eq("deleted")
+  end
+
   it "leaves untouched events alone and skips the unlinked, rejected and 2025 ones" do
     linked
     create(:event, state: "rejected", luma_event_api_id: "evt-x")

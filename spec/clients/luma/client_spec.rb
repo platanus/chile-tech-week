@@ -58,6 +58,14 @@ RSpec.describe Luma::Client do
     expect(update).to have_been_requested
   end
 
+  it "knows a 404 for an event that is gone, however Luma words it" do
+    stub_request(:get, "https://public-api.luma.com/v1/event/get?api_id=gone")
+      .to_return(status: 404, body: {message: "Sorry, we could not find what you were looking for.", code: nil}.to_json)
+
+    expect { client.get_event("gone") }.to raise_error(Luma::NotFound) { |e| expect(e).to be_gone }
+    expect(Luma::NotFound.new("Luma API error (404) on /x: nope")).not_to be_gone
+  end
+
   it "cancels an event in two steps: a token, then the cancellation" do
     request = stub_request(:post, "https://public-api.luma.com/v1/events/cancel/request").with(body: {event_id: "evt-1"}.to_json)
       .to_return(status: 200, body: {cancellation_token: "tok", is_paid: false, guest_count: 3}.to_json)

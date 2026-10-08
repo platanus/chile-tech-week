@@ -28,7 +28,7 @@ module Luma
     def sync_event(event, notify: true)
       apply(event, @client.get_event(event.luma_event_api_id), notify:)
     rescue NotFound => e
-      return take_down(event) if e.canceled?
+      return take_down(event) if e.gone?
 
       Rails.logger.error("Luma sync: #{event.id} not found on Luma: #{e.message}")
       :failed
