@@ -26,7 +26,7 @@ module Luma
     # host's "your event changed" mail — for when the host is the one who just made the change
     # (Events::Publish syncs right before going public).
     def sync_event(event, notify: true)
-      apply(event, @client.get_event(event.luma_event_api_id), notify:)
+      apply(event, fetch(event), notify:)
     rescue NotFound => e
       return take_down(event) if e.gone?
 
@@ -38,6 +38,11 @@ module Luma
     end
 
     private
+
+    # An imported event is the host's, not this calendar's: only the read-only route answers for it.
+    def fetch(event)
+      event.luma_imported? ? @client.get_event_readonly(event.luma_event_api_id) : @client.get_event(event.luma_event_api_id)
+    end
 
     def apply(event, remote, notify:)
       changes = {}

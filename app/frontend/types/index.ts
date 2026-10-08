@@ -37,6 +37,16 @@ export type SharedProps = {
   weeks?: AdminWeek[];
 };
 
+// /events/new?luma=<link>: the form for the link ("ask"), why a link cannot be used ("error"),
+// or the Luma event found ("ok"), whose data prefills the form (EventsController#lookup_luma).
+export type LumaImport = {
+  state: 'ask' | 'error' | 'ok';
+  url: string;
+  error?: string;
+  message?: string;
+  event?: { title: string; url: string; cover_url: string | null; starts_at: string; ends_at: string };
+};
+
 // The development-only prefill of /events/new (EventsController#prefill_from_url), keyed by
 // the form's own param names.
 export type EventPrefill = Partial<Record<string, string> & { theme_ids: string[]; audience_ids: string[] }>;

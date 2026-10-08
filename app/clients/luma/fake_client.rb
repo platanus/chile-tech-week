@@ -5,7 +5,7 @@ module Luma
   class FakeClient
     include Singleton
 
-    attr_reader :events, :hosts
+    attr_reader :events, :hosts, :calendar
 
     def initialize
       reset!
@@ -16,6 +16,7 @@ module Luma
       @hosts = Hash.new { |hash, key| hash[key] = [] }
       @cancelled = Set.new
       @paid = Set.new
+      @calendar = []
     end
 
     def get_self
@@ -26,6 +27,27 @@ module Luma
       raise NotFound, "Luma API error (404) on /event/get: event #{api_id} was canceled" if @cancelled.include?(api_id)
 
       @events.fetch(api_id) { raise NotFound, "Luma API error (404) on /event/get: event #{api_id} not found" }
+    end
+
+    # The read-only route answers like get_event (a cancelled event is a 404 too).
+    def get_event_readonly(api_id)
+      get_event(api_id)
+    end
+
+    def lookup_event_id(url)
+      slug = url.to_s.split("/").last
+      @events.values.find { |event| event.url.to_s.end_with?("/#{slug}") }&.api_id
+    end
+
+    def add_to_calendar(api_id)
+      get_event(api_id)
+      @calendar << api_id
+      "calev-#{api_id}"
+    end
+
+    def remove_from_calendar(calendar_event_id)
+      @calendar.delete(calendar_event_id.to_s.delete_prefix("calev-"))
+      {}
     end
 
     def upload_image(body:, content_type:)

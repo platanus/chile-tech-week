@@ -14,6 +14,46 @@ RSpec.describe Luma::Client do
     expect(request.with { |req| JSON.parse(req.body) == {"name" => "Demo", "start_at" => "2026-11-18T21:00:00Z", "end_at" => "2026-11-18T23:00:00Z", "visibility" => "private"} }).to have_been_requested
   end
 
+  describe "the read-only route and the calendar" do
+    it "reads any event, with its hosts, through /events/get" do
+      request = stub_request(:get, "https://public-api.luma.com/v1/events/get").with(query: {event_id: "evt-9"}, headers: {"x-luma-api-key" => "luma-key"})
+        .to_return(body: {id: "evt-9", name: "Demo", url: "https://luma.com/x9", visibility: "public", access: "view", hosts: [{id: "usr-1", name: "Ada"}]}.to_json)
+
+      event = client.get_event_readonly("evt-9")
+
+      expect(event).to have_attributes(api_id: "evt-9", name: "Demo", visibility: "public", host_ids: ["usr-1"])
+      expect(request).to have_been_requested
+    end
+
+    it "finds the event behind a link, or nothing" do
+      stub_request(:get, "https://public-api.luma.com/v1/entities/lookup").with(query: {slug: "https://luma.com/x9"})
+        .to_return(body: {entity: {type: "event", event: {id: "evt-9", name: "Demo"}}}.to_json)
+      stub_request(:get, "https://public-api.luma.com/v1/entities/lookup").with(query: {slug: "https://luma.com/nadie"})
+        .to_return(body: {entity: nil}.to_json)
+
+      expect(client.lookup_event_id("https://luma.com/x9")).to eq("evt-9")
+      expect(client.lookup_event_id("https://luma.com/nadie")).to be_nil
+    end
+
+    it "submits an event to the calendar, approved at once, and answers its calendar id" do
+      request = stub_request(:post, "https://public-api.luma.com/v1/calendars/events/add")
+        .with(body: {platform: "luma", event_id: "evt-9", submission_mode: "auto"}.to_json)
+        .to_return(body: {id: "calev-1", status: "approved"}.to_json)
+
+      expect(client.add_to_calendar("evt-9")).to eq("calev-1")
+      expect(request).to have_been_requested
+    end
+
+    it "takes an event out of the calendar" do
+      request = stub_request(:post, "https://public-api.luma.com/v1/calendars/events/reject")
+        .with(body: {calendar_event_id: "calev-1"}.to_json).to_return(body: "{}")
+
+      client.remove_from_calendar("calev-1")
+
+      expect(request).to have_been_requested
+    end
+  end
+
   it "uploads bytes to the signed URL without disclosing the API key" do
     stub_request(:post, "https://public-api.luma.com/v1/images/create-upload-url")
       .with(body: {content_type: "image/png"}.to_json, headers: {"x-luma-api-key" => "luma-key"})

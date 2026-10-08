@@ -20,6 +20,11 @@ class AppConfig < Anyway::Config
     # Development only: co-host emails Luma is allowed to invite (comma-separated), so a local
     # run never mails a real submitter. Empty means invite nobody.
     luma_allowed_cohost_dev: "",
+    # The Luma account a host must add to an event they created on Luma before the site takes it
+    # (Luma::Import): its user id (`usr-…`, checked against the event's hosts) and the email the
+    # host sees in the instructions. An empty id skips the check (development, the fake client).
+    luma_host_user_id: "",
+    luma_host_email: "events@techweek.cl",
     # The public Luma calendar every published event ends up in.
     luma_calendar_url: "https://lu.ma/cltw",
 

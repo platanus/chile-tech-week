@@ -39,14 +39,23 @@ class EventsController < InertiaController
     @themes = Theme.order(:name)
     @audiences = Audience.order(:name)
     @description_limit = Event::DESCRIPTION_LIMIT
-    @prefill = @step = nil
+    @prefill = @step = @luma = nil
+    @luma_host_email = AppConfig.instance.luma_host_email
     prefill_from_url if Rails.env.development?
+    # ?luma=<link>: the host's own Luma event — checked here, then its data fills the form.
+    lookup_luma(params[:luma]) if params.key?(:luma)
   end
 
   def create
     event = @week.events.new(event_params.merge(locale: I18n.locale.to_s))
     event.themes = Theme.where(id: ids_param(:theme_ids))
     event.audiences = Audience.where(id: ids_param(:audience_ids))
+    if params[:luma_url].present?
+      imported = Luma::Import.new(params[:luma_url], week: @week).call
+      return redirect_to new_event_path(luma: params[:luma_url]) unless imported.ok?
+
+      event.import_from_luma(imported.event)
+    end
 
     if event.save(context: :submission)
       EventNotifications.submitted(event)
@@ -67,6 +76,22 @@ class EventsController < InertiaController
   end
 
   private
+
+  # What /events/new shows for a pasted Luma link: the form for the link, why it cannot be used,
+  # or the event found (its data prefills the form once the host confirms it is theirs).
+  def lookup_luma(url)
+    return @luma = {state: "ask", url: ""} if url.blank?
+
+    result = Luma::Import.new(url, week: @week).call
+    if result.ok?
+      @prefill = result.prefill.stringify_keys
+      @luma = {state: "ok", url: url, event: {title: result.event.name, url: result.event.url, cover_url: result.event.cover_url,
+                                              starts_at: result.event.start_at, ends_at: result.event.end_at}}
+    else
+      @luma = {state: "error", url: url, error: result.error.to_s,
+               message: t("site.events.luma_import.errors.#{result.error}", host_email: AppConfig.instance.luma_host_email, week: @week.dates_label)}
+    end
+  end
 
   # Development only: /events/new?step=2&event[company_name]=… opens the form on that step
   # (1–4) with those fields filled, so a page deep in the form is one URL away. Themes and

@@ -7,4 +7,7 @@ class EventStatusResource < EventResource
 
   typelize :number
   attribute :step, &:step
+
+  typelize :boolean
+  attribute :luma_imported, &:luma_imported?
 end

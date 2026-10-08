@@ -1,6 +1,6 @@
 <h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Event taken down</h1>
 <p style="margin:0 0 14px;color:#fff;">Hi <%= @event.author_name %>,</p>
-<p style="margin:0 0 14px;color:#fff;">We took your event <strong><%= @event.title %></strong> down: it is off the Chile Tech Week programme and cancelled on Luma, where its guests were notified.</p>
+<p style="margin:0 0 14px;color:#fff;">We took your event <strong><%= @event.title %></strong> down: <%= @event.luma_imported? ? "it is off the Chile Tech Week programme and calendar. Your event is still on Luma, it is yours." : "it is off the Chile Tech Week programme and cancelled on Luma, where its guests were notified." %></p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border-left:2px solid #ee2b2b;">
   <tr><td style="padding:4px 16px;color:#fff;white-space:pre-wrap;"><%= @event.deletion_reason %></td></tr>
 </table>

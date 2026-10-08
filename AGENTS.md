@@ -221,6 +221,19 @@ archive is that year's week, under `/25`.
   `Luma::EventCreator` builds the private event and invites the hosts — outside production
   only the addresses in `LUMA_ALLOWED_COHOST_DEV`. `Luma::Sync` (every 10 min) mirrors the
   host's edits and takes down cancelled events; `Luma::Reminder` (daily) nudges hosts.
+- **Importing a Luma event** (`Luma::Import`, `/events/new?luma=<link>`): a host who already made
+  their event on Luma pastes its link instead of filling the form. The server reads it through
+  Luma's read-only route (`Client#get_event_readonly`, `/events/get`, which answers for any event
+  with `access: "view"`) and accepts it only if it is public, not cancelled, inside the week, not
+  registered yet and has `LUMA_HOST_USER_ID` (the `events@techweek.cl` account) among its hosts —
+  only a real host can add it, which proves the event is theirs. The form is then prefilled
+  (title, dates and cover are Luma's and shown locked; the rest is the usual form) and the event
+  is saved with `luma_imported_at`. Approving it (`Events::Approve`) creates nothing on Luma: it
+  syncs once, lists the event in the `cltw` calendar (`Client#add_to_calendar`, its `calev-…` id
+  kept in `luma_calendar_event_id`) and publishes it. Taking it down (`Events::TakeDown`) only
+  removes it from the calendar (`remove_from_calendar`): the event stays on Luma, it is the
+  host's. `Luma::Sync` reads it through the same read-only route. The how-to GIF for hosts lives
+  at `public/luma/add-host.gif` (the panel hides the image while it is missing).
 - **Scheduled tasks**: `config/recurring.yml` (Solid Queue, production) and
   `ScheduledTask` (`app/services/scheduled_task.rb`) must list the same jobs; each job
   `include RecordsTaskRun` so the admin sees its last outcome (`TaskRun`).
@@ -247,7 +260,7 @@ archive is that year's week, under `/25`.
   (`Week.seed!`) and the themes and audiences catalogue; in development also the admin and a
   sample programme for `Week.current`. Specs get the same two weeks from
   `spec/support/weeks.rb` — a database loaded from `db/schema.rb` has none.
-- **Settings** (all through `AppConfig`, sampled in `.env.sample`): `LUMA_API_KEY`, `LUMA_COVER_URL`,
+- **Settings** (all through `AppConfig`, sampled in `.env.sample`): `LUMA_API_KEY`, `LUMA_COVER_URL`, `LUMA_HOST_USER_ID`,
   `LUMA_ALLOWED_COHOST_DEV`, `SEND_EMAILS`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`, `EMAIL_REPLY_TO`,
   `EMAIL_CATCH_ALL`, `CONTACT_EMAIL`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL`, `WPP_API_URL`, `WPP_API_KEY`,
   `WPP_CHAT_JID`.

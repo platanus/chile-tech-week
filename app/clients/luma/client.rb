@@ -25,6 +25,33 @@ module Luma
       Event.from_api(body["event"] || body)
     end
 
+    # The same event through the read-only route, which answers for any public event — not only
+    # the ones this calendar manages (`access: "view"`) — and lists its hosts. It is how an event
+    # the host created on Luma themselves is read.
+    def get_event_readonly(api_id)
+      body = get("/events/get", event_id: api_id)
+      Event.from_api(body["event"] || body)
+    end
+
+    # The `evt-…` id behind a luma.com link, or nil when Luma knows no such page.
+    def lookup_event_id(url)
+      entity = get("/entities/lookup", slug: url)["entity"]
+      entity.dig("event", "id") if entity && entity["type"] == "event"
+    end
+
+    # Submits an existing Luma event to this calendar; as its manager, the site's submission is
+    # approved at once. Answers the calendar event id (`calev-…`), kept to take the event out again.
+    def add_to_calendar(api_id)
+      post("/calendars/events/add", platform: "luma", event_id: api_id, submission_mode: "auto").fetch("id")
+    rescue KeyError
+      raise Error, "Luma devolvió una respuesta inválida al agregar el evento al calendario."
+    end
+
+    # Takes an event out of this calendar again (the event itself stays on Luma, the host's).
+    def remove_from_calendar(calendar_event_id)
+      post("/calendars/events/reject", calendar_event_id: calendar_event_id)
+    end
+
     # name, start_at, end_at (ISO 8601), timezone, description_md, cover_url, visibility
     # (public / private / member-only), location, geo_address_json, capacity, tint_color.
     # Luma only accepts a cover_url it hosts itself (https://images.lumacdn.com/…).

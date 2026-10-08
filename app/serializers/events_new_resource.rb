@@ -5,8 +5,10 @@ class EventsNewResource < ApplicationResource
     # Development only (EventsController#prefill_from_url); null elsewhere. Keys are the
     # form's own param names: `company_name`, `starts_at`, `theme_ids`…
     prefill: "EventPrefill | null",
-    step: "number | null"
-  attributes :title, :description, :week_dates, :formats, :description_limit, :prefill, :step
+    step: "number | null",
+    # The Luma link the host pasted (?luma=…): what to show and, once it checks out, the event.
+    luma: "LumaImport | null", luma_host_email: :string
+  attributes :title, :description, :week_dates, :formats, :description_limit, :prefill, :step, :luma, :luma_host_email
 
   has_many :days, resource: DayResource
   has_many :themes, resource: ThemeResource

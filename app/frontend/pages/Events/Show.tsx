@@ -25,6 +25,7 @@ const COPY = copy(
       3: 'Tu evento en Luma está listo para editar. Revisa tu correo: ahí están las instrucciones. Cuando termines, publícalo aquí.',
       4: '¡Tu evento está publicado en Chile Tech Week! Los cambios que hagas en Luma (título, fecha, hora) se sincronizan solos.',
     } as Record<number, string>,
+    statusImported: 'Estamos revisando tu evento. Cuando lo aprobemos, lo agregaremos al programa y al calendario de Chile Tech Week.',
     summary: { hosts: 'Organiza', date: 'Fecha', time: 'Hora', address: 'Dirección', format: 'Formato', capacity: 'Capacidad', topics: 'Temas', audiences: 'Audiencias' },
     people: (n: number) => `${n} personas`,
     checklist: [
@@ -78,6 +79,7 @@ const COPY = copy(
       3: "Your Luma event is ready to edit. Check your email for the instructions. When you're done, publish it here.",
       4: 'Your event is published on Chile Tech Week! Changes you make on Luma (title, date, time) sync by themselves.',
     },
+    statusImported: "We're reviewing your event. Once we approve it, we'll add it to the Chile Tech Week programme and calendar.",
     summary: { hosts: 'Hosted by', date: 'Date', time: 'Time', address: 'Address', format: 'Format', capacity: 'Capacity', topics: 'Topics', audiences: 'Audiences' },
     people: (n: number) => `${n} people`,
     checklist: [
@@ -277,7 +279,7 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
         <>
           <section className="flex flex-col gap-3 border-t border-border pt-8">
             <div className="label text-muted-foreground">{t.stepOf(event.step)}</div>
-            <p className="max-w-[56ch] text-base">{t.status[event.step]}</p>
+            <p className="max-w-[56ch] text-base">{event.lumaImported && event.step === 1 ? t.statusImported : t.status[event.step]}</p>
             {event.step === 3 && (
               <div className="mt-2 flex flex-wrap items-center gap-4">
                 <Button type="button" onClick={() => setPublishOpen(true)}>
@@ -300,7 +302,7 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
           <section className="flex flex-col gap-4">
             <h2 className="label text-muted-foreground">{t.process}</h2>
             <ol className="flex flex-col">
-              {t.steps.map((step) => {
+              {t.steps.filter((step) => !(event.lumaImported && step.number === 3)).map((step, index) => {
                 const state = stepState(step.number, event.step);
                 return (
                   <li key={step.number} className={cn('flex items-start gap-4 border-b border-border py-4 first:border-t', state === 'pending' && 'text-muted-foreground')}>
@@ -309,7 +311,7 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
                     </span>
                     <div className="flex flex-1 flex-col gap-0.5">
                       <span className="font-display text-sm font-extrabold uppercase tracking-[-0.02em]">
-                        {step.number}. {step.title}
+                        {index + 1}. {step.title}
                       </span>
                       <span className="text-xs">{step.description}</span>
                     </div>

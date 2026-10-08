@@ -76,6 +76,47 @@ RSpec.describe "the current edition's events" do
     end
   end
 
+  describe "GET /events/new with a Luma link" do
+    let(:client) { Luma::FakeClient.instance }
+
+    before { client.reset! }
+
+    def host_event(visibility: "public")
+      client.create_event(name: "Demo Day", start_at: "2026-11-18T21:00:00Z", end_at: "2026-11-18T23:00:00Z", visibility: visibility,
+        description_md: "Doce startups presentan.")
+    end
+
+    it "has no import state without the link" do
+      get "/events/new"
+
+      expect(inertia).to have_props(luma: nil)
+    end
+
+    it "asks for the link when it is empty" do
+      get "/events/new", params: {luma: ""}
+
+      expect(inertia).to have_props(luma: {state: "ask", url: ""})
+    end
+
+    it "shows the event found and prefills the form from it" do
+      luma = host_event
+
+      get "/events/new", params: {luma: luma.url}
+
+      expect(inertia).to have_props(
+        luma: {state: "ok", url: luma.url, event: {title: "Demo Day", url: luma.url, cover_url: luma.cover_url,
+                                                   starts_at: "2026-11-18T21:00:00Z", ends_at: "2026-11-18T23:00:00Z"}},
+        prefill: {title: "Demo Day", description: "Doce startups presentan.", starts_at: "2026-11-18T18:00", ends_at: "2026-11-18T20:00"}
+      )
+    end
+
+    it "explains why a link cannot be used" do
+      get "/events/new", params: {luma: host_event(visibility: "private").url}
+
+      expect(inertia.props[:luma]).to include(state: "error", error: "private", message: /Público/)
+    end
+  end
+
   describe "GET /events/new with a prefill in the URL" do
     let(:url) { "/events/new?step=2&event[company_name]=Platanus&event[author_email]=ada@platan.us&event[theme_ids][]=fintech" }
 
@@ -112,6 +153,28 @@ RSpec.describe "the current edition's events" do
           }
         }
       }
+    end
+
+    it "saves a Luma event the host imported, taking its title and dates from Luma" do
+      allow(EventNotifications).to receive(:submitted)
+      luma = Luma::FakeClient.instance.tap(&:reset!).create_event(name: "Demo en Luma", start_at: "2026-11-19T21:00:00Z",
+        end_at: "2026-11-19T23:00:00Z", visibility: "public", description_md: "Texto en Luma")
+      params = valid_params.deep_merge(luma_url: luma.url, event: {title: "", starts_at: "", ends_at: ""})
+
+      expect { post "/events", params: params }.to change(Event, :count).by(1)
+
+      expect(Event.last).to have_attributes(title: "Demo en Luma", state: "submitted", luma_event_api_id: luma.api_id,
+        luma_event_url: luma.url, luma_description_md: "Texto en Luma", luma_imported_at: be_present)
+      expect(Event.last.starts_at).to eq(Time.zone.parse("2026-11-19T21:00:00Z"))
+    end
+
+    it "sends the host back to the link when the Luma event no longer qualifies" do
+      luma = Luma::FakeClient.instance.tap(&:reset!).create_event(name: "Demo", start_at: "2026-11-19T21:00:00Z",
+        end_at: "2026-11-19T23:00:00Z", visibility: "private")
+
+      expect { post "/events", params: valid_params.merge(luma_url: luma.url) }.not_to change(Event, :count)
+
+      expect(response).to redirect_to(new_event_path(luma: luma.url))
     end
 
     it "saves the submission with its logo, co-host, themes and audiences and lands on the status page" do

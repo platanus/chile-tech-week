@@ -89,6 +89,21 @@ class Event < ApplicationRecord
     luma_event_api_id.present?
   end
 
+  # An event the host created on Luma and handed to us (Luma::Import), not one the site created
+  # for them: it is already public and theirs, so approving it only lists it.
+  def luma_imported?
+    luma_imported_at.present?
+  end
+
+  # What Luma owns of an imported event, copied in when it is submitted (Luma::Sync keeps it).
+  def import_from_luma(remote)
+    assign_attributes(
+      title: remote.name, starts_at: Time.zone.parse(remote.start_at.to_s), ends_at: Time.zone.parse(remote.end_at.to_s),
+      luma_event_api_id: remote.api_id, luma_event_url: remote.url, luma_cover_url: remote.cover_url,
+      luma_description_md: remote.description_md, luma_imported_at: Time.current
+    )
+  end
+
   # "Mesa redonda / Taller", "Roundtable / Workshop": the format as the site names it.
   def format_label(locale = I18n.locale)
     FORMAT_LABELS.fetch(locale.to_s, FORMAT_LABELS["es"]).fetch(format)

@@ -4,6 +4,7 @@ import { cloneElement, type ReactElement, type ReactNode, useEffect, useRef, use
 import { AddressInput } from '@/components/events/address-input';
 import { DateTimeField } from '@/components/events/date-time-field';
 import { LogoInput } from '@/components/events/logo-input';
+import { LumaImportBanner, LumaImportPanel, LumaSummary } from '@/components/events/luma-import';
 import { FORMAT_LABELS } from '@/components/events/formats';
 import { PageHead } from '@/components/site/layout';
 import { Button } from '@/components/ui/button';
@@ -318,13 +319,16 @@ const popoverClass = 'site min-h-0 border-border bg-popover text-popover-foregro
 
 // The submission form: the organiser, the event, the catalogue and the optional co-hosts,
 // posted as one Rails nested form (event[…], event[cohosts_attributes][i][…]).
-export default function New({ days, weekDates, formats, themes, audiences, descriptionLimit, prefill, step: initialStep, ...page }: EventsNew) {
+export default function New({ days, weekDates, formats, themes, audiences, descriptionLimit, prefill, step: initialStep, luma, lumaHostEmail, ...page }: EventsNew) {
   const { t, locale, lp } = useI18n(COPY);
   // `prefill`/`step` only arrive in development (EventsController#prefill_from_url).
   const pre = prefill ?? {};
   const [description, setDescription] = useState(pre.description ?? '');
   const [startsAt, setStartsAt] = useState(pre.starts_at ?? '');
   const [endsAt, setEndsAt] = useState(pre.ends_at ?? '');
+  // The link of the Luma event the host confirmed is theirs (see LumaImportPanel).
+  const [confirmedLuma, setConfirmedLuma] = useState('');
+  const importing = luma?.state === 'ok' && confirmedLuma === luma.url ? luma : null;
   const [cohostIds, setCohostIds] = useState<number[]>([]);
   const [nextCohostId, setNextCohostId] = useState(0);
 
@@ -427,8 +431,13 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
         <h1 className="font-display text-[clamp(30px,4.6vw,56px)] font-extrabold uppercase leading-[.95] tracking-[-0.03em]">
           {t.title}
         </h1>
-        <p className="max-w-[48ch] text-muted-foreground">{t.intro}</p>
+        {!luma && <p className="max-w-[48ch] text-muted-foreground">{t.intro}</p>}
+        {!luma && <LumaImportBanner />}
       </header>
+
+      {luma && !importing && <LumaImportPanel luma={luma} hostEmail={lumaHostEmail} onConfirm={() => setConfirmedLuma(luma.url)} />}
+
+      {(!luma || importing) && (
 
       <Form action={events_path(lp)} method="post" className="flex flex-col gap-10" resetOnSuccess={false} noValidate onBefore={() => validate()}
         onBlur={(event) => {
@@ -443,6 +452,16 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
           // The commune and coordinates come with the address; the address field speaks for them.
           errors.address ??= serverErrors.commune ?? serverErrors.latitude ?? serverErrors.longitude;
           return (<>
+            {importing && (
+              // The server reads the Luma event again and takes the title and dates from it; the
+              // values travel only so the form's own checks have something to read.
+              <>
+                <input type="hidden" name="luma_url" value={importing.url} />
+                <input type="hidden" name="event[title]" value={pre.title ?? ''} />
+                <input type="hidden" name="event[starts_at]" value={pre.starts_at ?? ''} />
+                <input type="hidden" name="event[ends_at]" value={pre.ends_at ?? ''} />
+              </>
+            )}
             <Stepper current={step} furthest={furthest} onGo={goTo} />
             <Step index={0} current={step}>
               <SectionTitle title={t.organizer} hint={t.organizerHint} />
@@ -467,9 +486,13 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
 
             <Step index={1} current={step}>
               <SectionTitle title={t.event} hint={t.eventHint} />
-              <Field label={t.eventTitle} htmlFor="title" errors={errors} name="title">
-                <Input id="title" name="event[title]" defaultValue={pre.title} placeholder={t.eventTitlePlaceholder} className={inputClass} />
-              </Field>
+              {importing ? (
+                <LumaSummary luma={importing} />
+              ) : (
+                <Field label={t.eventTitle} htmlFor="title" errors={errors} name="title">
+                  <Input id="title" name="event[title]" defaultValue={pre.title} placeholder={t.eventTitlePlaceholder} className={inputClass} />
+                </Field>
+              )}
               <Field label={t.description} htmlFor="description" errors={errors} name="description" hint={t.characters(description.length, descriptionLimit)}>
                 <Textarea
                   id="description"
@@ -482,7 +505,7 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
                 />
               </Field>
 
-              <div className="flex flex-col gap-2 rounded-sm border border-border p-4">
+              {!importing && <div className="flex flex-col gap-2 rounded-sm border border-border p-4">
                 <div className="label text-[11px] text-muted-foreground">{t.week}</div>
                 <div className="grid grid-cols-7 gap-1">
                   {days.map((day) => (
@@ -493,17 +516,17 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">{t.weekNote}</p>
-              </div>
+              </div>}
 
-              <div className="grid gap-6 sm:grid-cols-2">
+              {!importing && <div className="grid gap-6 sm:grid-cols-2">
                 <Field label={t.start} htmlFor="starts_at" errors={errors} name="starts_at" className="min-w-0">
                   <DateTimeField id="starts_at" name="event[starts_at]" min={weekDates.from} max={weekDates.to} value={startsAt} onChange={onStartChange} className={pickerClass} popoverClassName={popoverClass} />
                 </Field>
                 <Field label={t.end} htmlFor="ends_at" errors={errors} name="ends_at" className="min-w-0">
                   <DateTimeField id="ends_at" name="event[ends_at]" min={weekDates.from} max={weekDates.to} value={endsAt} onChange={onEndChange} className={pickerClass} popoverClassName={popoverClass} />
                 </Field>
-              </div>
-              {durationWarning && <p className="text-sm text-primary">{durationWarning}</p>}
+              </div>}
+              {!importing && durationWarning && <p className="text-sm text-primary">{durationWarning}</p>}
 
               <Field label={t.address} htmlFor="address" errors={errors} name="address" hint={t.addressHint}>
                 <AddressInput id="address" prefix="event" initial={prefilledPlace(pre)} className={inputClass} onPick={() => refreshById('address')} />
@@ -634,6 +657,7 @@ export default function New({ days, weekDates, formats, themes, audiences, descr
           </>);
         }}
       </Form>
+      )}
     </div>
   );
 }

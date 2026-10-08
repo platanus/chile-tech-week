@@ -69,10 +69,11 @@ export default function Show({ event, formats, themes, audiences }: AdminEventsS
         </div>
         <div className="flex flex-col items-end gap-3">
           <StateBadge state={event.state} />
+          {event.lumaImported && <span className="label text-[11px] text-primary">Importado de Luma</span>}
           <div className="flex flex-wrap gap-2">
             <EventEditDialog event={event} formats={formats} formatLabels={FORMAT_LABELS} themes={themes} audiences={audiences} />
             {event.state === 'submitted' && <Moderation eventId={event.id} />}
-            {(event.state === 'waiting_luma_edit' || event.state === 'published') && <TakeDown eventId={event.id} />}
+            {(event.state === 'waiting_luma_edit' || event.state === 'published') && <TakeDown eventId={event.id} imported={event.lumaImported} />}
           </div>
         </div>
       </div>
@@ -272,7 +273,7 @@ function Moderation({ eventId }: { eventId: string }) {
 }
 
 // Dar de baja: cancels the Luma event (irreversible, Luma tells its guests) and mails the host the reason.
-function TakeDown({ eventId }: { eventId: string }) {
+function TakeDown({ eventId, imported }: { eventId: string; imported: boolean }) {
   const week = useWeek();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');
@@ -299,8 +300,9 @@ function TakeDown({ eventId }: { eventId: string }) {
             <DialogHeader>
               <DialogTitle>Dar de baja el evento</DialogTitle>
               <DialogDescription>
-                Se cancelará en Luma (no se puede deshacer: se borra el evento y se avisa a sus invitados), saldrá del programa y el
-                organizador recibirá el motivo por correo. Si fue un error, habrá que aprobar un evento nuevo.
+                {imported
+                  ? 'Saldrá del programa y del calendario de Luma, pero el evento sigue en Luma: es del organizador y no se cancela. El organizador recibirá el motivo por correo.'
+                  : 'Se cancelará en Luma (no se puede deshacer: se borra el evento y se avisa a sus invitados), saldrá del programa y el organizador recibirá el motivo por correo. Si fue un error, habrá que aprobar un evento nuevo.'}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-2">
@@ -310,7 +312,7 @@ function TakeDown({ eventId }: { eventId: string }) {
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>Volver</Button>
               <Button type="submit" variant="destructive" disabled={pending || !reason.trim()}>
-                {pending ? 'Dando de baja…' : 'Dar de baja y cancelar en Luma'}
+                {pending ? 'Dando de baja…' : imported ? 'Dar de baja' : 'Dar de baja y cancelar en Luma'}
               </Button>
             </DialogFooter>
           </form>

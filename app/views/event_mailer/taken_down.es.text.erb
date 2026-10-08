@@ -1,6 +1,6 @@
 Hola <%= @event.author_name %>,
 
-Dimos de baja tu evento "<%= @event.title %>": lo quitamos del programa de Chile Tech Week y lo cancelamos en Luma, donde se avisó a sus invitados.
+Dimos de baja tu evento "<%= @event.title %>": <%= @event.luma_imported? ? "lo quitamos del programa y del calendario de Chile Tech Week. Tu evento sigue en Luma, es tuyo." : "lo quitamos del programa de Chile Tech Week y lo cancelamos en Luma, donde se avisó a sus invitados." %>
 
 <%= @event.deletion_reason %>
 

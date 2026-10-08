@@ -19,6 +19,17 @@ en:
         not_ready: "The event is not ready to be published."
         cancelled: "The event was cancelled on Luma."
         failed: "Could not publish the event on Luma: %{message}"
+      # /events/new?luma=…: why a pasted Luma link cannot be used (Luma::Import).
+      luma_import:
+        errors:
+          invalid_link: "That does not look like a Luma link. Paste your event's link, e.g. luma.com/my-event."
+          not_found: "We could not find that event on Luma. Check the link."
+          cancelled: "That event was cancelled on Luma."
+          private: "Your event is private. On Luma go to Manage → Event Page → Visibility, set it to Public and verify again."
+          outside_week: "Your event does not fall within Chile Tech Week (%{week})."
+          already_registered: "That event is already registered for Chile Tech Week."
+          not_host: "You still need to add %{host_email} as a host of your event. On Luma go to Manage → Hosts → Add Host and verify again."
+          unavailable: "We could not reach Luma right now. Try again in a few minutes."
     opengraph:
       by: "BY %{company}"
   event_mailer:

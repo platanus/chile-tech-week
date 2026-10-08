@@ -7,7 +7,7 @@ module Admin
 
       result = Events::Approve.new(event).call
       if result.ok
-        redirect_to admin_event_path(@week, event), notice: "Evento aprobado, evento en Luma creado y correo enviado."
+        redirect_to admin_event_path(@week, event), notice: event.luma_imported? ? "Evento aprobado, agregado al calendario de Luma y publicado; correo enviado." : "Evento aprobado, evento en Luma creado y correo enviado."
       else
         redirect_to admin_event_path(@week, event), alert: result.error
       end

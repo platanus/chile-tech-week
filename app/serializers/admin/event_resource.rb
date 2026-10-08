@@ -11,6 +11,8 @@ module Admin
     # Whether the title and dates are Luma's to change now (Event::LUMA_SYNCED_ATTRIBUTES).
     typelize :boolean
     attribute :luma_synced, &:luma_synced?
+    typelize :boolean
+    attribute :luma_imported, &:luma_imported?
 
     # What the site shows, and whether it is our own copy or still Luma's URL.
     typelize :string?
