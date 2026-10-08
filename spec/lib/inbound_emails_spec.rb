@@ -12,6 +12,10 @@ RSpec.describe InboundEmails do
       expect(described_class.match?(message)).to be true
     end
 
+    it "recognises the subdomain Luma sends from through Amazon SES" do
+      expect(described_class.match?(message(from: "010101a1-000000@amazonses.luma.com", text: "652930\nes tu código de inicio de sesión de Luma"))).to be true
+    end
+
     it "ignores other senders and mail with no code" do
       expect(described_class.match?(message(from: "someone@example.com"))).to be false
       expect(described_class.match?(message(from: "hello@luma.com.evil.test"))).to be false
