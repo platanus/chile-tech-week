@@ -21,6 +21,7 @@ Rails.application.routes.draw do
   end
 
   # The public Luma calendar every published event ends up in.
+  post "internal/inbound_emails", to: "inbound_emails#create"
   get "luma", to: redirect(AppConfig.instance.luma_calendar_url)
 
   # The 2026 brand kit (public/brand, built by npm run brand:marks), the icon page and the

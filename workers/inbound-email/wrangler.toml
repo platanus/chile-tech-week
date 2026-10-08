@@ -1,0 +1,18 @@
+# The Email Worker behind events@techweek.cl: Cloudflare Email Routing runs it for every message
+# the address receives (Email → Email Routing → Routing rules → "Send to a Worker"). It posts the
+# message to the app and then always forwards the original to the team's Google Group.
+name = "techweek-inbound-email"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+# An Email Worker has no HTTP surface: no public workers.dev URL, no preview URLs.
+workers_dev = false
+preview_urls = false
+
+[vars]
+# Where the parsed message goes, and the Google Group every message is forwarded to (a destination
+# address verified under Email Routing → Destination addresses).
+APP_URL = "https://techweek.cl/internal/inbound_emails"
+FORWARD_TO = "techweek@platan.us"
+
+# Secret, not a var — set once with `npx wrangler secret put INBOUND_EMAIL_KEY`
+# (the same value as INBOUND_EMAIL_KEY in the server's .env).

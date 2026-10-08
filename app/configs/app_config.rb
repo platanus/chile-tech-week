@@ -40,6 +40,10 @@ class AppConfig < Anyway::Config
     slack_bot_token: "",
     slack_channel: "",
 
+    # The key the Cloudflare Email Worker (workers/inbound-email) sends with each message it posts
+    # to /internal/inbound_emails. Empty = the endpoint is closed.
+    inbound_email_key: "",
+
     # …and in the organisers' WhatsApp group, through wpp-server (wpp.rafafdz.dev): an API key
     # with the `send` scope and the group's JID ("1203…@g.us"). Either one empty = off.
     wpp_api_url: "https://wpp.rafafdz.dev",
