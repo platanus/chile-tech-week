@@ -20,6 +20,7 @@ const organizers = [
   { name: 'DF MAS', file: 'df-mas', width: 480, height: 146 },
   { name: 'PRenseable', file: 'prenseable', width: 480, height: 112 },
   { name: 'The AI Adoption Project', file: 'ai-adoption-project', width: 341, height: 240 },
+  { name: 'ProChile', file: 'prochile', width: 480, height: 230 },
 ];
 
 export function OrganizersSection() {

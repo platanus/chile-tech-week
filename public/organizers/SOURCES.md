@@ -27,3 +27,8 @@ filter and silhouette hover effect.
 Supplied by the organizer. Trimmed to visible artwork, resized to 341 × 240 (3× the
 landing's 80px max height, as the stacked logo is nearly square), and encoded as lossless
 WebP with transparency. Uses the landing's white-logo filter and silhouette hover effect.
+
+- ProChile: Logo-ProChile-Blanco-ES.png (white on transparent, 1400 × 700), supplied by the organizer.
+
+Trimmed to visible artwork, resized to 480 × 230, and encoded as lossless WebP with
+transparency (9 KB). Uses the landing's white-logo filter and silhouette hover effect.
