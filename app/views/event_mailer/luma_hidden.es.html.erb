@@ -1,0 +1,6 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Tu evento está oculto</h1>
+<p style="margin:0 0 14px;color:#fff;">Hola <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">Detectamos que tu evento <strong><%= @event.title %></strong> ahora es privado en Luma, así que dejó de aparecer en el programa de Chile Tech Week.</p>
+<p style="margin:0 0 14px;color:#fff;">Si quieres que vuelva a aparecer, hazlo público en Luma: lo volveremos a mostrar automáticamente en unos minutos.</p>
+<p style="margin:0 0 14px;color:#a3a3a3;">Si tienes dudas, escríbenos a <a href="mailto:<%= contact_email %>" style="color:#fff;"><%= contact_email %></a>.</p>
+<%= render "button", url: @luma_url.presence || @status_url, label: "Abrir tu evento en Luma" %>

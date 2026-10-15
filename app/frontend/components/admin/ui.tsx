@@ -57,6 +57,7 @@ export const STATE_LABELS: Record<EventState, string> = {
   rejected: 'Rechazado',
   waiting_luma_edit: 'Esperando edición en Luma',
   published: 'Publicado',
+  hidden: 'Oculto (privado en Luma)',
   deleted: 'Dado de baja',
 };
 
@@ -65,6 +66,7 @@ const STATE_STYLES: Record<EventState, string> = {
   rejected: 'border-foreground bg-foreground text-background',
   waiting_luma_edit: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
   published: 'border-primary bg-primary text-white',
+  hidden: 'border-sky-500/40 bg-sky-500/10 text-sky-300',
   deleted: 'border-red-500/40 bg-red-500/10 text-red-300',
 };
 

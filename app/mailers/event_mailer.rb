@@ -58,6 +58,13 @@ class EventMailer < ApplicationMailer
     mail(to: @event.author_email, subject: subject(:luma_cancelled))
   end
 
+  # Luma::Sync found the host made the event private on Luma, so it left the programme.
+  def luma_hidden
+    @luma_url = @event.luma_event_url
+    template(:luma_hidden, event_id: @event.id)
+    mail(to: @event.author_email, subject: subject(:luma_hidden))
+  end
+
   # Luma::Sync mirrored the host's edits; `changes` is {title:, starts_at:, ends_at:} → {old:, new:}.
   def luma_updated
     @changes = params[:changes]

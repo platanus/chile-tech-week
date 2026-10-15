@@ -220,7 +220,11 @@ archive is that year's week, under `/25`.
   locally and in specs).
   `Luma::EventCreator` builds the private event and invites the hosts — outside production
   only the addresses in `LUMA_ALLOWED_COHOST_DEV`. `Luma::Sync` (every 10 min) mirrors the
-  host's edits and takes down cancelled events; `Luma::Reminder` (daily) nudges hosts.
+  host's edits of the current week's events and takes down cancelled events; `Luma::Reminder`
+  (daily) nudges hosts. A published event whose host makes it private (or member-only) on Luma
+  becomes `hidden` — out of every public page, since they all list `Event.published` — and the
+  host gets `luma_hidden`; public again, the sync lists it again. `events.luma_visibility` keeps
+  Luma's last answer.
 - **Importing a Luma event** (`Luma::Import`, `/events/new?luma=<link>`): a host who already made
   their event on Luma pastes its link instead of filling the form. The server reads it through
   Luma's read-only route (`Client#get_event_readonly`, `/events/get`, which answers for any event
@@ -232,7 +236,10 @@ archive is that year's week, under `/25`.
   syncs once, lists the event in the `cltw` calendar (`Client#add_to_calendar`, its `calev-…` id
   kept in `luma_calendar_event_id`) and publishes it. Taking it down (`Events::TakeDown`) only
   removes it from the calendar (`remove_from_calendar`): the event stays on Luma, it is the
-  host's. `Luma::Sync` reads it through the same read-only route. The how-to GIF for hosts lives
+  host's. `Luma::Sync` reads it as its host, through Luma's web API (`Luma.internal.get_event`,
+  `/event/admin/get`): the read-only route answers 403 once the host makes it private. That route
+  gives the body as ProseMirror, which `Luma::Markdown` writes out exactly as Luma's own
+  `description_md` (checked against real pairs in `spec/fixtures/luma/descriptions.json`). The how-to GIF for hosts lives
   at `public/luma/add-host.gif` (the panel hides the image while it is missing).
 - **Luma's web API** (`Luma::Internal`, `Luma.internal`): what the public API does not offer a
   calendar key — chiefly `guests(evt-…)`, the guest list of an event whose host added the site's
@@ -255,6 +262,11 @@ archive is that year's week, under `/25`.
   `include RecordsTaskRun` so the admin sees its last outcome (`TaskRun`).
 - **Slack**: `SlackNotifier` posts new submissions when `SLACK_BOT_TOKEN` + `SLACK_CHANNEL`
   are set.
+- **Errors**: there is no Sentry. `ErrorNotifier` subscribes to `Rails.error` and, in production,
+  posts to the same Slack channel every exception a request did not rescue, every failed job and
+  every `Rails.error.report` — the same error once an hour. So code that must go on after a
+  failure (`Luma::Sync`, one event at a time) reports it with `Rails.error.report` instead of
+  logging it; anything else just raises.
 - **WhatsApp**: `WhatsappNotifier` (via `WhatsappNotificationJob`) posts each new submission —
   the logo, the summary and the admin link — to the organisers' group through wpp-server
   (`wpp.rafafdz.dev` on the `vps` host, `WppClient`), when `WPP_API_KEY` (a `send`-scoped key)

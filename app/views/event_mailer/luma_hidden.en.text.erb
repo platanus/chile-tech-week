@@ -1,0 +1,8 @@
+Hi <%= @event.author_name %>,
+
+We noticed your event "<%= @event.title %>" is now private on Luma, so it no longer shows in the Chile Tech Week programme.
+
+If you want it back, make it public on Luma: we'll show it again automatically within a few minutes.
+
+If you have questions, write to us at <%= contact_email %>.
+Open your event on Luma: <%= @luma_url.presence || @status_url %>

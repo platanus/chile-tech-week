@@ -1,0 +1,6 @@
+<h1 style="margin:0 0 16px;font-family:Unbounded,Inter,-apple-system,Helvetica,Arial,sans-serif;font-weight:800;font-size:22px;line-height:1.1;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;">Your event is hidden</h1>
+<p style="margin:0 0 14px;color:#fff;">Hi <%= @event.author_name %>,</p>
+<p style="margin:0 0 14px;color:#fff;">We noticed your event <strong><%= @event.title %></strong> is now private on Luma, so it no longer shows in the Chile Tech Week programme.</p>
+<p style="margin:0 0 14px;color:#fff;">If you want it back, make it public on Luma: we'll show it again automatically within a few minutes.</p>
+<p style="margin:0 0 14px;color:#a3a3a3;">If you have questions, write to us at <a href="mailto:<%= contact_email %>" style="color:#fff;"><%= contact_email %></a>.</p>
+<%= render "button", url: @luma_url.presence || @status_url, label: "Open your event on Luma" %>

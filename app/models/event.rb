@@ -11,8 +11,10 @@ class Event < ApplicationRecord
   LOCALES = %w[es en].freeze
 
   # The 2025 review workflow: submitted → rejected, or approved (waiting for the host to edit
-  # the Luma event the site created) → published. Deleted is the host's own withdrawal.
-  STATES = %w[submitted rejected waiting_luma_edit published deleted].freeze
+  # the Luma event the site created) → published. Deleted is the host's own withdrawal. Hidden is
+  # a published event its host made private on Luma: out of the programme until it is public
+  # again (Luma::Sync moves it both ways).
+  STATES = %w[submitted rejected waiting_luma_edit published hidden deleted].freeze
 
   # What Luma::Sync copies from the host's Luma event once there is one: the admin edits
   # these on Luma, not here, or the next sync would take the change back.
@@ -136,9 +138,14 @@ class Event < ApplicationRecord
     case state
     when "submitted" then approved_at ? 2 : 1
     when "waiting_luma_edit" then 3
-    when "published" then 4
+    when "published", "hidden" then 4
     else 1
     end
+  end
+
+  # Luma::Sync's last reading of the Luma event's visibility says it is not public.
+  def hidden_on_luma?
+    luma_visibility.present? && luma_visibility != "public"
   end
 
   # Everyone Luma should let edit the event: the submitter and each co-host's contact.

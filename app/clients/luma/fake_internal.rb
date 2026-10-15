@@ -16,6 +16,11 @@ module Luma
       @guests[api_id].dup
     end
 
+    # The site's account hosts every event the fake public API holds.
+    def get_event(api_id)
+      FakeClient.instance.get_event(api_id)
+    end
+
     # A guest as Luma lists them (the fields a caller reads).
     def add_guest(api_id, email:, name: "Ada Lovelace", approval_status: "approved", checked_in_at: nil)
       @guests[api_id] << {"email" => email, "name" => name, "approval_status" => approval_status, "checked_in_at" => checked_in_at}

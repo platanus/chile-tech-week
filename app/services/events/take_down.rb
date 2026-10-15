@@ -6,7 +6,7 @@ module Events
   class TakeDown
     Result = Data.define(:ok, :error)
 
-    TAKEABLE_STATES = %w[waiting_luma_edit published].freeze
+    TAKEABLE_STATES = %w[waiting_luma_edit published hidden].freeze
 
     def initialize(event, reason:)
       @event = event
@@ -14,7 +14,7 @@ module Events
     end
 
     def call
-      return failure("Solo se puede dar de baja un evento en edición o publicado.") unless TAKEABLE_STATES.include?(@event.state)
+      return failure("Solo se puede dar de baja un evento en edición, publicado u oculto.") unless TAKEABLE_STATES.include?(@event.state)
       return failure("Escribe el motivo de la baja.") if @reason.blank?
 
       release_on_luma

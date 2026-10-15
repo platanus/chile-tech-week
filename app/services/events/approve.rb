@@ -33,6 +33,9 @@ module Events
       if Luma::Sync.new.sync_event(@event, notify: false) == :cancelled
         return Result.new(ok: false, error: "El evento fue cancelado en Luma.")
       end
+      if @event.hidden_on_luma?
+        return Result.new(ok: false, error: "El evento es privado en Luma: pídele al host que lo haga público antes de aprobarlo.")
+      end
 
       calendar_event_id = Luma.client.add_to_calendar(@event.luma_event_api_id)
       now = Time.current

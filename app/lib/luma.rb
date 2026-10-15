@@ -8,6 +8,13 @@ module Luma
   # Cancelling would refund paid guests, which is decided on Luma, not from a button here.
   class PaidEvent < Error; end
 
+  # Luma's web API refused the site's account (403), after signing in again.
+  class Forbidden < Error; end
+
+  # The site's account is no longer a host of an imported event — the host took it out, so the site
+  # can no longer read it. Raised as is: the team hears about it (ErrorNotifier) and decides.
+  class NotHost < Forbidden; end
+
   # Luma answers 404 for an event that is no longer there. A cancellation by API leaves
   # "Sorry, we could not find what you were looking for." (checked against the live API,
   # 2026-10-08); an older shape carried "canceled" in the body.

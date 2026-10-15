@@ -30,6 +30,17 @@ RSpec.describe "imported events" do
       expect(MirrorLumaCoverJob).to have_been_enqueued.with(event.id, event.luma_cover_url)
     end
 
+    it "refuses an event its host made private on Luma since importing it" do
+      event = imported
+      client.update_event(event.luma_event_api_id, visibility: "private")
+
+      result = described_class.new(event).call
+
+      expect(result).to have_attributes(ok: false, error: /privado en Luma/)
+      expect(event.reload).to have_attributes(state: "submitted", luma_visibility: "private")
+      expect(client.calendar).to be_empty
+    end
+
     it "does not create anything on Luma" do
       event = imported
       expect(client).not_to receive(:create_event)
@@ -89,15 +100,30 @@ RSpec.describe "imported events" do
   end
 
   describe Luma::Sync do
-    it "reads an imported event through the read-only route" do
+    it "reads an imported event as its host, through Luma's web API, even once it is private" do
       event = imported(state: "published")
-      client.update_event(event.luma_event_api_id, name: "Demo Night")
-      allow(client).to receive(:get_event_readonly).and_call_original
+      client.update_event(event.luma_event_api_id, name: "Demo Night", visibility: "private")
+      internal = Luma::FakeInternal.instance
+      allow(internal).to receive(:get_event).and_call_original
+      allow(client).to receive(:get_event_readonly)
 
-      described_class.new(client: client).call
+      described_class.new(client: client, internal: internal).call
 
-      expect(client).to have_received(:get_event_readonly).with(event.luma_event_api_id)
+      expect(internal).to have_received(:get_event).with(event.luma_event_api_id)
+      expect(client).not_to have_received(:get_event_readonly)
       expect(event.reload.title).to eq("Demo Night")
+    end
+
+    it "reports, and leaves listed, an imported event whose host took the site's account out" do
+      event = imported(state: "published")
+      internal = Luma::FakeInternal.instance
+      allow(internal).to receive(:get_event).and_raise(Luma::NotHost, "events@techweek.cl ya no es host de #{event.luma_event_api_id}")
+      allow(Rails.error).to receive(:report)
+
+      expect(described_class.new(client: client, internal: internal).call).to have_attributes(failed: 1)
+      expect(Rails.error).to have_received(:report)
+        .with(an_instance_of(Luma::NotHost), context: {event_id: event.id, luma_event_api_id: event.luma_event_api_id, title: event.title})
+      expect(event.reload.state).to eq("published")
     end
 
     it "takes an imported event down when the host cancels it" do

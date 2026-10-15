@@ -36,6 +36,26 @@ module Luma
       raise Error, "Luma devolvió una lista de invitados inválida."
     end
 
+    # The event as its hosts see it on Luma — private ones too — read the way the public API's
+    # `/event/get` is: the body comes back as Markdown (Luma::Markdown). The site's account must be
+    # a host; Luma answers 403 otherwise (NotHost). A cancelled event raises NotFound, like the
+    # public API.
+    def get_event(api_id)
+      event = begin
+        get("/event/admin/get", event_api_id: api_id).fetch("event")
+      rescue Forbidden => e
+        config = AppConfig.instance
+        raise NotHost, "#{config.luma_host_email} (#{config.luma_host_user_id.presence || "sin LUMA_HOST_USER_ID"}) ya no es host " \
+          "de #{api_id} en Luma: el host lo sacó del evento. Pídele que lo vuelva a agregar como host o da de baja el evento. " \
+          "Luma respondió: #{e.message}"
+      end
+      Event.new(api_id: event.fetch("api_id"), name: event["name"], start_at: event["start_at"], end_at: event["end_at"],
+        url: event["url"].presence && "https://luma.com/#{event["url"]}", visibility: event["visibility"],
+        cover_url: event["cover_url"], description_md: Markdown.from_mirror(event["description_mirror"]))
+    rescue KeyError
+      raise Error, "Luma devolvió un evento inválido para #{api_id}."
+    end
+
     private
 
     def get(path, params)
@@ -99,8 +119,16 @@ module Luma
       raise Error, "Luma request to #{request.path} failed: #{e.message}"
     end
 
+    # A missing event is a 404 and a cancelled one a 400 with code "event-deleted" ("This event
+    # has been canceled."): both are NotFound, which Luma::Sync reads as gone.
     def parse(response, path)
-      raise Error, "Luma internal API error (#{response.code}) on #{path}" unless response.is_a?(Net::HTTPSuccess)
+      unless response.is_a?(Net::HTTPSuccess)
+        message = "Luma internal API error (#{response.code}) on #{path}: #{response.body.to_s[0, 300].presence || "Unknown error"}"
+        raise NotFound, message if response.code == "404" || (response.code == "400" && response.body.to_s.include?("event-deleted"))
+        raise Forbidden, message if response.code == "403"
+
+        raise Error, message
+      end
 
       response.body.present? ? JSON.parse(response.body) : {}
     rescue JSON::ParserError => e

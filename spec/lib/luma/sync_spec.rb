@@ -8,7 +8,9 @@ RSpec.describe Luma::Sync do
   before { client.reset! }
 
   def linked(state: "waiting_luma_edit", **attributes)
-    luma = client.create_event(name: "Demo Day", start_at: "2026-11-18T21:00:00Z", end_at: "2026-11-18T23:00:00Z", visibility: "private")
+    # As on Luma: private while the host edits it, public once published.
+    visibility = (state == "published") ? "public" : "private"
+    luma = client.create_event(name: "Demo Day", start_at: "2026-11-18T21:00:00Z", end_at: "2026-11-18T23:00:00Z", visibility: visibility)
     create(:event, edition: 2026, state: state, title: "Demo Day", starts_at: Time.zone.parse("2026-11-18T21:00:00Z"), ends_at: Time.zone.parse("2026-11-18T23:00:00Z"),
       luma_event_api_id: luma.api_id, luma_event_url: luma.url, luma_cover_url: luma.cover_url, **attributes)
   end
@@ -99,6 +101,39 @@ RSpec.describe Luma::Sync do
     expect(event.reload.luma_description_md).to eq(body)
   end
 
+  it "hides a published event its host made private on Luma, tells the host, and lists it again once public" do
+    event = linked(state: "published")
+    described_class.new(client: client).call
+    expect(event.reload).to have_attributes(state: "published", luma_visibility: "public")
+
+    client.update_event(event.luma_event_api_id, visibility: "private")
+    expect { described_class.new(client: client).call }.to have_enqueued_mail(EventMailer, :luma_hidden).once
+    expect(event.reload).to have_attributes(state: "hidden", luma_visibility: "private")
+    expect(Event.published).not_to include(event)
+
+    expect { described_class.new(client: client).call }.not_to have_enqueued_mail
+
+    client.update_event(event.luma_event_api_id, visibility: "public")
+    expect { described_class.new(client: client).call }.not_to have_enqueued_mail
+    expect(event.reload).to have_attributes(state: "published", luma_visibility: "public")
+  end
+
+  it "hides an event that is member-only on Luma too" do
+    event = linked(state: "published")
+    client.update_event(event.luma_event_api_id, visibility: "member-only")
+
+    described_class.new(client: client).call
+
+    expect(event.reload.state).to eq("hidden")
+  end
+
+  it "leaves an event being edited alone while it is still private on Luma" do
+    event = linked(state: "waiting_luma_edit")
+
+    expect { described_class.new(client: client).call }.not_to have_enqueued_mail
+    expect(event.reload).to have_attributes(state: "waiting_luma_edit", luma_visibility: "private")
+  end
+
   it "takes down an event cancelled on Luma and tells the host" do
     event = linked(state: "published")
     client.cancel(event.luma_event_api_id)
@@ -130,7 +165,7 @@ RSpec.describe Luma::Sync do
     expect(outcome).to have_attributes(synced: 1, updated: 0)
   end
 
-  it "counts a Luma failure without stopping the others" do
+  it "reports a Luma failure without stopping the others" do
     first = linked
     allow(client).to receive(:get_event).and_wrap_original do |m, api_id|
       raise Luma::Error, "boom" if api_id == first.luma_event_api_id
@@ -138,6 +173,10 @@ RSpec.describe Luma::Sync do
     end
     linked
 
+    allow(Rails.error).to receive(:report)
+
     expect(described_class.new(client: client).call).to have_attributes(synced: 2, failed: 1)
+    expect(Rails.error).to have_received(:report)
+      .with(an_instance_of(Luma::Error), context: {event_id: first.id, luma_event_api_id: first.luma_event_api_id, title: first.title}).once
   end
 end

@@ -25,6 +25,7 @@ const COPY = copy(
       3: 'Tu evento en Luma está listo para editar. Revisa tu correo: ahí están las instrucciones. Cuando termines, publícalo aquí.',
       4: '¡Tu evento está publicado en Chile Tech Week! Los cambios que hagas en Luma (título, fecha, hora) se sincronizan solos.',
     } as Record<number, string>,
+    hidden: 'Tu evento es privado en Luma, así que no aparece en el programa de Chile Tech Week. Hazlo público en Luma y volverá a aparecer en unos minutos.',
     statusImported: 'Estamos revisando tu evento. Cuando lo aprobemos, lo agregaremos al programa y al calendario de Chile Tech Week.',
     summary: { hosts: 'Organiza', date: 'Fecha', time: 'Hora', address: 'Dirección', format: 'Formato', capacity: 'Capacidad', topics: 'Temas', audiences: 'Audiencias' },
     people: (n: number) => `${n} personas`,
@@ -79,6 +80,7 @@ const COPY = copy(
       3: "Your Luma event is ready to edit. Check your email for the instructions. When you're done, publish it here.",
       4: 'Your event is published on Chile Tech Week! Changes you make on Luma (title, date, time) sync by themselves.',
     },
+    hidden: "Your event is private on Luma, so it doesn't show in the Chile Tech Week programme. Make it public on Luma and it will show again within a few minutes.",
     statusImported: "We're reviewing your event. Once we approve it, we'll add it to the Chile Tech Week programme and calendar.",
     summary: { hosts: 'Hosted by', date: 'Date', time: 'Time', address: 'Address', format: 'Format', capacity: 'Capacity', topics: 'Topics', audiences: 'Audiences' },
     people: (n: number) => `${n} people`,
@@ -279,7 +281,9 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
         <>
           <section className="flex flex-col gap-3 border-t border-border pt-8">
             <div className="label text-muted-foreground">{event.lumaImported ? t.stepOf(Math.min(event.step, 3), 3) : t.stepOf(event.step, 4)}</div>
-            <p className="max-w-[56ch] text-base">{event.lumaImported && event.step === 1 ? t.statusImported : t.status[event.step]}</p>
+            <p className="max-w-[56ch] text-base">
+              {event.state === 'hidden' ? t.hidden : event.lumaImported && event.step === 1 ? t.statusImported : t.status[event.step]}
+            </p>
             {event.step === 3 && (
               <div className="mt-2 flex flex-wrap items-center gap-4">
                 <Button type="button" onClick={() => setPublishOpen(true)}>
@@ -292,7 +296,12 @@ export default function Show({ event, openPublish, ...page }: EventsShow) {
                 )}
               </div>
             )}
-            {event.step === 4 && event.registrationUrl && (
+            {event.state === 'hidden' && event.lumaEventUrl && (
+              <a href={event.lumaEventUrl} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-1 self-start text-primary hover:underline">
+                {t.editOnLuma} <ArrowUpRight className="size-3" />
+              </a>
+            )}
+            {event.state === 'published' && event.registrationUrl && (
               <a href={event.registrationUrl} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-1 self-start text-primary hover:underline">
                 {t.seeEvent} <ArrowUpRight className="size-3" />
               </a>

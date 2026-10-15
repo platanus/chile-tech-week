@@ -1,0 +1,5283 @@
+[
+  {
+    "title": "SUP Meet & Connect",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "CHECKLIST DE EDICIÓN:",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar fecha y hora del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Agregar imágenes del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar la dirección del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Editar tu perfil de Luma",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "link",
+                          "attrs": {
+                            "href": "https://luma.com/settings"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "text": " con el nombre y logo de tu empresa",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "DESCRIPCIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Start-Up Chile invita a empresas, CVCs y VCs a una instancia de vinculación con el portafolio, a través de una dinámica de networking diseñada para crear una primera excusa de conexión entre los participantes.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🚀 ",
+              "type": "text"
+            },
+            {
+              "text": "Cuando completes los pasos, publica el evento aquí",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://techweek.cl/events/885905d1-afba-4b1f-afcc-9c701a37f099?publish=true"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "INFORMACIÓN DE LA ORGANIZACIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Organiza:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Valentina Papic (",
+              "type": "text"
+            },
+            {
+              "text": "persona@example.com",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "mailto:persona@example.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ") — Start-Up Chile\n",
+              "type": "text"
+            },
+            {
+              "text": "Formato:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Networking",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Contacto:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " +56900000000",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Este evento fue creado desde el formulario de Chile Tech Week 2026.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## ⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️\n\nCHECKLIST DE EDICIÓN:\n\n*   Verificar fecha y hora del evento\n*   Agregar imágenes del evento\n*   Verificar la dirección del evento\n*   [Editar tu perfil de Luma](https://luma.com/settings) con el nombre y logo de tu empresa\n\n## DESCRIPCIÓN\n\nStart-Up Chile invita a empresas, CVCs y VCs a una instancia de vinculación con el portafolio, a través de una dinámica de networking diseñada para crear una primera excusa de conexión entre los participantes.\n\n🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/885905d1-afba-4b1f-afcc-9c701a37f099?publish=true)\n\n***\n\n## INFORMACIÓN DE LA ORGANIZACIÓN\n\n**Organiza:** Valentina Papic ([persona@example.com](mailto:persona@example.com)) — Start-Up Chile **Formato:** Networking\n\n**Contacto:** +56900000000\n\n***\n\n_Este evento fue creado desde el formulario de Chile Tech Week 2026._\n\n⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️"
+  },
+  {
+    "title": "Swiss Innovation Week - II edición",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "CHECKLIST DE EDICIÓN:",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar fecha y hora del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Agregar imágenes del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar la dirección del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Editar tu perfil de Luma",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "link",
+                          "attrs": {
+                            "href": "https://luma.com/settings"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "text": " con el nombre y logo de tu empresa",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "DESCRIPCIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Swiss Innovation Week 2026 conecta innovación, tecnología y colaboración entre Suiza y Chile, reuniendo empresas, startups e instituciones en jornadas de contenido, networking y exhibición, junto a EtMday.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🚀 ",
+              "type": "text"
+            },
+            {
+              "text": "Cuando completes los pasos, publica el evento aquí",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://techweek.cl/events/663aa4b7-81b6-4ed9-ac6b-f53fa0026da9?publish=true"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "INFORMACIÓN DE LA ORGANIZACIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Organiza:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Rocío Allen (",
+              "type": "text"
+            },
+            {
+              "text": "persona@example.com",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "mailto:persona@example.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ") — Camara Chileno Suiza de Comercio\n",
+              "type": "text"
+            },
+            {
+              "text": "Formato:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Panel fireside chat",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Contacto:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " +56900000000",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Este evento fue creado desde el formulario de Chile Tech Week 2026.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## ⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️\n\nCHECKLIST DE EDICIÓN:\n\n*   Verificar fecha y hora del evento\n*   Agregar imágenes del evento\n*   Verificar la dirección del evento\n*   [Editar tu perfil de Luma](https://luma.com/settings) con el nombre y logo de tu empresa\n\n## DESCRIPCIÓN\n\nSwiss Innovation Week 2026 conecta innovación, tecnología y colaboración entre Suiza y Chile, reuniendo empresas, startups e instituciones en jornadas de contenido, networking y exhibición, junto a EtMday.\n\n🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/663aa4b7-81b6-4ed9-ac6b-f53fa0026da9?publish=true)\n\n***\n\n## INFORMACIÓN DE LA ORGANIZACIÓN\n\n**Organiza:** Rocío Allen ([persona@example.com](mailto:persona@example.com)) — Camara Chileno Suiza de Comercio **Formato:** Panel fireside chat\n\n**Contacto:** +56900000000\n\n***\n\n_Este evento fue creado desde el formulario de Chile Tech Week 2026._\n\n⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️"
+  },
+  {
+    "title": "De 0 a 100 en Linkedin Por qué tu marca personal ya no es opcional para Generar Leads por We Are Doers & Chile Tech Week",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "LinkedIn es una herramienta clave para generar confianza, abrir conversaciones comerciales y posicionarte como referente en el mercado.",
+              "type": "text"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "Para los líderes de empresas tech en Latam, hoy no alcanza con estar, también importa cómo se comunica el valor que se construye desde la marca personal.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "En este workshop, Francisco Fasan y Luisa Irigoyen de We Are Doers compartirán una mirada práctica sobre por qué la marca personal ya no es opcional para quienes toman decisiones y quieren impulsar su negocio en 2026.",
+              "type": "text"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "La idea es entender cómo empezar a trabajar tu marca personal para generar oportunidades de negocio y multiplicar hasta 10X tus leads.",
+              "type": "text"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "​​Cómo usar la IA para agilizar la creación de contenido, sin dejar de lado tu identidad.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Cómo transformar tu perfil de Linkedin en una landing page que genera reuniones.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Cómo ampliar tu red de manera inteligente.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Cómo complementar el contenido con mensajes personalizados para construir confianza.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "También vas a llevarte ideas concretas para empezar a ordenar tu posicionamiento y potenciar tu alcance de forma estratégica.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Si buscás multiplicar tus leads y construir una presencia más sólida en el entorno digital, esta charla te va a dar un punto de partida claro y accionable. Una oportunidad para revisar tu posicionamiento actual y salir con herramientas para llevar tu marca personal de cero a referente.",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "LinkedIn es una herramienta clave para generar confianza, abrir conversaciones comerciales y posicionarte como referente en el mercado.  \n  \nPara los líderes de empresas tech en Latam, hoy no alcanza con estar, también importa cómo se comunica el valor que se construye desde la marca personal.\n\nEn este workshop, Francisco Fasan y Luisa Irigoyen de We Are Doers compartirán una mirada práctica sobre por qué la marca personal ya no es opcional para quienes toman decisiones y quieren impulsar su negocio en 2026.  \n  \nLa idea es entender cómo empezar a trabajar tu marca personal para generar oportunidades de negocio y multiplicar hasta 10X tus leads.  \n  \n​​Cómo usar la IA para agilizar la creación de contenido, sin dejar de lado tu identidad.\n\nCómo transformar tu perfil de Linkedin en una landing page que genera reuniones.\n\nCómo ampliar tu red de manera inteligente.\n\nCómo complementar el contenido con mensajes personalizados para construir confianza.\n\nTambién vas a llevarte ideas concretas para empezar a ordenar tu posicionamiento y potenciar tu alcance de forma estratégica.\n\nSi buscás multiplicar tus leads y construir una presencia más sólida en el entorno digital, esta charla te va a dar un punto de partida claro y accionable. Una oportunidad para revisar tu posicionamiento actual y salir con herramientas para llevar tu marca personal de cero a referente."
+  },
+  {
+    "title": "Where Startups and Corporates Meet",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "CHECKLIST DE EDICIÓN:",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar fecha y hora del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Agregar imágenes del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar la dirección del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Editar tu perfil de Luma",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "link",
+                          "attrs": {
+                            "href": "https://luma.com/settings"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "text": " con el nombre y logo de tu empresa",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "DESCRIPCIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Invite-only gathering by Tantauco Ventures connecting leading startups with corporate decision-makers through curated pitches, matchmaking and high-quality conversations focused on commercial opportunities and partnerships.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🚀 ",
+              "type": "text"
+            },
+            {
+              "text": "Cuando completes los pasos, publica el evento aquí",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://techweek.cl/events/ed20cc24-3d21-4b17-9086-d95d83e16dc0?publish=true"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "INFORMACIÓN DE LA ORGANIZACIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Organiza:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Pedro Fuenzalida (",
+              "type": "text"
+            },
+            {
+              "text": "persona@example.com",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "mailto:persona@example.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ") — Tantauco Ventures\n",
+              "type": "text"
+            },
+            {
+              "text": "Formato:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Matchmaking",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Contacto:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " +56900000000",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Este evento fue creado desde el formulario de Chile Tech Week 2026.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## ⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️\n\nCHECKLIST DE EDICIÓN:\n\n*   Verificar fecha y hora del evento\n*   Agregar imágenes del evento\n*   Verificar la dirección del evento\n*   [Editar tu perfil de Luma](https://luma.com/settings) con el nombre y logo de tu empresa\n\n## DESCRIPCIÓN\n\nInvite-only gathering by Tantauco Ventures connecting leading startups with corporate decision-makers through curated pitches, matchmaking and high-quality conversations focused on commercial opportunities and partnerships.\n\n🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/ed20cc24-3d21-4b17-9086-d95d83e16dc0?publish=true)\n\n***\n\n## INFORMACIÓN DE LA ORGANIZACIÓN\n\n**Organiza:** Pedro Fuenzalida ([persona@example.com](mailto:persona@example.com)) — Tantauco Ventures **Formato:** Matchmaking\n\n**Contacto:** +56900000000\n\n***\n\n_Este evento fue creado desde el formulario de Chile Tech Week 2026._\n\n⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️"
+  },
+  {
+    "title": "LAPsyConf",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Mental Health · Longevity · Consciousness",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "LAPSyConf es la ",
+              "type": "text"
+            },
+            {
+              "text": "conferencia  internacional de Longevidad, Salud Mental y Conciencia",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " que reúne a referentes de ciencia, salud, tecnología, inversión y nuevas economías para explorar cómo estamos construyendo nuevas formas de vivir mejor y por más tiempo.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "En 2026 llega a Santiago de Chile con una jornada dedicada a las conversaciones que están transformando el bienestar humano: ",
+              "type": "text"
+            },
+            {
+              "text": "longevidad y nuevas terapéuticas, salud mental, psicodélicos, salud cerebral, metabolismo, hormonas, conciencia, inteligencia artificial y las compañías que están construyendo esta nueva economía desde Latinoamérica.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Talks, conversaciones, paneles, experiencias y networking conectarán investigadores, founders, inversores, profesionales de la salud y líderes del ecosistema de Chile, Latinoamérica y el mundo.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "18 de noviembre de 2026",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "📍 ",
+              "type": "text"
+            },
+            {
+              "text": "Universidad Adolfo Ibáñez (UAI) — Santiago de Chile",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "🕘 ",
+              "type": "text"
+            },
+            {
+              "text": "09:30–18:00",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "🌎 ",
+              "type": "text"
+            },
+            {
+              "text": "En el marco de Chile Tech Week",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "En su edición 2025 en Buenos Aires, LAPSyConf reunió a ",
+              "type": "text"
+            },
+            {
+              "text": "más de 600 asistentes, más de 50 speakers y participantes de más de 10 países",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ".",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Web oficial:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "https://lapsyconf.com/",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://lapsyconf.com/"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Entradas y registro",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "LINK",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://docs.google.com/forms/d/e/1FAIpQLSe-cPhCZug6LFtpS-As4HfUlgzex9yR3nncpcnwxzXswMj2ZQ/viewform"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "**Mental Health · Longevity · Consciousness**\n\nLAPSyConf es la **conferencia internacional de Longevidad, Salud Mental y Conciencia** que reúne a referentes de ciencia, salud, tecnología, inversión y nuevas economías para explorar cómo estamos construyendo nuevas formas de vivir mejor y por más tiempo.\n\nEn 2026 llega a Santiago de Chile con una jornada dedicada a las conversaciones que están transformando el bienestar humano: **longevidad y nuevas terapéuticas, salud mental, psicodélicos, salud cerebral, metabolismo, hormonas, conciencia, inteligencia artificial y las compañías que están construyendo esta nueva economía desde Latinoamérica.**\n\nTalks, conversaciones, paneles, experiencias y networking conectarán investigadores, founders, inversores, profesionales de la salud y líderes del ecosistema de Chile, Latinoamérica y el mundo.\n\n📅 **18 de noviembre de 2026**  \n📍 **Universidad Adolfo Ibáñez (UAI) — Santiago de Chile**  \n🕘 **09:30–18:00**  \n🌎 **En el marco de Chile Tech Week**\n\nEn su edición 2025 en Buenos Aires, LAPSyConf reunió a **más de 600 asistentes, más de 50 speakers y participantes de más de 10 países**.\n\n**Web oficial:**  \n[https://lapsyconf.com/](https://lapsyconf.com/)\n\n**Entradas y registro**  \n[LINK](https://docs.google.com/forms/d/e/1FAIpQLSe-cPhCZug6LFtpS-As4HfUlgzex9yR3nncpcnwxzXswMj2ZQ/viewform)"
+  },
+  {
+    "title": "Panambi Ventures Demo Day",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Panambi Ventures Demo Day",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " reúne startups de salud mental, longevidad y nuevas tecnologías para la salud con inversores, científicos y referentes del ecosistema de innovación de Chile y Latinoamérica.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "En el marco de ",
+              "type": "text"
+            },
+            {
+              "text": "LAPsyConf 2026 y Chile Tech Week",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ", una selección de compañías presentará sus proyectos ante un jurado y una audiencia integrada por VCs, founders, inversores y líderes del sector.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "El Demo Day es una iniciativa de ",
+              "type": "text"
+            },
+            {
+              "text": "Panambi Ventures",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ", el brazo de inversión de Panambi Studio, enfocado en compañías early-stage que están construyendo nuevas soluciones en salud mental y longevidad desde Latinoamérica.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "18 de noviembre de 2026",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "🕙 ",
+              "type": "text"
+            },
+            {
+              "text": "10:00–13:00",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "📍 ",
+              "type": "text"
+            },
+            {
+              "text": "Universidad Adolfo Ibáñez — Campus Peñalolén, Santiago de Chile",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Links",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "LAPsyConf:",
+              "type": "text"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "https://lapsyconf.com/",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://lapsyconf.com/"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Startups",
+              "type": "text"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "Inscripcion STARTUPS",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://docs.google.com/forms/u/4/d/e/1FAIpQLSfSqBpqruMyUr59-HArl5kCGD__KZmX4vRnHqYeWbgVRtdQCg/viewform?usp=send_form"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Panambi Ventures:",
+              "type": "text"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "https://panambi.ventures/",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://panambi.ventures/"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "LAPsyConf 2026 — evento principal en Chile Tech Week:",
+              "type": "text"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "https://luma.com/cltw-d660",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://luma.com/cltw-d660"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Importante:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " este Luma es para asistir al ",
+              "type": "text"
+            },
+            {
+              "text": "Demo Day",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ". La convocatoria para startups que quieran presentar sus proyectos se gestiona por separado.",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "**Panambi Ventures Demo Day** reúne startups de salud mental, longevidad y nuevas tecnologías para la salud con inversores, científicos y referentes del ecosistema de innovación de Chile y Latinoamérica.\n\nEn el marco de **LAPsyConf 2026 y Chile Tech Week**, una selección de compañías presentará sus proyectos ante un jurado y una audiencia integrada por VCs, founders, inversores y líderes del sector.\n\nEl Demo Day es una iniciativa de **Panambi Ventures**, el brazo de inversión de Panambi Studio, enfocado en compañías early-stage que están construyendo nuevas soluciones en salud mental y longevidad desde Latinoamérica.\n\n📅 **18 de noviembre de 2026**  \n🕙 **10:00–13:00**  \n📍 **Universidad Adolfo Ibáñez — Campus Peñalolén, Santiago de Chile**\n\n**Links**\n\nLAPsyConf:  \n[https://lapsyconf.com/](https://lapsyconf.com/)\n\nStartups  \n[Inscripcion STARTUPS](https://docs.google.com/forms/u/4/d/e/1FAIpQLSfSqBpqruMyUr59-HArl5kCGD__KZmX4vRnHqYeWbgVRtdQCg/viewform?usp=send_form)\n\nPanambi Ventures:  \n[https://panambi.ventures/](https://panambi.ventures/)\n\nLAPsyConf 2026 — evento principal en Chile Tech Week:  \n[https://luma.com/cltw-d660](https://luma.com/cltw-d660)\n\n**Importante:** este Luma es para asistir al **Demo Day**. La convocatoria para startups que quieran presentar sus proyectos se gestiona por separado."
+  },
+  {
+    "title": "Chilean Real Estate Forum",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "CHECKLIST DE EDICIÓN:",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar fecha y hora del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Agregar imágenes del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar la dirección del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Editar tu perfil de Luma",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "link",
+                          "attrs": {
+                            "href": "https://luma.com/settings"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "text": " con el nombre y logo de tu empresa",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "DESCRIPCIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "PRIVADO, informacion a ver en reunion, son las 60 familias de mayor patrimonio de Chile",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🚀 ",
+              "type": "text"
+            },
+            {
+              "text": "Cuando completes los pasos, publica el evento aquí",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://techweek.cl/events/130f0045-bb68-40e9-ae27-5944063dc6b7?publish=true"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "INFORMACIÓN DE LA ORGANIZACIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Organiza:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Cristian Armas Morel (",
+              "type": "text"
+            },
+            {
+              "text": "persona@example.com",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "mailto:persona@example.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ") — Red inmobiliaria\n",
+              "type": "text"
+            },
+            {
+              "text": "Formato:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Experiential",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Contacto:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " +56900000000",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Este evento fue creado desde el formulario de Chile Tech Week 2026.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## ⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️\n\nCHECKLIST DE EDICIÓN:\n\n*   Verificar fecha y hora del evento\n*   Agregar imágenes del evento\n*   Verificar la dirección del evento\n*   [Editar tu perfil de Luma](https://luma.com/settings) con el nombre y logo de tu empresa\n\n## DESCRIPCIÓN\n\nPRIVADO, informacion a ver en reunion, son las 60 familias de mayor patrimonio de Chile\n\n🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/130f0045-bb68-40e9-ae27-5944063dc6b7?publish=true)\n\n***\n\n## INFORMACIÓN DE LA ORGANIZACIÓN\n\n**Organiza:** Cristian Armas Morel ([persona@example.com](mailto:persona@example.com)) — Red inmobiliaria **Formato:** Experiential\n\n**Contacto:** +56900000000\n\n***\n\n_Este evento fue creado desde el formulario de Chile Tech Week 2026._\n\n⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️"
+  },
+  {
+    "title": "Main Event | Startup & Scaleup Fest by Converge",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 1
+          },
+          "content": [
+            {
+              "text": "Nueva Tech Week, nuevo Fest. ",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Nos vemos en 🇨🇱",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "El ",
+              "type": "text"
+            },
+            {
+              "text": "Startups Fest",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "text": " llega a la ",
+              "type": "text"
+            },
+            {
+              "text": "Chile Tech Week",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " 🇨🇱 con speakers de talla mundial y un espacio diseñado para aprender, inspirarse y conectar. Una jornada donde podrás moverte libremente entre conversaciones, conectar con los perfiles que estás buscando y explorar nuevas oportunidades de negocio y colaboración.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Para founders, staff de startups y scaleups, devs, inversionistas, corporativos y todos  los",
+              "type": "text"
+            },
+            {
+              "text": " ",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": "que impulsan el crecimiento del ecosistema en Latinoamérica 🌎",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Póximamente la información de la agenda e invitados.",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "# Nueva Tech Week, nuevo Fest.\n\n## Nos vemos en 🇨🇱\n\nEl _Startups Fest_ llega a la **Chile Tech Week** 🇨🇱 con speakers de talla mundial y un espacio diseñado para aprender, inspirarse y conectar. Una jornada donde podrás moverte libremente entre conversaciones, conectar con los perfiles que estás buscando y explorar nuevas oportunidades de negocio y colaboración.\n\nPara founders, staff de startups y scaleups, devs, inversionistas, corporativos y todos los que impulsan el crecimiento del ecosistema en Latinoamérica 🌎\n\nPóximamente la información de la agenda e invitados."
+  },
+  {
+    "title": "The After | Startup Fest by Converge",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 1
+          },
+          "content": [
+            {
+              "text": "Sin paneles ni presentaciones.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "El cóctel que estabas esperando para descubrir, conectar e impulsar tu marca.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Uno de los encuentros más esperados del ",
+              "type": "text"
+            },
+            {
+              "text": "Chile Tech Week para conectar a quienes están construyendo el futuro del emprendimiento, la innovación y la tecnología",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ". Una noche para reunir a visionarios, emprendedores, inversionistas, corporativos y líderes del ecosistema ",
+              "type": "text"
+            },
+            {
+              "text": "Chileno, Latinoamérica y el mundo",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ".",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Dirección será próximamente anunciada.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🔒 ",
+              "type": "text"
+            },
+            {
+              "text": "Cupos limitados · Audiencia curada · Se requiere aprobación para asistir.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "# Sin paneles ni presentaciones.\n\n## El cóctel que estabas esperando para descubrir, conectar e impulsar tu marca.\n\nUno de los encuentros más esperados del **Chile Tech Week para conectar a quienes están construyendo el futuro del emprendimiento, la innovación y la tecnología**. Una noche para reunir a visionarios, emprendedores, inversionistas, corporativos y líderes del ecosistema **Chileno, Latinoamérica y el mundo**.\n\nDirección será próximamente anunciada.\n\n🔒 **Cupos limitados · Audiencia curada · Se requiere aprobación para asistir.**"
+  },
+  {
+    "title": "Burn UP not Out | Mix&Match by Converge",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 1
+          },
+          "content": [
+            {
+              "text": "Menos Burn-out y más Burn-up!",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "El ecosistema nos enseña a emprender, no a soportar el emprendimiento. ",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "En una jornada muy diferente, conversaremos y aprenderemos de ",
+              "type": "text"
+            },
+            {
+              "text": "\"hacks\"",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "text": " para mejorar tu performance.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Según la GEN, el 54% de las startups que fracasan se debe a factores de salud del equipo fundador y no por factores de mercado. Aun así, sigue siendo un tabú hablar del tema.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "En una jornada muy diferente, conversaremos y aprenderemos de \"hacks\" para mejorar el performance: deporte, sueño, alimentación, suplementación, entre otros. Además de conectar con diferentes actores del ecosistema corporativo y founders / C-Level de scaleups nacionales e internacionales.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Traer ropa cómoda ya que será en un centro deportivo... terminaremos con un par de actividades prácticas.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🔒 ",
+              "type": "text"
+            },
+            {
+              "text": "Cupos limitados · Audiencia curada · Se requiere aprobación para asistir.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "# Menos Burn-out y más Burn-up!\n\n## El ecosistema nos enseña a emprender, no a soportar el emprendimiento.\n\n## En una jornada muy diferente, conversaremos y aprenderemos de _\"hacks\"_ para mejorar tu performance.\n\nSegún la GEN, el 54% de las startups que fracasan se debe a factores de salud del equipo fundador y no por factores de mercado. Aun así, sigue siendo un tabú hablar del tema.\n\nEn una jornada muy diferente, conversaremos y aprenderemos de \"hacks\" para mejorar el performance: deporte, sueño, alimentación, suplementación, entre otros. Además de conectar con diferentes actores del ecosistema corporativo y founders / C-Level de scaleups nacionales e internacionales.\n\nTraer ropa cómoda ya que será en un centro deportivo... terminaremos con un par de actividades prácticas.\n\n🔒 **Cupos limitados · Audiencia curada · Se requiere aprobación para asistir.**"
+  },
+  {
+    "title": "Platanus Forum",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "CHECKLIST DE EDICIÓN:",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar fecha y hora del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Agregar imágenes del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar la dirección del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Editar tu perfil de Luma",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "link",
+                          "attrs": {
+                            "href": "https://luma.com/settings"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "text": " con el nombre y logo de tu empresa",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "DESCRIPCIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Traemos la locura de Silicon Valley a Chile.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🚀 ",
+              "type": "text"
+            },
+            {
+              "text": "Cuando completes los pasos, publica el evento aquí",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://techweek.cl/events/686df22c-f5c5-4aeb-a286-9f00e98a087d?publish=true"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "INFORMACIÓN DE LA ORGANIZACIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Organiza:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Joaquin Stephens (",
+              "type": "text"
+            },
+            {
+              "text": "persona@example.com",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "mailto:persona@example.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ") — Platanus\n",
+              "type": "text"
+            },
+            {
+              "text": "Formato:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Panel fireside chat",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Contacto:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " +56900000000",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Este evento fue creado desde el formulario de Chile Tech Week 2026.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## ⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️\n\nCHECKLIST DE EDICIÓN:\n\n*   Verificar fecha y hora del evento\n*   Agregar imágenes del evento\n*   Verificar la dirección del evento\n*   [Editar tu perfil de Luma](https://luma.com/settings) con el nombre y logo de tu empresa\n\n## DESCRIPCIÓN\n\nTraemos la locura de Silicon Valley a Chile.\n\n🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/686df22c-f5c5-4aeb-a286-9f00e98a087d?publish=true)\n\n***\n\n## INFORMACIÓN DE LA ORGANIZACIÓN\n\n**Organiza:** Joaquin Stephens ([persona@example.com](mailto:persona@example.com)) — Platanus **Formato:** Panel fireside chat\n\n**Contacto:** +56900000000\n\n***\n\n_Este evento fue creado desde el formulario de Chile Tech Week 2026._\n\n⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️"
+  },
+  {
+    "title": "Mix&Match: Marketing, IA & Pizzas",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Mix&Match vuelve con una noche para conversar, conectar y disfrutar alrededor de una gran experiencia.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "En esta edición nos metemos de lleno en el mundo del marketing, la tecnología e IA aplicada al nicho.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Será una instancia cercana y relajada para cruzar ideas, compartir experiencias reales y ver en qué estamos a nivel nacional.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Como siempre, la experiencia también pasa por la cocina, por lo que siempre es buen momento para tener una clase con un maestro pizzero napolitano, compartir con gente del ecosistema y pasarla bien.",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## **Mix&Match vuelve con una noche para conversar, conectar y disfrutar alrededor de una gran experiencia.**\n\nEn esta edición nos metemos de lleno en el mundo del marketing, la tecnología e IA aplicada al nicho.\n\nSerá una instancia cercana y relajada para cruzar ideas, compartir experiencias reales y ver en qué estamos a nivel nacional.\n\nComo siempre, la experiencia también pasa por la cocina, por lo que siempre es buen momento para tener una clase con un maestro pizzero napolitano, compartir con gente del ecosistema y pasarla bien."
+  },
+  {
+    "title": "She Leads | Mix&Match by Converge",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 1
+          },
+          "content": [
+            {
+              "text": "She Leads & Share",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "¿Y si juntamos a 10 líderes C-Level de grandes corporativos, founders/CEO de Scaleups e inversionistas para compartir sus experiencias laborales y cómo ha sido el proceso para llegar en donde están?",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Sin moderación, sin preguntas predefinidas... She Leads es un espacio donde la audiencia pone los temas sobre la mesa: lo que les interesa, lo que está en tendencia, lo que no se suele preguntar en un panel...",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Sólo el ",
+              "type": "text"
+            },
+            {
+              "text": "17%",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " de los cargos ejecutivos en Chile son ocupados por mujeres, según un análisis de más de 105.000 CVs y 3.000 entrevistas a profesionales (El Mercurio, dic. 2025). Este es un pequeño grano de arena que busca generar conexión e inspiración con la audiencia.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Próximamente detalles de la ubicación y agenda.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🔒 ",
+              "type": "text"
+            },
+            {
+              "text": "Cupos limitados · Audiencia curada · Se requiere aprobación para asistir.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "# She Leads & Share\n\n¿Y si juntamos a 10 líderes C-Level de grandes corporativos, founders/CEO de Scaleups e inversionistas para compartir sus experiencias laborales y cómo ha sido el proceso para llegar en donde están?\n\nSin moderación, sin preguntas predefinidas... She Leads es un espacio donde la audiencia pone los temas sobre la mesa: lo que les interesa, lo que está en tendencia, lo que no se suele preguntar en un panel...\n\nSólo el **17%** de los cargos ejecutivos en Chile son ocupados por mujeres, según un análisis de más de 105.000 CVs y 3.000 entrevistas a profesionales (El Mercurio, dic. 2025). Este es un pequeño grano de arena que busca generar conexión e inspiración con la audiencia.\n\nPróximamente detalles de la ubicación y agenda.\n\n🔒 **Cupos limitados · Audiencia curada · Se requiere aprobación para asistir.**"
+  },
+  {
+    "title": "SUP Meet & Connect",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 1
+          },
+          "content": [
+            {
+              "text": "SUP Meet & Connect 🚀",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Este ",
+              "type": "text"
+            },
+            {
+              "text": "16 de noviembre",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " reuniremos en un mismo lugar a emprendedores del portafolio de Start-Up Chile, inversionistas, corporativos y actores de nuestra red global.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "¿La idea? Generar conexiones y conversaciones relevantes. Queremos que descubran nuevas tecnologías, que comenten los problemas reales que diversas industrias necesitan solucionar y que puedan encontrar oportunidades de inversión y colaboración.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Te invitamos a conectar con quienes pueden ayudarte a dar el siguiente paso.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "16 de noviembre | 17:00 hrs",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Te enviaremos el lugar una vez que estés confirmado/a.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "👉🏽 ",
+              "type": "text"
+            },
+            {
+              "text": "Cupos limitados. Save your spot.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "----",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 1
+          },
+          "content": [
+            {
+              "text": "SUP Meet & Connect 🚀",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "On November 16th, we are bringing together entrepreneurs from Start-Up Chile's portfolio, investors, corporate representatives, and key players from our global network.",
+              "type": "text"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "The goal? To spark meaningful connections and conversations. We want you to discover new technologies, discuss real-world challenges that industries are facing, and find opportunities for investment and collaboration.",
+              "type": "text"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "type": "hard_break"
+            },
+            {
+              "text": "We invite you to connect with the people who can help you take the next step.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "November 16 | 5:00 PM",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "We will share the location once your attendance is confirmed.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "👉🏽 ",
+              "type": "text"
+            },
+            {
+              "text": "Limited spots. Save your spot.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "# SUP Meet & Connect 🚀\n\nEste **16 de noviembre** reuniremos en un mismo lugar a emprendedores del portafolio de Start-Up Chile, inversionistas, corporativos y actores de nuestra red global.\n\n¿La idea? Generar conexiones y conversaciones relevantes. Queremos que descubran nuevas tecnologías, que comenten los problemas reales que diversas industrias necesitan solucionar y que puedan encontrar oportunidades de inversión y colaboración.\n\nTe invitamos a conectar con quienes pueden ayudarte a dar el siguiente paso.\n\n📅 **16 de noviembre | 17:00 hrs**\n\n**Te enviaremos el lugar una vez que estés confirmado/a.**\n\n👉🏽 **Cupos limitados. Save your spot.**\n\n\\----\n\n# SUP Meet & Connect 🚀\n\nOn November 16th, we are bringing together entrepreneurs from Start-Up Chile's portfolio, investors, corporate representatives, and key players from our global network.  \n  \nThe goal? To spark meaningful connections and conversations. We want you to discover new technologies, discuss real-world challenges that industries are facing, and find opportunities for investment and collaboration.  \n  \nWe invite you to connect with the people who can help you take the next step.\n\n📅 **November 16 | 5:00 PM**\n\n**We will share the location once your attendance is confirmed.**\n\n👉🏽 **Limited spots. Save your spot.**"
+  },
+  {
+    "title": "PITCH",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "CHECKLIST DE EDICIÓN:",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar fecha y hora del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Agregar imágenes del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Verificar la dirección del evento",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Editar tu perfil de Luma",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "link",
+                          "attrs": {
+                            "href": "https://luma.com/settings"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "text": " con el nombre y logo de tu empresa",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "DESCRIPCIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "AESRDTFGYUHJIFCGVHBJN VYUB",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🚀 ",
+              "type": "text"
+            },
+            {
+              "text": "Cuando completes los pasos, publica el evento aquí",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://techweek.cl/events/8e48b0ef-f10c-4eae-9af8-8da96408930e?publish=true"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "INFORMACIÓN DE LA ORGANIZACIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Organiza:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Cristóbal Russo (",
+              "type": "text"
+            },
+            {
+              "text": "persona@example.com",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "mailto:persona@example.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ") — Emprende tu Mente\n",
+              "type": "text"
+            },
+            {
+              "text": "Formato:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Networking",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Contacto:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " +56900000000",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Este evento fue creado desde el formulario de Chile Tech Week 2026.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## ⚠️ RECUERDA EDITAR ESTA DESCRIPCIÓN ⚠️\n\nCHECKLIST DE EDICIÓN:\n\n*   Verificar fecha y hora del evento\n*   Agregar imágenes del evento\n*   Verificar la dirección del evento\n*   [Editar tu perfil de Luma](https://luma.com/settings) con el nombre y logo de tu empresa\n\n## DESCRIPCIÓN\n\nAESRDTFGYUHJIFCGVHBJN VYUB\n\n🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/8e48b0ef-f10c-4eae-9af8-8da96408930e?publish=true)\n\n***\n\n## INFORMACIÓN DE LA ORGANIZACIÓN\n\n**Organiza:** Cristóbal Russo ([persona@example.com](mailto:persona@example.com)) — Emprende tu Mente **Formato:** Networking\n\n**Contacto:** +56900000000\n\n***\n\n_Este evento fue creado desde el formulario de Chile Tech Week 2026._\n\n⚠️ FIN DE LA DESCRIPCIÓN AUTOGENERADA — BORRA ESTA PARTE ⚠️"
+  },
+  {
+    "title": "Fintech Session | Mix&Match by Converge",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 1
+          },
+          "content": [
+            {
+              "text": "Get ready for a fintech dinner happening during Chile Tech Week",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Brought to you by TEMPO. We're gathering the sharpest minds in fintech, crypto, and stablecoins for a moment of good food, great conversation, and plenty of energy. Whether you're building the next big payments platform or knee-deep in stablecoin infrastructure, this is the table you want to be at.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Expect a fun, lively atmosphere where deals get discussed as easily as ideas, and where new friendships and partnerships happen over dinner rather than powerpoints.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Address will be announced soon, so keep an eye out and clear your evening for november 17th. Come hungry, come curious, and come ready to talk all things fintech.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🔒 ",
+              "type": "text"
+            },
+            {
+              "text": "Cupos limitados · Audiencia curada · Se requiere aprobación para asistir.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "# Get ready for a fintech dinner happening during Chile Tech Week\n\n## Brought to you by TEMPO. We're gathering the sharpest minds in fintech, crypto, and stablecoins for a moment of good food, great conversation, and plenty of energy. Whether you're building the next big payments platform or knee-deep in stablecoin infrastructure, this is the table you want to be at.\n\nExpect a fun, lively atmosphere where deals get discussed as easily as ideas, and where new friendships and partnerships happen over dinner rather than powerpoints.\n\nAddress will be announced soon, so keep an eye out and clear your evening for november 17th. Come hungry, come curious, and come ready to talk all things fintech.\n\n🔒 **Cupos limitados · Audiencia curada · Se requiere aprobación para asistir.**"
+  },
+  {
+    "title": "Impactaland: 🏆 Demo Day: Future Mining Challenge by Quintil Lab Accelerator",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "🎤 Demo Day: Future Mining Challenge by Quintil Lab Accelerator ·  ",
+              "type": "text"
+            },
+            {
+              "text": "Impactaland",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.impactaland.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " by ",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": "Impacta VC",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "Jueves 19 de noviembre · 12:00 a 13:30.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Las startups del programa de ",
+              "type": "text"
+            },
+            {
+              "text": "Quintil Valley",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/quintil-valley/"
+                  }
+                },
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " presentan en vivo frente al ecosistema inversor de Latinoamérica 🚀.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "El Demo Day Final de las startups que están redefiniendo el futuro de la minería.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Ven a descubrir ",
+              "type": "text"
+            },
+            {
+              "text": "tecnologías, soluciones y modelos de negocio de vanguardia",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " que ya están generando impacto en operaciones mineras y contribuyendo a grandes desafíos de la industria, desde la ",
+              "type": "text"
+            },
+            {
+              "text": "eficiencia y productividad hasta la sostenibilidad y descarbonización",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ".",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Conoce soluciones ",
+              "type": "text"
+            },
+            {
+              "text": "TRL 7+",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ", con alto nivel de madurez tecnológica, y descubre cómo estas startups están ",
+              "type": "text"
+            },
+            {
+              "text": "transformando operaciones mineras en Chile y el mundo",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ".",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Sé parte de una instancia única para conocer de primera mano ",
+              "type": "text"
+            },
+            {
+              "text": "qué viene en minería",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ", conectar con el ecosistema y descubrir las tecnologías que están impulsando una industria más ",
+              "type": "text"
+            },
+            {
+              "text": "inteligente, eficiente, segura y sostenible",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ".",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Impulsado por ",
+              "type": "text"
+            },
+            {
+              "text": "Quintil Valley",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ", agencia internacional de innovación con operaciones en ",
+              "type": "text"
+            },
+            {
+              "text": "Chile, Perú, Brasil, Colombia y Ecuador",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": ", conectando empresas, startups, inversionistas y ecosistemas para transformar desafíos en oportunidades de innovación.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📍 Parte del Escenario Impacta de Impactaland, el hub de inversiones de Impacta VC dentro del ",
+              "type": "text"
+            },
+            {
+              "text": "ETM Day",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://etmday.org/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", en el Parque Bicentenario.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Hacer el bien es el mejor negocio 🌎🫴🏻❤️",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Supported by:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ",
+              "type": "text"
+            },
+            {
+              "text": "Quintil Valley",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/quintil-valley/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "LAN Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/lanaccelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "401 Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/401accelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Oracle",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/oracle/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Corfo",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/corfo/"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## 🎤 Demo Day: Future Mining Challenge by Quintil Lab Accelerator · [**Impactaland**](https://www.impactaland.com) **by** **Impacta VC**\n\n📅 **Jueves 19 de noviembre · 12:00 a 13:30.** Las startups del programa de **[Quintil Valley](https://www.linkedin.com/company/quintil-valley/)** presentan en vivo frente al ecosistema inversor de Latinoamérica 🚀.\n\n**El Demo Day Final de las startups que están redefiniendo el futuro de la minería.**\n\nVen a descubrir **tecnologías, soluciones y modelos de negocio de vanguardia** que ya están generando impacto en operaciones mineras y contribuyendo a grandes desafíos de la industria, desde la **eficiencia y productividad hasta la sostenibilidad y descarbonización**.\n\nConoce soluciones **TRL 7+**, con alto nivel de madurez tecnológica, y descubre cómo estas startups están **transformando operaciones mineras en Chile y el mundo**.\n\nSé parte de una instancia única para conocer de primera mano **qué viene en minería**, conectar con el ecosistema y descubrir las tecnologías que están impulsando una industria más **inteligente, eficiente, segura y sostenible**.\n\nImpulsado por **Quintil Valley**, agencia internacional de innovación con operaciones en **Chile, Perú, Brasil, Colombia y Ecuador**, conectando empresas, startups, inversionistas y ecosistemas para transformar desafíos en oportunidades de innovación.\n\n📍 Parte del Escenario Impacta de Impactaland, el hub de inversiones de Impacta VC dentro del [ETM Day](https://etmday.org/), en el Parque Bicentenario.\n\n**Hacer el bien es el mejor negocio 🌎🫴🏻❤️**\n\n**Supported by:** [Quintil Valley](https://www.linkedin.com/company/quintil-valley/), [LAN Accelerator](https://www.linkedin.com/company/lanaccelerator/), [401 Accelerator](https://www.linkedin.com/company/401accelerator/), [Oracle](https://www.linkedin.com/company/oracle/), [Corfo](https://www.linkedin.com/company/corfo/)"
+  },
+  {
+    "title": "Cumbre ACVC 2026",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "El encuentro anual de la ACVC que reune a todo el ecosistema inversor de venture capital en Chile y a actores internacionales, para profundizar el networking, compartir experiencias, analizar tendencias, y oportunidades de inversión, y proyectar la evolución de la industria.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://luma.com/event/manage/evt-tRNGgVoo54Z0IeM"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🚀 ",
+              "type": "text"
+            },
+            {
+              "text": "Cuando completes los pasos, publica el evento aquí",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://techweek.cl/events/57d19a35-645d-4f6c-94c9-557e3ed62c31?publish=true"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "INFORMACIÓN DE LA ORGANIZACIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Organiza:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ACVC (",
+              "type": "text"
+            },
+            {
+              "text": "persona@example.com",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "mailto:persona@example.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ") — ACVC\n",
+              "type": "text"
+            },
+            {
+              "text": "Formato:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Panel fireside chat",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Contacto:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " +56900000000",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Este evento fue creado desde el formulario de Chile Tech Week 2026.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "[El encuentro anual de la ACVC que reune a todo el ecosistema inversor de venture capital en Chile y a actores internacionales, para profundizar el networking, compartir experiencias, analizar tendencias, y oportunidades de inversión, y proyectar la evolución de la industria.](https://luma.com/event/manage/evt-tRNGgVoo54Z0IeM)\n\n🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/57d19a35-645d-4f6c-94c9-557e3ed62c31?publish=true)\n\n***\n\n## INFORMACIÓN DE LA ORGANIZACIÓN\n\n**Organiza:** ACVC ([persona@example.com](mailto:persona@example.com)) — ACVC **Formato:** Panel fireside chat\n\n**Contacto:** +56900000000\n\n***\n\n_Este evento fue creado desde el formulario de Chile Tech Week 2026._"
+  },
+  {
+    "title": "Cumbre ACVC 2026 - Tarde de Conexiones",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "El encuentro anual de la ACVC que reune a todo el ecosistema inversor de venture capital en Chile  y a actores internacionales, para profundizar el networking, compartir experiencias,  analizar tendencias, y oportunidades de inversión, y proyectar  la evolución de la industria.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🚀 ",
+              "type": "text"
+            },
+            {
+              "text": "Cuando completes los pasos, publica el evento aquí",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://techweek.cl/events/5929bb98-5719-4df1-9fae-aee5bef9d5fc?publish=true"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "INFORMACIÓN DE LA ORGANIZACIÓN",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Organiza:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ACVC (",
+              "type": "text"
+            },
+            {
+              "text": "persona@example.com",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "mailto:persona@example.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ") — ACVC\n",
+              "type": "text"
+            },
+            {
+              "text": "Formato:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Panel fireside chat",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Contacto:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " +56900000000",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "horizontal_rule"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Este evento fue creado desde el formulario de Chile Tech Week 2026.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "El encuentro anual de la ACVC que reune a todo el ecosistema inversor de venture capital en Chile y a actores internacionales, para profundizar el networking, compartir experiencias, analizar tendencias, y oportunidades de inversión, y proyectar la evolución de la industria.\n\n🚀 [Cuando completes los pasos, publica el evento aquí](https://techweek.cl/events/5929bb98-5719-4df1-9fae-aee5bef9d5fc?publish=true)\n\n***\n\n## INFORMACIÓN DE LA ORGANIZACIÓN\n\n**Organiza:** ACVC ([persona@example.com](mailto:persona@example.com)) — ACVC **Formato:** Panel fireside chat\n\n**Contacto:** +56900000000\n\n***\n\n_Este evento fue creado desde el formulario de Chile Tech Week 2026._"
+  },
+  {
+    "title": "Scale Up gathering by Endeavor",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Te invitamos a una instancia para conectar con founders, mentores e inversionistas que hacen posible el efecto multiplicador de Endeavor.",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "Te invitamos a una instancia para conectar con founders, mentores e inversionistas que hacen posible el efecto multiplicador de Endeavor."
+  },
+  {
+    "title": "Impactaland: 🏆 LAN Demo Day - The Batch 5",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "🎤 Escenario Impacta · ",
+              "type": "text"
+            },
+            {
+              "text": "Impactaland",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.impactaland.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " ",
+              "type": "text"
+            },
+            {
+              "text": "by ",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": "Impacta VC",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "Jueves 19 de noviembre · 15:00 a 16:30.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Las startups de ",
+              "type": "text"
+            },
+            {
+              "text": "LAN Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " presentan en vivo frente al ecosistema inversor de Latinoamérica 🚀.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Las startups del Batch 5 de LAN Accelerator suben al escenario después de seis semanas de programa: cuatro online y dos presenciales en Santiago. Son startups latinoamericanas en etapa seed, con producto en el mercado y tracción, que vienen a Chile a buscar clientes, aliados e inversión.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "LAN Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://lanaccelerator.com/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " es una aceleradora y fondo que trabaja con startups de toda la región. Su programa cuenta con el apoyo de IDB Lab.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Una sesión pensada para fondos, ángeles y corporativos que quieren conocer lo que se está construyendo en Latinoamérica.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📍 Parte del Escenario Impacta de Impactaland, el hub de inversiones de Impacta VC dentro del ",
+              "type": "text"
+            },
+            {
+              "text": "ETM Day",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://etmday.org/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", en el Parque Bicentenario.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Hacer el bien es el mejor negocio 🌎🫴🏻❤️",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Supported by:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ",
+              "type": "text"
+            },
+            {
+              "text": "Quintil Valley",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/quintil-valley/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "LAN Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/lanaccelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "401 Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/401accelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Oracle",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/oracle/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Corfo",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/corfo/"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## 🎤 Escenario Impacta · [Impactaland](https://www.impactaland.com) **by** **Impacta VC**\n\n📅 **Jueves 19 de noviembre · 15:00 a 16:30.** Las startups de **LAN Accelerator** presentan en vivo frente al ecosistema inversor de Latinoamérica 🚀.\n\nLas startups del Batch 5 de LAN Accelerator suben al escenario después de seis semanas de programa: cuatro online y dos presenciales en Santiago. Son startups latinoamericanas en etapa seed, con producto en el mercado y tracción, que vienen a Chile a buscar clientes, aliados e inversión.\n\n[LAN Accelerator](https://lanaccelerator.com/) es una aceleradora y fondo que trabaja con startups de toda la región. Su programa cuenta con el apoyo de IDB Lab.\n\nUna sesión pensada para fondos, ángeles y corporativos que quieren conocer lo que se está construyendo en Latinoamérica.\n\n📍 Parte del Escenario Impacta de Impactaland, el hub de inversiones de Impacta VC dentro del [ETM Day](https://etmday.org/), en el Parque Bicentenario.\n\n**Hacer el bien es el mejor negocio 🌎🫴🏻❤️**\n\n**Supported by:** [Quintil Valley](https://www.linkedin.com/company/quintil-valley/), [LAN Accelerator](https://www.linkedin.com/company/lanaccelerator/), [401 Accelerator](https://www.linkedin.com/company/401accelerator/), [Oracle](https://www.linkedin.com/company/oracle/), [Corfo](https://www.linkedin.com/company/corfo/)"
+  },
+  {
+    "title": "Cluster Inmobiliario 2026 | EtM",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 1
+          },
+          "content": [
+            {
+              "text": "¡Volvemos por tercer año consecutivo!",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Bienvenidas las inmobiliarias, constructoras, proveedores de la industria, proptech, fintech, constech y todos los que impulsan la industria inmobiliaria y real estate.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Por tercer año consecutivo, el Cluster inmobiliario Chile se toma el Emprende tu Mente. Esta vez venimos recargados, 400m2 de espacio, una única carpa que reunirá a los diferentes players de la industria, escenario propio, estudio de video podcast y varias sorpresas más.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Entrada libre al Cluster inmobiliario (hay que pagar la entrada al EtM directamente a ellos en ingreso). Programación, charlas, marcas participantes próximamente.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph"
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Organizan: El Diario Inmobiliario, Startups Latam, ALS Venture Studio y Converge",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "# ¡Volvemos por tercer año consecutivo!\n\n## Bienvenidas las inmobiliarias, constructoras, proveedores de la industria, proptech, fintech, constech y todos los que impulsan la industria inmobiliaria y real estate.\n\nPor tercer año consecutivo, el Cluster inmobiliario Chile se toma el Emprende tu Mente. Esta vez venimos recargados, 400m2 de espacio, una única carpa que reunirá a los diferentes players de la industria, escenario propio, estudio de video podcast y varias sorpresas más.\n\nEntrada libre al Cluster inmobiliario (hay que pagar la entrada al EtM directamente a ellos en ingreso). Programación, charlas, marcas participantes próximamente.\n\nOrganizan: El Diario Inmobiliario, Startups Latam, ALS Venture Studio y Converge"
+  },
+  {
+    "title": "Impactaland: ⭐️ Mingle Night",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Mingle Night · ",
+              "type": "text"
+            },
+            {
+              "text": "Impactaland",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.impactaland.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " 2026 by ",
+              "type": "text"
+            },
+            {
+              "text": "Impacta VC",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ✨",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "La noche que convierte reuniones en relaciones. Al cierre del primer día de Impactaland nos juntamos en el restaurante ",
+              "type": "text"
+            },
+            {
+              "text": "Dondoh",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " con LPs, VCs, CVCs, ángeles, aliados estratégicos y founders seleccionados 🥂.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Un ambiente íntimo, lejos del ruido del parque,",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " para conversar sin agenda ni reloj.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "🤝 Donde nace la confianza:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " los fondos conocen a sus futuros LPs, los co-inversionistas se alinean y los founders top entran a una sala a la que no se llega en un evento abierto.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "⭐️ Curaduría total de la lista:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " cada invitado está ahí porque suma a la conversación.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "🔐 Acceso",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "Solo por invitación y lista confirmada (cupos limitados).",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "La dirección se comparte solo con asistentes confirmados.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📍 Nos reservamos el derecho de admisión.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "👔 ",
+              "type": "text"
+            },
+            {
+              "text": "Dress code:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " semi-formal relajado.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Hacer el bien es el mejor negocio 🌎🫴🏻❤️",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Supported by:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ",
+              "type": "text"
+            },
+            {
+              "text": "Quintil Valley",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/quintil-valley/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "LAN Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/lanaccelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "401 Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/401accelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Oracle",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/oracle/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Corfo",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/corfo/"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## Mingle Night · [Impactaland](https://www.impactaland.com) 2026 by **Impacta VC** ✨\n\nLa noche que convierte reuniones en relaciones. Al cierre del primer día de Impactaland nos juntamos en el restaurante **Dondoh** con LPs, VCs, CVCs, ángeles, aliados estratégicos y founders seleccionados 🥂.\n\n*   **Un ambiente íntimo, lejos del ruido del parque,** para conversar sin agenda ni reloj.\n*   **🤝 Donde nace la confianza:** los fondos conocen a sus futuros LPs, los co-inversionistas se alinean y los founders top entran a una sala a la que no se llega en un evento abierto.\n*   **⭐️ Curaduría total de la lista:** cada invitado está ahí porque suma a la conversación.\n\n**🔐 Acceso**\n\n*   Solo por invitación y lista confirmada (cupos limitados).\n*   La dirección se comparte solo con asistentes confirmados.\n\n📍 Nos reservamos el derecho de admisión.\n\n👔 **Dress code:** semi-formal relajado.\n\n**Hacer el bien es el mejor negocio 🌎🫴🏻❤️**\n\n**Supported by:** [Quintil Valley](https://www.linkedin.com/company/quintil-valley/), [LAN Accelerator](https://www.linkedin.com/company/lanaccelerator/), [401 Accelerator](https://www.linkedin.com/company/401accelerator/), [Oracle](https://www.linkedin.com/company/oracle/), [Corfo](https://www.linkedin.com/company/corfo/)"
+  },
+  {
+    "title": "🚀 Impactaland: Día 2",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Impactaland",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.impactaland.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " by ",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": "Impacta VC",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " · Hub de inversiones del ETM Day",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Impactaland es el hub de inversiones del ",
+              "type": "text"
+            },
+            {
+              "text": "ETM Day",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://etmday.org/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " 🌎: el lugar donde se une el ecosistema startup de Latinoamérica y donde todos llegan con un mismo propósito, ",
+              "type": "text"
+            },
+            {
+              "text": "colaborar, hacer negocios y generar relaciones reales",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " 🤝.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "Día 2 · Viernes 20 de noviembre.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " La jornada central: conversaciones accionables entre founders en ronda, VCs, LPs, CVCs y corporativos.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Qué vas a encontrar",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " 👇",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "🤝 Co-investor Lounge Loved by Oracle:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " conexiones 1 a 1 pre-agendadas vía Impacta Matchmaker entre startups y VCs, y entre VCs y LPs.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "💻 Cowork:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " tu base para trabajar entre reuniones y hacer networking espontáneo.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "🎤 Escenario Impacts:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " paneles y charlas con referentes del ecosistema de inversión de la región.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Hacer el bien es el mejor negocio 🌎🫴🏻❤️",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Supported by:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ",
+              "type": "text"
+            },
+            {
+              "text": "Quintil Valley",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/quintil-valley/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "LAN Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/lanaccelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "401 Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/401accelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Oracle",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/oracle/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Corfo",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/corfo/"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## [**Impactaland**](https://www.impactaland.com) **by** **Impacta VC** · Hub de inversiones del ETM Day\n\nImpactaland es el hub de inversiones del [ETM Day](https://etmday.org/) 🌎: el lugar donde se une el ecosistema startup de Latinoamérica y donde todos llegan con un mismo propósito, **colaborar, hacer negocios y generar relaciones reales** 🤝.\n\n📅 **Día 2 · Viernes 20 de noviembre.** La jornada central: conversaciones accionables entre founders en ronda, VCs, LPs, CVCs y corporativos.\n\n**Qué vas a encontrar** 👇\n\n*   **🤝 Co-investor Lounge Loved by Oracle:** conexiones 1 a 1 pre-agendadas vía Impacta Matchmaker entre startups y VCs, y entre VCs y LPs.\n*   **💻 Cowork:** tu base para trabajar entre reuniones y hacer networking espontáneo.\n*   **🎤 Escenario Impacts:** paneles y charlas con referentes del ecosistema de inversión de la región.\n\n**Hacer el bien es el mejor negocio 🌎🫴🏻❤️**\n\n**Supported by:** [Quintil Valley](https://www.linkedin.com/company/quintil-valley/), [LAN Accelerator](https://www.linkedin.com/company/lanaccelerator/), [401 Accelerator](https://www.linkedin.com/company/401accelerator/), [Oracle](https://www.linkedin.com/company/oracle/), [Corfo](https://www.linkedin.com/company/corfo/)"
+  },
+  {
+    "title": "☁️ Impactaland | The New Leadership: Playbook for the AI Era",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "🎤 Escenario Impacta · ",
+              "type": "text"
+            },
+            {
+              "text": "Impactaland",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.impactaland.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " by ",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": "Impacta VC",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "Viernes 20 de noviembre · 15:30 a 16:30.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Bloque de ",
+              "type": "text"
+            },
+            {
+              "text": "Oracle",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/oracle/"
+                  }
+                },
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ☁️ en el Escenario Impacta. Contenido y speakers por anunciar 👀.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📍 Parte del Escenario Impacta de Impactaland, el hub de inversiones de Impacta VC dentro del ",
+              "type": "text"
+            },
+            {
+              "text": "ETM Day",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://etmday.org/?utm_source=luma"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", en el Parque Bicentenario.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Hacer el bien es el mejor negocio 🌎🫴🏻❤️",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Supported by:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ",
+              "type": "text"
+            },
+            {
+              "text": "Quintil Valley",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/quintil-valley/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "LAN Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/lanaccelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "401 Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/401accelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Oracle",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/oracle/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Corfo",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/corfo/"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## 🎤 Escenario Impacta · [**Impactaland**](https://www.impactaland.com) **by** **Impacta VC**\n\n📅 **Viernes 20 de noviembre · 15:30 a 16:30.** Bloque de **[Oracle](https://www.linkedin.com/company/oracle/)** ☁️ en el Escenario Impacta. Contenido y speakers por anunciar 👀.\n\n📍 Parte del Escenario Impacta de Impactaland, el hub de inversiones de Impacta VC dentro del [ETM Day](https://etmday.org/?utm_source=luma), en el Parque Bicentenario.\n\n**Hacer el bien es el mejor negocio 🌎🫴🏻❤️**\n\n**Supported by:** [Quintil Valley](https://www.linkedin.com/company/quintil-valley/), [LAN Accelerator](https://www.linkedin.com/company/lanaccelerator/), [401 Accelerator](https://www.linkedin.com/company/401accelerator/), [Oracle](https://www.linkedin.com/company/oracle/), [Corfo](https://www.linkedin.com/company/corfo/)"
+  },
+  {
+    "title": "🚀 Impactaland: Día 1",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "🚀 ",
+              "type": "text"
+            },
+            {
+              "text": "Impactaland",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.impactaland.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " by ",
+              "type": "text"
+            },
+            {
+              "text": "Impacta VC ",
+              "type": "text"
+            },
+            {
+              "text": "· Hub de inversiones del ETM Day",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Impactaland es el hub de inversiones del ",
+              "type": "text"
+            },
+            {
+              "text": "ETM Day",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://etmday.org/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " 🌎: el lugar donde se une el ecosistema startup de Latinoamérica y donde todos llegan con un mismo propósito, ",
+              "type": "text"
+            },
+            {
+              "text": "colaborar, hacer negocios y generar relaciones reales",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " 🤝.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "Día 1 · Jueves 19 de noviembre.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Founders, VCs, CVCs, ángeles, LPs y corporativos se encuentran para conectar desde temprano.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Qué vas a encontrar",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " 👇",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "🤝 Co-investor Lounge Loved by Oracle:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " conexiones 1 a 1 pre-agendadas vía Impacta Matchmaker entre startups y VCs, y entre VCs y LPs.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "💻 Cowork:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " tu base para trabajar entre reuniones y hacer networking espontáneo.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "🎤 Escenario Impacta:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " Demo Days de Quintil Valley y LAN Accelerator, bloques de Impacta VC y un fireside chat de cierre",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Hacer el bien es el mejor negocio 🌎🫴🏻❤️",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Supported by:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ",
+              "type": "text"
+            },
+            {
+              "text": "Quintil Valley",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/quintil-valley/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "LAN Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/lanaccelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "401 Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/401accelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Oracle",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/oracle/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Corfo",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/corfo/"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## 🚀 [Impactaland](https://www.impactaland.com) by Impacta VC · Hub de inversiones del ETM Day\n\nImpactaland es el hub de inversiones del [ETM Day](https://etmday.org/) 🌎: el lugar donde se une el ecosistema startup de Latinoamérica y donde todos llegan con un mismo propósito, **colaborar, hacer negocios y generar relaciones reales** 🤝.\n\n📅 **Día 1 · Jueves 19 de noviembre.** Founders, VCs, CVCs, ángeles, LPs y corporativos se encuentran para conectar desde temprano.\n\n**Qué vas a encontrar** 👇\n\n*   **🤝 Co-investor Lounge Loved by Oracle:** conexiones 1 a 1 pre-agendadas vía Impacta Matchmaker entre startups y VCs, y entre VCs y LPs.\n*   **💻 Cowork:** tu base para trabajar entre reuniones y hacer networking espontáneo.\n*   **🎤 Escenario Impacta:** Demo Days de Quintil Valley y LAN Accelerator, bloques de Impacta VC y un fireside chat de cierre\n\n**Hacer el bien es el mejor negocio 🌎🫴🏻❤️**\n\n**Supported by:** [Quintil Valley](https://www.linkedin.com/company/quintil-valley/), [LAN Accelerator](https://www.linkedin.com/company/lanaccelerator/), [401 Accelerator](https://www.linkedin.com/company/401accelerator/), [Oracle](https://www.linkedin.com/company/oracle/), [Corfo](https://www.linkedin.com/company/corfo/)"
+  },
+  {
+    "title": "🚀 Impactaland: Día 3",
+    "description_mirror": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "text": "Impactaland",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.impactaland.com"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " by ",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": "Impacta VC",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " · Hub de inversiones del ETM Day",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Impactaland es el hub de inversiones del ",
+              "type": "text"
+            },
+            {
+              "text": "ETM Day",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://etmday.org/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": " 🌎: el lugar donde se une el ecosistema startup de Latinoamérica y donde todos llegan con un mismo propósito, ",
+              "type": "text"
+            },
+            {
+              "text": "colaborar, hacer negocios y generar relaciones reales",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " 🤝.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "📅 ",
+              "type": "text"
+            },
+            {
+              "text": "Día 3 · Sábado 21 de noviembre.",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " Cerramos Impactaland con contenido en el escenario y tiempo para conectar con calma.",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Qué vas a encontrar",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " 👇",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "type": "bullet_list",
+          "content": [
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "🎤 Escenario Impacta:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " charla de Andrés Nájera, \"Cómo crecer en ventas sin invertir dinero\", y bloque de Impacta VC.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "list_item",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "text": "🫂 Networking:",
+                      "type": "text",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "text": " un espacio para cerrar conversaciones, sumar nuevas conexiones y celebrar la semana junto al ecosistema.",
+                      "type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Hacer el bien es el mejor negocio 🌎🫴🏻❤️",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "text": "Supported by:",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "text": " ",
+              "type": "text"
+            },
+            {
+              "text": "Quintil Valley",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/quintil-valley/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "LAN Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/lanaccelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "401 Accelerator",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/401accelerator/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Oracle",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/oracle/"
+                  }
+                }
+              ]
+            },
+            {
+              "text": ", ",
+              "type": "text"
+            },
+            {
+              "text": "Corfo",
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://www.linkedin.com/company/corfo/"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "description_md": "## [**Impactaland**](https://www.impactaland.com) **by** **Impacta VC** · Hub de inversiones del ETM Day\n\nImpactaland es el hub de inversiones del [ETM Day](https://etmday.org/) 🌎: el lugar donde se une el ecosistema startup de Latinoamérica y donde todos llegan con un mismo propósito, **colaborar, hacer negocios y generar relaciones reales** 🤝.\n\n📅 **Día 3 · Sábado 21 de noviembre.** Cerramos Impactaland con contenido en el escenario y tiempo para conectar con calma.\n\n**Qué vas a encontrar** 👇\n\n*   **🎤 Escenario Impacta:** charla de Andrés Nájera, \"Cómo crecer en ventas sin invertir dinero\", y bloque de Impacta VC.\n*   **🫂 Networking:** un espacio para cerrar conversaciones, sumar nuevas conexiones y celebrar la semana junto al ecosistema.\n\n**Hacer el bien es el mejor negocio 🌎🫴🏻❤️**\n\n**Supported by:** [Quintil Valley](https://www.linkedin.com/company/quintil-valley/), [LAN Accelerator](https://www.linkedin.com/company/lanaccelerator/), [401 Accelerator](https://www.linkedin.com/company/401accelerator/), [Oracle](https://www.linkedin.com/company/oracle/), [Corfo](https://www.linkedin.com/company/corfo/)"
+  }
+]

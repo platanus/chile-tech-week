@@ -70,10 +70,15 @@ export default function Show({ event, formats, themes, audiences }: AdminEventsS
         <div className="flex flex-col items-end gap-3">
           <StateBadge state={event.state} />
           {event.lumaImported && <span className="label text-[11px] text-primary">Importado de Luma</span>}
+          {event.state === 'hidden' && (
+            <span className="max-w-[36ch] text-right text-xs text-muted-foreground">
+              El host lo hizo privado en Luma: no aparece en el programa. Vuelve solo cuando sea público de nuevo.
+            </span>
+          )}
           <div className="flex flex-wrap gap-2">
             <EventEditDialog event={event} formats={formats} formatLabels={FORMAT_LABELS} themes={themes} audiences={audiences} />
             {event.state === 'submitted' && <Moderation eventId={event.id} />}
-            {(event.state === 'waiting_luma_edit' || event.state === 'published') && <TakeDown eventId={event.id} imported={event.lumaImported} />}
+            {(event.state === 'waiting_luma_edit' || event.state === 'published' || event.state === 'hidden') && <TakeDown eventId={event.id} imported={event.lumaImported} />}
           </div>
         </div>
       </div>

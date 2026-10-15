@@ -70,6 +70,22 @@ RSpec.describe EventMailer do
     expect(mail.html_part.decoded).to include("cancelado en Luma", "hola@techweek.cl")
   end
 
+  it "tells the host the event left the programme because it is private on Luma, and how to bring it back" do
+    mail = described_class.with(event: event).luma_hidden
+
+    expect(mail.subject).to eq("Tu evento ya no aparece en Chile Tech Week: Demo Day")
+    expect(mail.html_part.decoded).to include("privado en Luma", "hazlo público en Luma", "https://luma.com/abc")
+    expect(mail.text_part.decoded).to include("privado en Luma", "https://luma.com/abc")
+  end
+
+  it "tells an English-speaking host in English" do
+    event.update!(locale: "en")
+    mail = described_class.with(event: event).luma_hidden
+
+    expect(mail.subject).to eq("Your event no longer shows on Chile Tech Week: Demo Day")
+    expect(mail.text_part.decoded).to include("private on Luma", "make it public on Luma")
+  end
+
   it "tells the host an admin took the event down, with the reason" do
     event.update!(state: "deleted", deletion_reason: "Duplicado de otro evento")
     mail = described_class.with(event: event).taken_down

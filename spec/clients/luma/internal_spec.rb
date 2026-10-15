@@ -89,6 +89,42 @@ RSpec.describe Luma::Internal do
     expect { internal.guests("evt-1") }.to raise_error(Luma::Error, /inválida/)
   end
 
+  describe "#get_event" do
+    let(:event_url) { "https://api.luma.com/event/admin/get" }
+
+    it "reads an event the account hosts, private ones too, with its body as Markdown" do
+      stub_sign_in
+      body = {type: "doc", content: [{type: "heading", attrs: {level: 2}, content: [{type: "text", text: "Agenda"}]},
+        {type: "paragraph", content: [{type: "text", text: "Panel", marks: [{type: "bold"}]}]}]}
+      stub_request(:get, event_url).with(query: {event_api_id: "evt-1"}).to_return(body: {event: {
+        api_id: "evt-1", name: "Coinversión", start_at: "2026-11-20T16:00:00.000Z", end_at: "2026-11-20T17:00:00.000Z",
+        url: "c0my9bwv", visibility: "private", cover_url: "https://images.lumacdn.com/cover.png", description_mirror: body
+      }}.to_json)
+
+      expect(internal.get_event("evt-1")).to have_attributes(api_id: "evt-1", name: "Coinversión", start_at: "2026-11-20T16:00:00.000Z",
+        url: "https://luma.com/c0my9bwv", visibility: "private", cover_url: "https://images.lumacdn.com/cover.png",
+        description_md: "## Agenda\n\n**Panel**")
+    end
+
+    it "raises NotFound for an event cancelled on Luma" do
+      stub_sign_in
+      stub_request(:get, event_url).with(query: {event_api_id: "evt-1"})
+        .to_return(status: 400, body: {message: "This event has been canceled.", code: "event-deleted"}.to_json)
+
+      expect { internal.get_event("evt-1") }.to raise_error(Luma::NotFound) { |error| expect(error).to be_gone }
+    end
+
+    it "raises NotHost, naming the account, the event and Luma's answer, when the account is no longer a host" do
+      allow(AppConfig).to receive(:instance).and_return(AppConfig.new(luma_host_user_id: "usr-site", luma_host_email: "events@techweek.cl"))
+      stub_sign_in
+      stub_request(:get, event_url).with(query: {event_api_id: "evt-1"}).to_return(status: 403, body: {message: "Forbidden"}.to_json)
+
+      expect { internal.get_event("evt-1") }.to raise_error(Luma::NotHost) { |error|
+        expect(error.message).to include("events@techweek.cl (usr-site)", "evt-1", "(403) on /event/admin/get", "Forbidden")
+      }
+    end
+  end
+
   describe "Luma.internal" do
     it "is the in-memory fake until a passkey is configured" do
       allow(AppConfig).to receive(:instance).and_return(AppConfig.new(luma_passkey: ""))

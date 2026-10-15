@@ -1,0 +1,8 @@
+Hola <%= @event.author_name %>,
+
+Detectamos que tu evento "<%= @event.title %>" ahora es privado en Luma, así que dejó de aparecer en el programa de Chile Tech Week.
+
+Si quieres que vuelva a aparecer, hazlo público en Luma: lo volveremos a mostrar automáticamente en unos minutos.
+
+Si tienes dudas, escríbenos a <%= contact_email %>.
+Abrir tu evento en Luma: <%= @luma_url.presence || @status_url %>
