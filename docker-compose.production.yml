@@ -110,7 +110,7 @@ services:
     mem_limit: 1g
     memswap_limit: 1g
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/2322"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/2322"]
       interval: 30s
       timeout: 5s
       retries: 3
