@@ -18,6 +18,12 @@ RSpec.describe PhotonClient do
     expect { client.search([["q", "x"]]) }.to raise_error(described_class::Error, /503/)
   end
 
+  it "raises Error when Photon's host does not resolve" do
+    stub_request(:get, "http://photon:2322/api").with(query: {q: "x"}).to_raise(SocketError.new("getaddrinfo: Name or service not known"))
+
+    expect { client.search([["q", "x"]]) }.to raise_error(described_class::Error, /failed/)
+  end
+
   it "raises Error when Photon is unreachable" do
     stub_request(:get, "http://photon:2322/api").with(query: {q: "x"}).to_raise(Errno::ECONNREFUSED)
 

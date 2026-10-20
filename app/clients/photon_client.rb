@@ -20,7 +20,7 @@ class PhotonClient
     raise Error, "Photon answered #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
     response.body
-  rescue Timeout::Error, SystemCallError, IOError, OpenSSL::SSL::SSLError => e
+  rescue Timeout::Error, SocketError, SystemCallError, IOError, OpenSSL::SSL::SSLError => e
     raise Error, "Photon request failed: #{e.message}"
   end
 end

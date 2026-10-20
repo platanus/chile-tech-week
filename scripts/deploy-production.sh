@@ -195,7 +195,7 @@ step_end
 # --remove-orphans clears out the previous stack's `migrator` and `cron-ticker`
 # containers; Solid Queue's recurring schedule replaces the latter.
 step_begin "startup"
-dc up -d postgres app jobs --remove-orphans
+dc up -d postgres photon app jobs --remove-orphans
 step_end
 
 # No image or builder prune here, deliberately. Every deploy leans on the daemon's layer
