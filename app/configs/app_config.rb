@@ -56,7 +56,11 @@ class AppConfig < Anyway::Config
     # with the `send` scope and the group's JID ("1203…@g.us"). Either one empty = off.
     wpp_api_url: "https://wpp.rafafdz.dev",
     wpp_api_key: "",
-    wpp_chat_jid: ""
+    wpp_chat_jid: "",
+
+    # The geocoder behind the address field (PhotonClient). Production points it at its own
+    # `photon` container; this default is komoot's public instance, fine for development.
+    photon_url: "https://photon.komoot.io"
   )
 
   coerce_types send_emails: :boolean, smtp_port: :integer

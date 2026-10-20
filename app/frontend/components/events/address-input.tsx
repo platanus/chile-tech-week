@@ -2,6 +2,7 @@ import { MapPin } from 'lucide-react';
 import { type KeyboardEvent, useEffect, useId, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { copy, useI18n } from '@/lib/i18n';
+import { geocode_path } from '@/routes';
 import { cn } from '@/lib/utils';
 
 const COPY = copy(
@@ -10,12 +11,10 @@ const COPY = copy(
 );
 
 // The venue, searched as the host types and picked from a list: Photon (komoot's geocoder
-// over OpenStreetMap — free, no key, built for search-as-you-type), limited to Chile and
-// leaning towards Santiago. Picking a result fills the hidden fields the server stores:
+// over OpenStreetMap, built for search-as-you-type), limited to Chile and leaning towards
+// Santiago. The browser asks our own /geocode, which relays to our Photon and caches. Picking a result fills the hidden fields the server stores:
 // the address as shown, its commune and its coordinates. Text that was not picked from the
 // list posts no address, so the commune always comes from a real place.
-
-const PHOTON_URL = 'https://photon.komoot.io/api/';
 
 export type Place = { address: string; commune: string; latitude: number; longitude: number };
 // `approximate`: OSM knows the street but not the number the host typed, so the address
@@ -64,15 +63,13 @@ export function placeOf(feature: PhotonFeature, query = ''): Suggestion | null {
 
 // Photon's results for one query, as the form's suggestions.
 async function photon(query: string, signal: AbortSignal, nearSantiago: boolean) {
-  // lang=default: the names as mapped (Spanish), not in the browser's language.
-  const params = new URLSearchParams({ q: query, limit: '8', countrycode: 'CL', lang: 'default' });
+  // The server fixes the rest (Chile, the names as mapped, the house and street layers).
+  const params = new URLSearchParams({ q: query });
   if (nearSantiago) {
     params.set('lat', '-33.44');
     params.set('lon', '-70.65');
   }
-  params.append('layer', 'house');
-  params.append('layer', 'street');
-  const response = await fetch(`${PHOTON_URL}?${params}`, { signal });
+  const response = await fetch(`${geocode_path()}?${params}`, { signal });
   if (!response.ok) throw new Error(`Photon ${response.status}`);
   const { features } = (await response.json()) as { features: PhotonFeature[] };
   return features;

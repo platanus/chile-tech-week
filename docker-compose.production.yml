@@ -30,6 +30,7 @@ x-app-base: &app-base
     # authenticate against a database that wasn't this one. The container name only resolves
     # on `internal`, so it is unambiguous.
     - POSTGRES_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@tech-week-postgres:5432/tech_week_prod
+    - PHOTON_URL=http://tech-week-photon:2322
   volumes:
     - storage-volume:/app/storage
   depends_on:
@@ -89,6 +90,34 @@ services:
     networks:
       - internal
       - npm
+
+  # Our own Photon (the geocoder behind the address field, reached through GeocodeController):
+  # a Chile-only index of streets and addresses, ~350 MB, using ~320 MB of RAM, so a search answers in milliseconds
+  # where komoot's public instance took seconds. The jar and the index live on the host in
+  # /home/debian/photon (built by scripts/photon/build-index.sh — nothing here builds it), and the
+  # container is capped because the host is shared with other apps.
+  photon:
+    image: eclipse-temurin:21-jre
+    container_name: tech-week-photon
+    restart: unless-stopped
+    working_dir: /photon
+    command: java -jar photon.jar serve -data-dir /photon/data -listen-ip 0.0.0.0
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xmx384m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m
+    volumes:
+      - /home/debian/photon:/photon
+    cpus: 1
+    mem_limit: 1g
+    memswap_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/2322"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    <<: *logging
+    networks:
+      - internal
 
   # Solid Queue, including the recurring schedule in config/recurring.yml — which is what
   # replaced the old `cron-ticker` sidecar polling /api/cron/tick. Same image as `app`,

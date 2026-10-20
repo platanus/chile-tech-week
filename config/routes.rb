@@ -20,6 +20,9 @@ Rails.application.routes.draw do
     post "events/:id/publish", to: "event_publications#create", as: :publish_event
   end
 
+  # The address field's search, relayed to Photon (GeocodeController).
+  get "geocode", to: "geocode#show", as: :geocode
+
   # The public Luma calendar every published event ends up in.
   post "internal/inbound_emails", to: "inbound_emails#create"
   get "luma", to: redirect(AppConfig.instance.luma_calendar_url)

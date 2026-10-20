@@ -188,8 +188,8 @@ archive is that year's week, under `/25`.
   `/events` the programme filtered in the browser (day, topic, start time, type, search);
   `/events/new` the submission form (Inertia `<Form>`, multipart; `Event#logo_upload=`
   stores the logo with Active Storage and keeps its permanent URL in `company_logo_url`; the
-  venue comes from `components/events/address-input`, a Chile-only search over Photon — komoot's
-  free, keyless OSM geocoder — that fills `address`, `commune`, `latitude` and `longitude`
+  venue comes from `components/events/address-input`, a Chile-only search over Photon (komoot's
+  OSM geocoder, relayed and cached by `GET /geocode`, see "Photon" below) that fills `address`, `commune`, `latitude` and `longitude`
   together; in development `/events/new?step=2&event[company_name]=…` opens a step prefilled);
   `/events/:id` the status page (the uuid is the host's link) with the publish dialog
   (`POST /events/:id/publish` → `Events::Publish`). The `:submission` validation context on
@@ -250,6 +250,15 @@ archive is that year's week, under `/25`.
   passkey whose counter did not grow, so the counter is the current time. No bot check guards that
   path; if Luma ever adds one, `Luma::Error` surfaces — do not work around it. Without
   `LUMA_PASSKEY` it is `Luma::FakeInternal` (`add_guest` in specs).
+- **Photon** (`PhotonClient`, `GeocodeController`): the address field never calls Photon from the
+  browser. `GET /geocode` fixes Chile, the `house`/`street` layers and the limit, passes the words
+  and the Santiago bias on, and caches each search for a day. Production runs its own Photon (the
+  `photon` service in `docker-compose.production.yml`, `PHOTON_URL`, capped at 1 CPU / 1 GB, ~320 MB in use): a
+  Chile-only index of streets and addresses (~1.1 M documents, ~350 MB) kept on the host in
+  `/home/debian/photon` (jar + `data/`, a bind mount, not part of the deploy). Development uses
+  komoot's public instance. `scripts/photon/build-index.sh` rebuilds the index from Photon's planet
+  dump (`extract.py` slims it); run it on `swiss` only through that script — its first, uncapped run
+  starved the host and took production down. Refresh it when OSM's Chilean addresses matter again.
 - **Images**: Luma's covers are ~2 MB PNGs, so `MirrorLumaCoverJob` stores two WebP copies instead
   of the file — `cover` (≤1200 px, the event pages) and `cover_thumb` (≤360 px, the programme's
   cards: `Event#cover_thumb_url`). Every stored image — covers and the logos' `company_logo_url` —
