@@ -123,8 +123,10 @@ module Luma
     # has been canceled."): both are NotFound, which Luma::Sync reads as gone.
     def parse(response, path)
       unless response.is_a?(Net::HTTPSuccess)
-        message = "Luma internal API error (#{response.code}) on #{path}: #{response.body.to_s[0, 300].presence || "Unknown error"}"
-        raise NotFound, message if response.code == "404" || (response.code == "400" && response.body.to_s.include?("event-deleted"))
+        # Net::HTTP hands the body back as binary; as UTF-8 it can join the Spanish messages built from it.
+        body = response.body.to_s.dup.force_encoding(Encoding::UTF_8).scrub[0, 300]
+        message = "Luma internal API error (#{response.code}) on #{path}: #{body.presence || "Unknown error"}"
+        raise NotFound, message if response.code == "404" || (response.code == "400" && body.include?("event-deleted"))
         raise Forbidden, message if response.code == "403"
 
         raise Error, message

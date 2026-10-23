@@ -30,8 +30,11 @@ module Events
     # Pulls the host's latest edits first (it may have changed, or been cancelled, since it was
     # submitted), then lists the event in the Luma calendar and publishes it.
     def list_imported
-      if Luma::Sync.new.sync_event(@event, notify: false) == :cancelled
+      case Luma::Sync.new.sync_event(@event, notify: false)
+      when :cancelled
         return Result.new(ok: false, error: "El evento fue cancelado en Luma.")
+      when :failed
+        return Result.new(ok: false, error: "No se pudo leer el evento en Luma (¿el host sacó a #{AppConfig.instance.luma_host_email} como host?). El detalle quedó en Slack.")
       end
       if @event.hidden_on_luma?
         return Result.new(ok: false, error: "El evento es privado en Luma: pídele al host que lo haga público antes de aprobarlo.")

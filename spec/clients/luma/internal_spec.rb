@@ -114,6 +114,14 @@ RSpec.describe Luma::Internal do
       expect { internal.get_event("evt-1") }.to raise_error(Luma::NotFound) { |error| expect(error).to be_gone }
     end
 
+    it "raises NotHost, not an encoding error, when Luma's refusal has non-ASCII text" do
+      stub_sign_in
+      stub_request(:get, event_url).with(query: {event_api_id: "evt-1"})
+        .to_return(status: 403, body: {message: "You don’t have access to this event."}.to_json.b)
+
+      expect { internal.get_event("evt-1") }.to raise_error(Luma::NotHost, /don’t have access/)
+    end
+
     it "raises NotHost, naming the account, the event and Luma's answer, when the account is no longer a host" do
       allow(AppConfig).to receive(:instance).and_return(AppConfig.new(luma_host_user_id: "usr-site", luma_host_email: "events@techweek.cl"))
       stub_sign_in

@@ -30,6 +30,17 @@ RSpec.describe "imported events" do
       expect(MirrorLumaCoverJob).to have_been_enqueued.with(event.id, event.luma_cover_url)
     end
 
+    it "refuses, without listing it, an event Luma will not let the site read" do
+      event = imported
+      allow(Luma::Sync).to receive(:new).and_return(instance_double(Luma::Sync, sync_event: :failed))
+
+      result = described_class.new(event).call
+
+      expect(result).to have_attributes(ok: false, error: /No se pudo leer el evento en Luma/)
+      expect(event.reload.state).to eq("submitted")
+      expect(client.calendar).to be_empty
+    end
+
     it "refuses an event its host made private on Luma since importing it" do
       event = imported
       client.update_event(event.luma_event_api_id, visibility: "private")
