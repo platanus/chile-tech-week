@@ -8,7 +8,8 @@ module Luma
   # Cancelling would refund paid guests, which is decided on Luma, not from a button here.
   class PaidEvent < Error; end
 
-  # Luma's web API refused the site's account (403), after signing in again.
+  # Luma answered 403: the web API refused the site's account (after signing in again), or the
+  # public API's read-only route was asked for an event that is not public.
   class Forbidden < Error; end
 
   # The site's account is no longer a host of an imported event — the host took it out, so the site

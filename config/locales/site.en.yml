@@ -25,7 +25,7 @@ en:
           invalid_link: "That does not look like a Luma link. Paste your event's link, e.g. luma.com/my-event."
           not_found: "We could not find that event on Luma. Check the link."
           cancelled: "That event was cancelled on Luma."
-          private: "Your event is private. On Luma go to Manage → Event Page → Visibility, set it to Public and verify again."
+          private: "A private event cannot be imported. On Luma go to Manage → Event Page → Visibility, set it to Public and verify again."
           outside_week: "Your event does not fall within Chile Tech Week (%{week})."
           already_registered: "That event is already registered for Chile Tech Week."
           not_host: "You still need to add %{host_email} as a host of your event. On Luma go to Manage → Hosts → Add Host and verify again."

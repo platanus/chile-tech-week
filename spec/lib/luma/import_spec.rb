@@ -97,6 +97,13 @@ RSpec.describe Luma::Import do
     expect(described_class.new(luma.url, week: week, client: client, config: AppConfig.new(luma_host_user_id: "")).call).to be_ok
   end
 
+  it "reads Luma's 403 on the read-only route as a private event" do
+    luma = host_event
+    allow(client).to receive(:get_event_readonly).and_raise(Luma::Forbidden, "Luma API error (403) on /v1/events/get: You don’t have access to this event.")
+
+    expect(import(luma.url).error).to eq(:private)
+  end
+
   it "reports Luma being down instead of raising" do
     allow(client).to receive(:lookup_event_id).and_raise(Luma::Error, "timeout")
 

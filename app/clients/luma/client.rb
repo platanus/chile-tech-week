@@ -2,7 +2,7 @@ require "net/http"
 
 module Luma
   # The calls the site makes. Every method returns parsed JSON (or a Luma::Event) and raises
-  # Luma::Error on anything but 2xx (Luma::NotFound on 404).
+  # Luma::Error on anything but 2xx (Luma::NotFound on 404, Luma::Forbidden on 403).
   class Client
     BASE_URL = "https://public-api.luma.com/v1".freeze
     OPEN_TIMEOUT = 5
@@ -135,7 +135,10 @@ module Luma
       body = response.body.to_s
       unless response.is_a?(Net::HTTPSuccess)
         message = "Luma API error (#{response.code}) on #{path}: #{body.presence || "Unknown error"}"
-        raise (response.code == "404") ? NotFound.new(message) : Error.new(message)
+        raise NotFound, message if response.code == "404"
+        raise Forbidden, message if response.code == "403"
+
+        raise Error, message
       end
       body.present? ? JSON.parse(body) : {}
     rescue JSON::ParserError => e

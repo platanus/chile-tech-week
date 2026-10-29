@@ -26,7 +26,7 @@ es:
           invalid_link: "Ese link no parece de Luma. Pega el link de tu evento, por ejemplo luma.com/mi-evento."
           not_found: "No encontramos ese evento en Luma. Revisa el link."
           cancelled: "Ese evento fue cancelado en Luma."
-          private: "Tu evento es privado. En Luma ve a Manage → Event Page → Visibility, ponlo en Público y verifica de nuevo."
+          private: "No se puede importar un evento privado. En Luma ve a Manage → Event Page → Visibility, ponlo en Público y verifica de nuevo."
           outside_week: "Tu evento no cae dentro de la Chile Tech Week (%{week})."
           already_registered: "Ese evento ya está registrado en la Chile Tech Week."
           not_host: "Falta agregar a %{host_email} como administrador de tu evento. En Luma ve a Manage → Hosts → Add Host y verifica de nuevo."

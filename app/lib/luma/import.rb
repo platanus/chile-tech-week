@@ -54,6 +54,9 @@ module Luma
       Result.new(event: remote, error: nil)
     rescue NotFound => e
       failure(e.gone? ? :cancelled : :not_found)
+    # The read-only route answers 403 ("You don't have access to this event.") for a private event.
+    rescue Forbidden
+      failure(:private)
     rescue Error => e
       Rails.logger.error("Luma import failed for #{@url}: #{e.message}")
       failure(:unavailable)

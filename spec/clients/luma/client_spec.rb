@@ -143,6 +143,13 @@ RSpec.describe Luma::Client do
     expect { client.get_event("bad") }.to raise_error(Luma::Error, /500.*boom/)
   end
 
+  it "raises Luma::Forbidden when the read-only route will not show a private event" do
+    stub_request(:get, "https://public-api.luma.com/v1/events/get?event_id=evt-private")
+      .to_return(status: 403, body: {message: "You don’t have access to this event.", code: nil}.to_json)
+
+    expect { client.get_event_readonly("evt-private") }.to raise_error(Luma::Forbidden, /403.*access/)
+  end
+
   it "refuses to start without a key, and Luma.client falls back to the fake" do
     expect { described_class.new("") }.to raise_error(Luma::Error)
     expect(Luma.client).to be_a(Luma::FakeClient)
