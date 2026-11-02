@@ -88,6 +88,29 @@ RSpec.describe MirrorLumaCoverJob do
     expect(event.reload.cover).not_to be_attached
   end
 
+  it "takes Luma's heavier covers, which pass 5 MB" do
+    heavy = png + ("\0" * 7.megabytes)
+    stub_request(:get, url).to_return(status: 200, body: heavy, headers: {"Content-Type" => "image/png"})
+
+    described_class.perform_now(event.id, url)
+
+    expect(event.reload.cover).to be_attached
+    expect(event.cover.content_type).to eq("image/webp")
+  end
+
+  it "drops the copy of the previous cover when the new one cannot be mirrored, so the page shows Luma's" do
+    event.cover.attach(io: StringIO.new(png), filename: "old.webp", content_type: "image/webp")
+    event.cover_thumb.attach(io: StringIO.new(png), filename: "old-thumb.webp", content_type: "image/webp")
+    stub_request(:get, url).to_return(status: 403, body: "no")
+
+    described_class.perform_now(event.id, url)
+
+    expect(event.reload.cover).not_to be_attached
+    expect(event.cover_thumb).not_to be_attached
+    expect(event.cover_image_url).to eq(url)
+    expect(event.cover_thumb_url).to eq(url)
+  end
+
   it "does nothing when the event moved on to another cover, or is gone" do
     stub_request(:get, url)
 

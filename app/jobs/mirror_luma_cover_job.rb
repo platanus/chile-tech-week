@@ -2,17 +2,19 @@ require "net/http"
 
 # Keeps our own copy of the cover a host set on Luma: the programme shows the mirrored image
 # instead of hotlinking images.lumacdn.com, which may block us or move the file. Enqueued by
-# Luma::Sync whenever an event's `luma_cover_url` changes. Failure is logged and dropped —
-# `Event#cover_image_url` falls back to Luma's URL, so a missed mirror only costs the copy.
+# Luma::Sync whenever an event's `luma_cover_url` changes. Failure is logged and dropped, and
+# the copy of the previous cover is purged with it — `Event#cover_image_url` then falls back to
+# Luma's URL, so a missed mirror only costs the copy, never shows an outdated picture (the sync
+# will not retry: the URL it stored already matches Luma's).
 #
-# Luma's covers are 2048-pixel PNGs of ~2 MB; the site shows them at 1200 pixels at most (the
+# Luma's covers are 2048-pixel PNGs of ~2 MB, sometimes over 7; the site shows them at 1200 pixels at most (the
 # event page) and at ~100 in the programme. So two WebP copies are stored instead of the file:
 # `cover` (the page) and `cover_thumb` (the programme's cards, at twice their size).
 class MirrorLumaCoverJob < ApplicationJob
   COVER_SIZE = 1200
   THUMB_SIZE = 360
   WEBP_QUALITY = 80
-  MAX_BYTES = 5.megabytes
+  MAX_BYTES = 25.megabytes
   MAX_REDIRECTS = 3
   OPEN_TIMEOUT = 5
   READ_TIMEOUT = 20
@@ -24,13 +26,18 @@ class MirrorLumaCoverJob < ApplicationJob
     return if event.luma_cover_url != url
 
     image = fetch(url)
-    return if image.nil?
+    return drop_stale_copy(event) if image.nil?
 
     attach(event, image, url)
     Rails.logger.info("Mirrored Luma cover for event #{event.id} (#{image[:body].bytesize} bytes)")
   end
 
   private
+
+  def drop_stale_copy(event)
+    event.cover.purge if event.cover.attached?
+    event.cover_thumb.purge if event.cover_thumb.attached?
+  end
 
   # The two WebP copies; when the file cannot be resized (an odd format), the original is kept as
   # the cover and the programme falls back to it.
