@@ -4,7 +4,14 @@ class EventResource < ApplicationResource
   typelize_from Event
 
   attributes :id, :title, :description, :company_name, :company_website, :company_logo_url,
-    :starts_at, :ends_at, :address, :commune, :format, :capacity
+    :starts_at, :ends_at, :commune, :format, :capacity
+
+  # Nil when only the host's approved guests may know it (Event#address_private?).
+  typelize :string?
+  attribute :address, &:public_address
+
+  typelize :boolean
+  attribute :address_private, &:address_private?
 
   typelize :string?
   attribute :public_url do |event|

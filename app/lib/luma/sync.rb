@@ -56,7 +56,16 @@ module Luma
 
     def apply(event, remote, notify:)
       outcome = mirror(event, remote, notify:)
+      mirror_guest_access(event, remote)
       mirror_visibility(event, remote.visibility, notify:) || outcome
+    end
+
+    # Whether guests need the host's approval, and whether Luma shows the address to guests
+    # alone: either keeps the address off the public pages (Event#address_private?). Silent —
+    # nobody is told, the site just follows Luma.
+    def mirror_guest_access(event, remote)
+      access = {luma_require_approval: remote.require_approval, luma_location_visibility: remote.location_visibility}.compact
+      event.update!(access) if access.any? { |column, value| event[column] != value }
     end
 
     def mirror(event, remote, notify:)

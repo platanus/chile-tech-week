@@ -59,7 +59,8 @@ module Luma
       event = Event.new(api_id: api_id, name: attributes[:name], start_at: attributes[:start_at], end_at: attributes[:end_at],
         url: "https://luma.com/fake-#{SecureRandom.alphanumeric(8).downcase}", visibility: attributes.fetch(:visibility, "private"),
         cover_url: attributes[:cover_url].presence || "https://images.lumacdn.com/fake/#{api_id}-cover.png",
-        description_md: attributes[:description_md])
+        description_md: attributes[:description_md], require_approval: attributes.fetch(:require_approval, false),
+        location_visibility: attributes.fetch(:location_visibility, "public"))
       @events[api_id] = event
       Rails.logger.info("Luma::FakeClient created #{api_id} (#{event.url})")
       event
@@ -68,7 +69,8 @@ module Luma
     def update_event(api_id, attributes)
       event = get_event(api_id)
       # `cover_url` too: a host swapping the artwork on Luma is what Luma::Sync mirrors.
-      @events[api_id] = event.with(**attributes.slice(:name, :start_at, :end_at, :visibility, :url, :cover_url, :description_md))
+      @events[api_id] = event.with(**attributes.slice(:name, :start_at, :end_at, :visibility, :url, :cover_url, :description_md,
+        :require_approval, :location_visibility))
       {"event_api_id" => api_id}
     end
 

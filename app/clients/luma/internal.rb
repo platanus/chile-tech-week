@@ -41,17 +41,21 @@ module Luma
     # a host; Luma answers 403 otherwise (NotHost). A cancelled event raises NotFound, like the
     # public API.
     def get_event(api_id)
-      event = begin
-        get("/event/admin/get", event_api_id: api_id).fetch("event")
+      body = begin
+        get("/event/admin/get", event_api_id: api_id)
       rescue Forbidden => e
         config = AppConfig.instance
         raise NotHost, "#{config.luma_host_email} (#{config.luma_host_user_id.presence || "sin LUMA_HOST_USER_ID"}) ya no es host " \
           "de #{api_id} en Luma: el host lo sacó del evento. Pídele que lo vuelva a agregar como host o da de baja el evento. " \
           "Luma respondió: #{e.message}"
       end
+      event = body.fetch("event")
+      # The web API keeps approval on each ticket type: one a guest can pick that needs it is enough.
+      tickets = Array(body["ticket_types"]).reject { |ticket| ticket["is_hidden"] }
       Event.new(api_id: event.fetch("api_id"), name: event["name"], start_at: event["start_at"], end_at: event["end_at"],
         url: event["url"].presence && "https://luma.com/#{event["url"]}", visibility: event["visibility"],
-        cover_url: event["cover_url"], description_md: Markdown.from_mirror(event["description_mirror"]))
+        cover_url: event["cover_url"], description_md: Markdown.from_mirror(event["description_mirror"]),
+        require_approval: tickets.any? { |ticket| ticket["require_approval"] }, location_visibility: event["geo_address_visibility"])
     rescue KeyError
       raise Error, "Luma devolvió un evento inválido para #{api_id}."
     end

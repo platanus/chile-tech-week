@@ -25,6 +25,22 @@ RSpec.describe Luma::Sync do
     expect(event.reload).to have_attributes(title: "Demo Night", starts_at: Time.zone.parse("2026-11-18T22:00:00Z"))
   end
 
+  it "follows whether the host approves guests or shows the address to guests alone, silently" do
+    event = linked(state: "published")
+    client.update_event(event.luma_event_api_id, require_approval: true)
+
+    expect { described_class.new(client: client).call }.not_to have_enqueued_mail
+    expect(event.reload).to have_attributes(luma_require_approval: true, luma_location_visibility: "public", address_private?: true)
+
+    client.update_event(event.luma_event_api_id, require_approval: false, location_visibility: "guests-only")
+    described_class.new(client: client).call
+    expect(event.reload).to have_attributes(luma_require_approval: false, luma_location_visibility: "guests-only", address_private?: true)
+
+    client.update_event(event.luma_event_api_id, location_visibility: "public")
+    described_class.new(client: client).call
+    expect(event.reload.address_private?).to be(false)
+  end
+
   it "stores new artwork from Luma, mirrors it, and does not write to the host about it" do
     event = linked(state: "published")
     client.update_event(event.luma_event_api_id, cover_url: "https://images.lumacdn.com/new-artwork.png")

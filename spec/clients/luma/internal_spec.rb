@@ -106,6 +106,26 @@ RSpec.describe Luma::Internal do
         description_md: "## Agenda\n\n**Panel**")
     end
 
+    it "reads whether a guest needs approval from the ticket types they can pick, and who sees the address" do
+      stub_sign_in
+      stub_request(:get, event_url).with(query: {event_api_id: "evt-1"}).to_return(body: {
+        event: {api_id: "evt-1", geo_address_visibility: "guests-only"},
+        ticket_types: [{is_hidden: false, require_approval: true}, {is_hidden: true, require_approval: false}]
+      }.to_json)
+
+      expect(internal.get_event("evt-1")).to have_attributes(require_approval: true, location_visibility: "guests-only")
+    end
+
+    it "ignores a hidden ticket type that needs approval" do
+      stub_sign_in
+      stub_request(:get, event_url).with(query: {event_api_id: "evt-1"}).to_return(body: {
+        event: {api_id: "evt-1", geo_address_visibility: "public"},
+        ticket_types: [{is_hidden: false, require_approval: false}, {is_hidden: true, require_approval: true}]
+      }.to_json)
+
+      expect(internal.get_event("evt-1")).to have_attributes(require_approval: false, location_visibility: "public")
+    end
+
     it "raises NotFound for an event cancelled on Luma" do
       stub_sign_in
       stub_request(:get, event_url).with(query: {event_api_id: "evt-1"})

@@ -36,15 +36,21 @@ module Luma
   #
   # `/events/get` (the read-only route, which answers for any event) names the id `id` and also
   # lists the `hosts` ({"id", "name"}).
-  Event = Data.define(:api_id, :name, :start_at, :end_at, :url, :visibility, :cover_url, :description_md, :hosts) do
-    def initialize(api_id:, name: nil, start_at: nil, end_at: nil, url: nil, visibility: nil, cover_url: nil, description_md: nil, hosts: [])
+  #
+  # `require_approval` (the host approves each guest) and `location_visibility` ("public", or
+  # "guests-only" when Luma shows the address to registered guests alone) decide whether the
+  # site may print the address (Event#address_private?). Nil when the source did not say.
+  Event = Data.define(:api_id, :name, :start_at, :end_at, :url, :visibility, :cover_url, :description_md, :hosts,
+    :require_approval, :location_visibility) do
+    def initialize(api_id:, name: nil, start_at: nil, end_at: nil, url: nil, visibility: nil, cover_url: nil, description_md: nil, hosts: [],
+      require_approval: nil, location_visibility: nil)
       super
     end
 
     def self.from_api(hash)
       new(api_id: hash["api_id"] || hash["id"], name: hash["name"], start_at: hash["start_at"], end_at: hash["end_at"],
         url: hash["url"], visibility: hash["visibility"], cover_url: hash["cover_url"], description_md: hash["description_md"],
-        hosts: Array(hash["hosts"]))
+        hosts: Array(hash["hosts"]), require_approval: hash["require_approval"], location_visibility: hash["location_visibility"])
     end
 
     def host_ids

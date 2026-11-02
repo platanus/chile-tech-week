@@ -19,6 +19,7 @@ const COPY = copy(
     topics: 'Temas',
     register: 'Inscribirse',
     about: 'Acerca del evento',
+    privateAddress: 'Dirección exacta solo para invitados aprobados',
   },
   {
     back: 'All events',
@@ -30,6 +31,7 @@ const COPY = copy(
     topics: 'Topics',
     register: 'Register',
     about: 'About the event',
+    privateAddress: 'Exact address for approved guests only',
   },
 );
 
@@ -88,7 +90,7 @@ export default function Show({ title, description, opengraphImageUrl, event }: P
             </div>
             <div className="event-fact">
               <div className="event-location-icon"><MapPin size={27} aria-hidden="true" /></div>
-              <div><p className="event-fact-title">{event.commune}</p><p className="event-fact-detail">{event.address ?? 'Chile'}</p></div>
+              <div><p className="event-fact-title">{event.commune}</p><p className="event-fact-detail">{event.address ?? (event.addressPrivate ? t.privateAddress : 'Chile')}</p></div>
             </div>
           </div>
           {event.lumaEventUrl && (

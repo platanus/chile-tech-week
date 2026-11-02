@@ -20,6 +20,39 @@ RSpec.describe "public event pages" do
     }
   end
 
+  it "names only the commune when the host approves each guest, everywhere the public reads" do
+    event = create(:event, :published, edition: 2026, title: "Demo Day", address: "Av. Apoquindo 1234", commune: "Las Condes",
+      latitude: -33.41, longitude: -70.58, luma_require_approval: true)
+
+    get public_event_path(slug: event.slug)
+
+    expect(inertia).to have_props { |props|
+      expect(props[:event]).to include("address" => nil, "addressPrivate" => true, "commune" => "Las Condes")
+    }
+    expect(response.body).not_to include("Apoquindo", "-33.41")
+    expect(structured_node("SocialEvent")["location"]).to eq("@type" => "Place", "name" => "Las Condes",
+      "address" => {"@type" => "PostalAddress", "addressLocality" => "Las Condes", "addressCountry" => "CL"})
+
+    get "/#{event.slug}.md"
+    expect(response.body).to include("Las Condes, Chile")
+    expect(response.body).not_to include("Apoquindo")
+
+    get events_path
+    expect(response.body).not_to include("Apoquindo")
+  end
+
+  it "keeps the address private when Luma shows it to registered guests alone" do
+    event = create(:event, :published, address: "Av. Apoquindo 1234", luma_location_visibility: "guests-only")
+    get public_event_path(slug: event.slug)
+    expect(inertia).to have_props { |props| props[:event][:address].nil? && props[:event][:addressPrivate] }
+  end
+
+  it "shows the address of an event open to anyone" do
+    event = create(:event, :published, address: "Av. Apoquindo 1234", luma_location_visibility: "public")
+    get public_event_path(slug: event.slug)
+    expect(inertia).to have_props { |props| props[:event][:address] == "Av. Apoquindo 1234" && !props[:event][:addressPrivate] }
+  end
+
   it "uses the summary before the first sync, but respects an explicitly cleared body" do
     event = create(:event, :published, description: "Short summary")
     get public_event_path(slug: event.slug)

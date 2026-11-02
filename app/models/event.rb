@@ -104,8 +104,21 @@ class Event < ApplicationRecord
     assign_attributes(
       title: remote.name, starts_at: Time.zone.parse(remote.start_at.to_s), ends_at: Time.zone.parse(remote.end_at.to_s),
       luma_event_api_id: remote.api_id, luma_event_url: remote.url, luma_cover_url: remote.cover_url,
-      luma_description_md: remote.description_md, luma_imported_at: Time.current
+      luma_description_md: remote.description_md, luma_imported_at: Time.current,
+      luma_require_approval: remote.require_approval || false, luma_location_visibility: remote.location_visibility
     )
+  end
+
+  # The address is only for the guests the host lets in: when they approve each guest on Luma,
+  # or Luma shows the place to registered guests alone, the public pages name the commune and
+  # nothing more — a public address would bring people who were never accepted to the door.
+  def address_private?
+    luma_require_approval || luma_location_visibility == "guests-only"
+  end
+
+  # The address the public pages may print (nil when it is private).
+  def public_address
+    address.presence unless address_private?
   end
 
   # "Mesa redonda / Taller", "Roundtable / Workshop": the format as the site names it.

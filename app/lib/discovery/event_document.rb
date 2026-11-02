@@ -37,7 +37,7 @@ module Discovery
       week = @event.week
       [
         ["Cuándo", Discovery.schedule_label(@event.starts_at, @event.ends_at)],
-        ["Dónde", "#{@event.address.presence || @event.commune}, Chile"],
+        ["Dónde", "#{@event.public_address || @event.commune}, Chile"],
         ["Formato", @event.format_label],
         ["Organiza", organizers],
         ["Temas", @event.themes.map(&:name).join(", ").presence],
