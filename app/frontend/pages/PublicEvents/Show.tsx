@@ -77,7 +77,7 @@ export default function Show({ title, description, opengraphImageUrl, event }: P
             </a>
             {event.cohosts.map((host) => <div className="event-organizer-row" key={host.id}><OrganizerIcon src={host.companyLogoUrl} name={host.companyName} /><span>{host.companyName}</span></div>)}
           </section>
-          {event.lumaEventUrl && <a className="event-external-link" href={event.lumaEventUrl} target="_blank" rel="noopener noreferrer">{t.luma}<ArrowUpRight size={17} /></a>}
+          {event.lumaEventUrl && event.registrationUrl === event.lumaEventUrl && <a className="event-external-link" href={event.lumaEventUrl} target="_blank" rel="noopener noreferrer">{t.luma}<ArrowUpRight size={17} /></a>}
           <div className="event-tags" aria-label={t.topics}>{event.themes.map((theme) => <span key={theme.id}># {theme.name}</span>)}</div>
         </aside>
 
@@ -93,8 +93,8 @@ export default function Show({ title, description, opengraphImageUrl, event }: P
               <div><p className="event-fact-title">{event.commune}</p><p className="event-fact-detail">{event.address ?? (event.addressPrivate ? t.privateAddress : 'Chile')}</p></div>
             </div>
           </div>
-          {event.lumaEventUrl && (
-            <a className="event-register" href={event.lumaEventUrl} target="_blank" rel="noopener noreferrer">
+          {event.registrationUrl && (
+            <a className="event-register" href={event.registrationUrl} target="_blank" rel="noopener noreferrer">
               {t.register}<ArrowUpRight size={18} aria-hidden="true" />
             </a>
           )}

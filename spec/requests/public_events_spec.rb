@@ -41,6 +41,16 @@ RSpec.describe "public event pages" do
     expect(response.body).not_to include("Apoquindo")
   end
 
+  it "sends the register button to the event's own URL over its Luma page" do
+    event = create(:event, :published, luma_event_url: "https://luma.com/x", custom_url: "https://acme.cl/evento")
+
+    get public_event_path(slug: event.slug)
+
+    expect(inertia).to have_props { |props|
+      expect(props[:event]).to include("registrationUrl" => "https://acme.cl/evento", "lumaEventUrl" => "https://luma.com/x")
+    }
+  end
+
   it "keeps the address private when Luma shows it to registered guests alone" do
     event = create(:event, :published, address: "Av. Apoquindo 1234", luma_location_visibility: "guests-only")
     get public_event_path(slug: event.slug)
