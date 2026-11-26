@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { placeOf, rank, typedNumberOf } from './address-input';
+import { placeOf, rank, typedNumberOf, withoutHouseNumber } from './address-input';
 
 const feature = (properties: Record<string, string>, coordinates: [number, number] = [-70.61, -33.42]) => ({ geometry: { coordinates }, properties });
 
@@ -39,6 +39,13 @@ describe('placeOf', () => {
     expect(typedNumberOf('wework apoquindo')).toBeUndefined();
     expect(typedNumberOf('21 de mayo 500 arica', '21 de Mayo')).toBe('500');
     expect(typedNumberOf('avenida 10 de julio', 'Avenida 10 de Julio')).toBeUndefined();
+    expect(typedNumberOf('calle 14b ñuñoa', 'Calle 14B')).toBeUndefined();
+    expect(typedNumberOf('calle 14b 250 ñuñoa', 'Calle 14B')).toBe('250');
+  });
+  it('strips the house number rather than the date in a street name when both match', () => {
+    expect(withoutHouseNumber('21 de mayo 21 arica')).toBe('21 de mayo arica');
+    expect(withoutHouseNumber('18 de septiembre 18')).toBe('18 de septiembre');
+    expect(withoutHouseNumber('wework apoquindo')).toBe('');
   });
   it('uses the name of a street result as its street, and drops results without a commune', () => {
     expect(placeOf(feature({ type: 'street', name: 'Avenida Providencia', city: 'Providencia' }))?.address).toBe('Avenida Providencia, Providencia');
