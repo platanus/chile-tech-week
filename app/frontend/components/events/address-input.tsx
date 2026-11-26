@@ -38,9 +38,22 @@ export function communeOf({ city, district }: PhotonFeature['properties']) {
 // last number that is not part of the street's own name, since so many Chilean streets are
 // dates ("21 de Mayo 500" → "500", not "21").
 export function typedNumberOf(query: string, streetName = '') {
-  const inName = new Set(streetName.match(/\d+[a-z]?/gi) ?? []);
+  const inName = new Set((streetName.match(/\d+[a-z]?/gi) ?? []).map((token) => token.toLowerCase()));
   const numbers = [...query.matchAll(/(?:^|\s)(\d{1,5}[a-z]?)(?=\s|,|$)/gi)].map((match) => match[1]);
-  return numbers.filter((number) => !inName.has(number)).at(-1);
+  return numbers.filter((number) => !inName.has(number.toLowerCase())).at(-1);
+}
+
+// Strips the trailing house number token picked by `typedNumberOf` (not an earlier identical
+// number in a date-named street such as "21 de Mayo 21").
+export function withoutHouseNumber(query: string) {
+  const number = typedNumberOf(query);
+  if (!number) return '';
+  const escaped = number.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const matches = [...query.matchAll(new RegExp(`(^|\\s)(${escaped})(?=\\s|,|$)`, 'gi'))];
+  const last = matches.at(-1);
+  if (!last || last.index === undefined) return '';
+  const tokenStart = last.index + last[1].length;
+  return `${query.slice(0, tokenStart)} ${query.slice(tokenStart + last[2].length)}`.replace(/\s+/g, ' ').trim();
 }
 
 // Only the numbers somebody mapped exist in OSM — most of Santiago has a handful per street —
@@ -118,8 +131,7 @@ export function rank(query: string, ...responses: PhotonFeature[][]) {
 }
 
 async function search(query: string, signal: AbortSignal) {
-  const number = typedNumberOf(query);
-  const withoutNumber = number ? query.replace(new RegExp(`(^|\\s)${number}(?=\\s|,|$)`), ' ').trim() : '';
+  const withoutNumber = withoutHouseNumber(query);
   const [nearSantiago, anywhere, street] = await Promise.all([
     photon(query, signal, true),
     photon(query, signal, false),
